@@ -3,8 +3,8 @@
 This is a FHIR server reference implementation of the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management).  It is built on the [WildFHIR Community Edition](https://github.com/AEGISnetInc/WildFHIR) project and more detailed configuration information can be found in that repository.
 
 ## Foundry
-> [!INFORMATION]
-> A live demo will be hosted by [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
+> [!NOTE]
+> **TBD** A live demo will be hosted by [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
 
 ## Prerequisites
 Building and running the server locally requires either Docker or
