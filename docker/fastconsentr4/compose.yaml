@@ -1,0 +1,27 @@
+services:
+  fastconsentr4-mysql80:
+    image: aegisnetinc/fastconsentr4-mysql80:0.1.0
+    container_name: fastconsentr4-mysql80
+    hostname: fastconsentr4-mysql80
+    ports:
+      - "3306:3306"
+    volumes:
+      - fastconsentr4-mysql80-data:/var/lib/mysql
+
+  fastconsentr4-wildfly:
+    image: aegisnetinc/fastconsentr4-wildfly:0.1.0
+    environment:
+      - WILDFHIR_RESOURCEPURGEALLENABLED=true
+      - WILDFHIR_DATABASE_HOST=fastconsentr4-mysql80
+      - FHIR_PACKAGES=hl7.fhir.us.core#6.1.0
+    container_name: fastconsentr4-wildfly
+    hostname: fastconsentr4-wildfly
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "9990:9990"
+    depends_on:
+      - fastconsentr4-mysql80
+
+volumes:
+  fastconsentr4-mysql80-data:

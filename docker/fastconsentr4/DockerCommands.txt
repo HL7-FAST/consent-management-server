@@ -1,0 +1,43 @@
+# -------------------------------------------------------------------------------
+# Set up named compose project fastconsentr4-wildfly-mysql80
+# - This will show up in Docker Desktop
+# - Uses compose.yaml in current directory/folder
+# -------------------------------------------------------------------------------
+docker compose -p fastconsentr4-wildfly-mysql80 create
+
+=================================================================================
+
+# -------------------------------------------------------------------------------
+# Create docker bridge network fastconsentr4-net
+# - This is needed for container-container communication
+# -------------------------------------------------------------------------------
+docker network create -d bridge fastconsentr4-net
+
+# -------------------------------------------------------------------------------
+# Create and run wildfhirce-mysql image
+# - From tag 0.1.0
+# - Using the bridge network fastconsentr4-net
+# - Expose port 3306 for MySQL Workbench access
+# -------------------------------------------------------------------------------
+docker run --network=fastconsentr4-net -itd -p 3306:3306 --name=fastconsentr4-mysql80 aegisnetinc/fastconsentr4-mysql80:0.1.0
+
+# -------------------------------------------------------------------------------
+# Run fastconsentr4-mysql80 container
+# - Uses fastconsentr4-mysql80 container created from run command above
+# -------------------------------------------------------------------------------
+docker start fastconsentr4-mysql80
+
+# -------------------------------------------------------------------------------
+# Create and run fastconsentr4-wildfly image
+# - From tag 0.1.0
+# - Using the bridge network fastconsentr4-net
+# - Define WildFHIR environment variable file
+# - Expose ports 80, 443, 9990 for browser and RESTful client access
+# -------------------------------------------------------------------------------
+docker run --network=fastconsentr4-net -itd -p 80:80 -p 443:443 -p 9990:9990 --env-file env.list --name=fastconsentr4-wildfly aegisnetinc/fastconsentr4-wildfly:0.1.0
+
+# -------------------------------------------------------------------------------
+# Run fastconsentr4-wildfly container
+# - Uses fastconsentr4-wildfly container created from run command above
+# -------------------------------------------------------------------------------
+docker start fastconsentr4-wildfly

@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<CapabilityStatement xmlns="http://hl7.org/fhir">
+	<id value="ConsentAdministrativeServerCapabilities"/>
+	<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-wg">
+		<valueCode value="cbcc"/>
+	</extension>
+	<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-fmm">
+		<valueInteger value="1">
+			<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-conformance-derivedFrom">
+				<valueCanonical value="http://hl7.org/fhir/us/consent-management/ImplementationGuide/hl7.fhir.us.consent-management"/>
+			</extension>
+		</valueInteger>
+	</extension>
+	<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status">
+		<valueCode value="trial-use">
+			<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-conformance-derivedFrom">
+				<valueCanonical value="http://hl7.org/fhir/us/consent-management/ImplementationGuide/hl7.fhir.us.consent-management"/>
+			</extension>
+		</valueCode>
+	</extension>
+	<url value="http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities"/>
+	<version value="0.1.0"/>
+	<name value="ConsentAdministrativeServer"/>
+	<title value="Consent Administrative Server Capabilities"/>
+	<status value="active"/>
+	<experimental value="false"/>
+	<date value="2025-01-01"/>
+	<publisher value="HL7 International / Community Based Collaborative Care"/>
+	<contact>
+		<name value="HL7 International / Community Based Collaborative Care"/>
+		<telecom>
+			<system value="url"/>
+			<value value="http://www.hl7.org/Special/committees/cbcc"/>
+		</telecom>
+	</contact>
+	<description value="Capabilities required for a server system receiving consents."/>
+	<jurisdiction>
+		<coding>
+			<system value="urn:iso:std:iso:3166"/>
+			<code value="US"/>
+			<display value="United States of America"/>
+		</coding>
+	</jurisdiction>
+	<kind value="requirements"/>
+	<fhirVersion value="4.0.1"/>
+	<format value="json"/>
+	<format value="xml"/>
+	<implementationGuide value="http://hl7.org/fhir/us/consent-management/ImplementationGuide/hl7.fhir.us.consent-management"/>
+	<rest>
+		<mode value="server"/>
+		<resource>
+			<type value="AuditEvent"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/AuditEvent"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="action"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-action"/>
+				<type value="token"/>
+				<documentation value="Type of action performed during the event"/>
+			</searchParam>
+			<searchParam>
+				<name value="address"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-address"/>
+				<type value="string"/>
+				<documentation value="Identifier for the network access point of the user device"/>
+			</searchParam>
+			<searchParam>
+				<name value="agent"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-agent"/>
+				<type value="reference"/>
+				<documentation value="Identifier of who"/>
+			</searchParam>
+			<searchParam>
+				<name value="agent-name"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-agent-name"/>
+				<type value="string"/>
+				<documentation value="Human friendly name for the agent"/>
+			</searchParam>
+			<searchParam>
+				<name value="agent-role"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-agent-role"/>
+				<type value="token"/>
+				<documentation value="Agent role in the event"/>
+			</searchParam>
+			<searchParam>
+				<name value="altid"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-altid"/>
+				<type value="token"/>
+				<documentation value="Alternative User identity"/>
+			</searchParam>
+			<searchParam>
+				<name value="date"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-date"/>
+				<type value="date"/>
+				<documentation value="Time when the event was recorded"/>
+			</searchParam>
+			<searchParam>
+				<name value="entity"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-entity"/>
+				<type value="reference"/>
+				<documentation value="Specific instance of resource"/>
+			</searchParam>
+			<searchParam>
+				<name value="entity-name"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-entity-name"/>
+				<type value="string"/>
+				<documentation value="Descriptor for entity"/>
+			</searchParam>
+			<searchParam>
+				<name value="entity-role"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-entity-role"/>
+				<type value="token"/>
+				<documentation value="What role the entity played"/>
+			</searchParam>
+			<searchParam>
+				<name value="entity-type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-entity-type"/>
+				<type value="token"/>
+				<documentation value="Type of entity involved"/>
+			</searchParam>
+			<searchParam>
+				<name value="outcome"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-outcome"/>
+				<type value="token"/>
+				<documentation value="Whether the event succeeded or failed"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-patient"/>
+				<type value="reference"/>
+				<documentation value="Identifier of who"/>
+			</searchParam>
+			<searchParam>
+				<name value="policy"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-policy"/>
+				<type value="uri"/>
+				<documentation value="Policy that authorized event"/>
+			</searchParam>
+			<searchParam>
+				<name value="site"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-site"/>
+				<type value="token"/>
+				<documentation value="Logical source location within the enterprise"/>
+			</searchParam>
+			<searchParam>
+				<name value="source"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-source"/>
+				<type value="reference"/>
+				<documentation value="The identity of source detecting the event"/>
+			</searchParam>
+			<searchParam>
+				<name value="subtype"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-subtype"/>
+				<type value="token"/>
+				<documentation value="More specific type/id for the event"/>
+			</searchParam>
+			<searchParam>
+				<name value="type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-type"/>
+				<type value="token"/>
+				<documentation value="Type/identifier of event"/>
+			</searchParam>
+		</resource>
+		<resource>
+			<type value="Consent"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/Consent"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsent"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="vread"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-instance"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="action"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-action"/>
+				<type value="token"/>
+				<documentation value="Actions controlled by this rule"/>
+			</searchParam>
+			<searchParam>
+				<name value="actor"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-actor"/>
+				<type value="reference"/>
+				<documentation value="Resource for the actor (or group, by role)"/>
+			</searchParam>
+			<searchParam>
+				<name value="category"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-category"/>
+				<type value="token"/>
+				<documentation value="Classification of the consent statement - for indexing/retrieval"/>
+			</searchParam>
+			<searchParam>
+				<name value="consentor"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-consentor"/>
+				<type value="reference"/>
+				<documentation value="Who is agreeing to the policy and rules"/>
+			</searchParam>
+			<searchParam>
+				<name value="data"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-data"/>
+				<type value="reference"/>
+				<documentation value="The actual data reference"/>
+			</searchParam>
+			<searchParam>
+				<name value="date"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-date"/>
+				<type value="date"/>
+				<documentation value="When this Consent was created or indexed"/>
+			</searchParam>
+			<searchParam>
+				<name value="identifier"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-identifier"/>
+				<type value="token"/>
+				<documentation value="Identifier for this record (external references)"/>
+			</searchParam>
+			<searchParam>
+				<name value="organization"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-organization"/>
+				<type value="reference"/>
+				<documentation value="Custodian of the consent"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-patient"/>
+				<type value="reference"/>
+				<documentation value="Who the consent applies to"/>
+			</searchParam>
+			<searchParam>
+				<name value="period"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-period"/>
+				<type value="date"/>
+				<documentation value="Timeframe for this rule"/>
+			</searchParam>
+			<searchParam>
+				<name value="purpose"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-purpose"/>
+				<type value="token"/>
+				<documentation value="Context of activities covered by this rule"/>
+			</searchParam>
+			<searchParam>
+				<name value="scope"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-scope"/>
+				<type value="token"/>
+				<documentation value="Which of the four areas this resource covers (extensible)"/>
+			</searchParam>
+			<searchParam>
+				<name value="security-label"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-security-label"/>
+				<type value="token"/>
+				<documentation value="Security Labels that define affected resources"/>
+			</searchParam>
+			<searchParam>
+				<name value="source-reference"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-source-reference"/>
+				<type value="reference"/>
+				<documentation value="Search by reference to a Consent, DocumentReference, Contract	or QuestionnaireResponse"/>
+			</searchParam>
+			<searchParam>
+				<name value="status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Consent-status"/>
+				<type value="token"/>
+				<documentation value="draft | proposed | active | rejected | inactive | entered-in-error"/>
+			</searchParam>
+			<operation>
+				<name value="fileConsent"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent"/>
+			</operation>
+			<operation>
+				<name value="recordDisclosure"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure"/>
+			</operation>
+			<operation>
+				<name value="revokeConsent"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent"/>
+			</operation>
+			<operation>
+				<name value="updateConsent"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent"/>
+			</operation>
+		</resource>
+		<resource>
+			<type value="DocumentReference"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/DocumentReference"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="authenticator"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-authenticator"/>
+				<type value="reference"/>
+				<documentation value="Who/what authenticated the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="author"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-author"/>
+				<type value="reference"/>
+				<documentation value="Who and/or what authored the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="category"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-category"/>
+				<type value="token"/>
+				<documentation value="Categorization of document"/>
+			</searchParam>
+			<searchParam>
+				<name value="contenttype"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-contenttype"/>
+				<type value="token"/>
+				<documentation value="Mime type of the content, with charset etc."/>
+			</searchParam>
+			<searchParam>
+				<name value="custodian"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-custodian"/>
+				<type value="reference"/>
+				<documentation value="Organization which maintains the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="date"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-date"/>
+				<type value="date"/>
+				<documentation value="When this document reference was created"/>
+			</searchParam>
+			<searchParam>
+				<name value="description"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-description"/>
+				<type value="string"/>
+				<documentation value="Human-readable description"/>
+			</searchParam>
+			<searchParam>
+				<name value="encounter"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-encounter"/>
+				<type value="reference"/>
+				<documentation value="Context of the document	content"/>
+			</searchParam>
+			<searchParam>
+				<name value="event"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-event"/>
+				<type value="token"/>
+				<documentation value="Main clinical acts documented"/>
+			</searchParam>
+			<searchParam>
+				<name value="facility"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-facility"/>
+				<type value="token"/>
+				<documentation value="Kind of facility where patient was seen"/>
+			</searchParam>
+			<searchParam>
+				<name value="format"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-format"/>
+				<type value="token"/>
+				<documentation value="Format/content rules for the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="identifier"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-identifier"/>
+				<type value="token"/>
+				<documentation value="Master Version Specific Identifier"/>
+			</searchParam>
+			<searchParam>
+				<name value="language"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-language"/>
+				<type value="token"/>
+				<documentation value="Human language of the content (BCP-47)"/>
+			</searchParam>
+			<searchParam>
+				<name value="location"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-location"/>
+				<type value="uri"/>
+				<documentation value="Uri where the data can be found"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-patient"/>
+				<type value="reference"/>
+				<documentation value="Who/what is the subject of the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="period"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-period"/>
+				<type value="date"/>
+				<documentation value="Time of service that is being documented"/>
+			</searchParam>
+			<searchParam>
+				<name value="related"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-related"/>
+				<type value="reference"/>
+				<documentation value="Related identifiers or resources"/>
+			</searchParam>
+			<searchParam>
+				<name value="relatesto"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-relatesto"/>
+				<type value="reference"/>
+				<documentation value="Target of the relationship"/>
+			</searchParam>
+			<searchParam>
+				<name value="relation"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-relation"/>
+				<type value="token"/>
+				<documentation value="replaces | transforms | signs | appends"/>
+			</searchParam>
+			<searchParam>
+				<name value="relationship"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-relationship"/>
+				<type value="composite"/>
+				<documentation value="Combination of relation and relatesTo"/>
+			</searchParam>
+			<searchParam>
+				<name value="security-label"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-security-label"/>
+				<type value="token"/>
+				<documentation value="Document security-tags"/>
+			</searchParam>
+			<searchParam>
+				<name value="setting"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-setting"/>
+				<type value="token"/>
+				<documentation value="Additional details about where the content was created (e.g. clinical specialty)"/>
+			</searchParam>
+			<searchParam>
+				<name value="status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-status"/>
+				<type value="token"/>
+				<documentation value="current | superseded | entered-in-error"/>
+			</searchParam>
+			<searchParam>
+				<name value="subject"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/DocumentReference-subject"/>
+				<type value="reference"/>
+				<documentation value="Who/what is the subject of the document"/>
+			</searchParam>
+			<searchParam>
+				<name value="type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/clinical-type"/>
+				<type value="token"/>
+				<documentation value="Kind of document (LOINC if possible)"/>
+			</searchParam>
+		</resource>
+		<resource>
+			<type value="Parameters"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/Parameters"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/UpdateConsentParameters"/>
+		</resource>
+		<resource>
+			<type value="Provenance"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/Provenance"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentProvenance"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="vread"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-instance"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="agent"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-agent"/>
+				<type value="reference"/>
+				<documentation value="Who participated"/>
+			</searchParam>
+			<searchParam>
+				<name value="agent-role"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-agent-role"/>
+				<type value="token"/>
+				<documentation value="What the agents role was"/>
+			</searchParam>
+			<searchParam>
+				<name value="agent-type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-agent-type"/>
+				<type value="token"/>
+				<documentation value="How the agent participated"/>
+			</searchParam>
+			<searchParam>
+				<name value="entity"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-entity"/>
+				<type value="reference"/>
+				<documentation value="Identity of entity"/>
+			</searchParam>
+			<searchParam>
+				<name value="location"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-location"/>
+				<type value="reference"/>
+				<documentation value="Where the activity occurred, if relevant"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-patient"/>
+				<type value="reference"/>
+				<documentation value="Target Reference(s) (usually version specific)"/>
+			</searchParam>
+			<searchParam>
+				<name value="recorded"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-recorded"/>
+				<type value="date"/>
+				<documentation value="When the activity was recorded / updated"/>
+			</searchParam>
+			<searchParam>
+				<name value="signature-type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-signature-type"/>
+				<type value="token"/>
+				<documentation value="Indication of the reason the entity signed the object(s)"/>
+			</searchParam>
+			<searchParam>
+				<name value="target"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-target"/>
+				<type value="reference"/>
+				<documentation value="Target Reference(s) (usually version specific)"/>
+			</searchParam>
+			<searchParam>
+				<name value="when"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Provenance-when"/>
+				<type value="date"/>
+				<documentation value="When the activity occurred"/>
+			</searchParam>
+		</resource>
+		<resource>
+			<type value="QuestionnaireResponse"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTQuestionnaireResponse"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="author"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-author"/>
+				<type value="reference"/>
+				<documentation value="The author of the questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="authored"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-authored"/>
+				<type value="date"/>
+				<documentation value="When the questionnaire response was last changed"/>
+			</searchParam>
+			<searchParam>
+				<name value="based-on"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-based-on"/>
+				<type value="reference"/>
+				<documentation value="Plan/proposal/order fulfilled by this questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="encounter"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-encounter"/>
+				<type value="reference"/>
+				<documentation value="Encounter associated with the questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="identifier"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-identifier"/>
+				<type value="token"/>
+				<documentation value="The unique identifier for the questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="part-of"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-part-of"/>
+				<type value="reference"/>
+				<documentation value="Procedure or observation this questionnaire response was performed as a part of"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-patient"/>
+				<type value="reference"/>
+				<documentation value="The patient that is the subject of the questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="questionnaire"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-questionnaire"/>
+				<type value="reference"/>
+				<documentation value="The questionnaire the answers are provided for"/>
+			</searchParam>
+			<searchParam>
+				<name value="source"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-source"/>
+				<type value="reference"/>
+				<documentation value="The individual providing the information reflected in the questionnaire respose"/>
+			</searchParam>
+			<searchParam>
+				<name value="status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-status"/>
+				<type value="token"/>
+				<documentation value="The status of the questionnaire response"/>
+			</searchParam>
+			<searchParam>
+				<name value="subject"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/QuestionnaireResponse-subject"/>
+				<type value="reference"/>
+				<documentation value="The subject of the questionnaire response"/>
+			</searchParam>
+		</resource>
+		<resource>
+			<type value="Subscription"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/Subscription"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="vread"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="delete"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-instance"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="contact"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-contact"/>
+				<type value="token"/>
+				<documentation value="Contact details for the subscription"/>
+			</searchParam>
+			<searchParam>
+				<name value="criteria"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-criteria"/>
+				<type value="string"/>
+				<documentation value="The search rules used to determine when to send a notification"/>
+			</searchParam>
+			<searchParam>
+				<name value="payload"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-payload"/>
+				<type value="token"/>
+				<documentation value="The mime-type of the notification payload"/>
+			</searchParam>
+			<searchParam>
+				<name value="status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-status"/>
+				<type value="token"/>
+				<documentation value="The current state of the subscription"/>
+			</searchParam>
+			<searchParam>
+				<name value="type"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-type"/>
+				<type value="token"/>
+				<documentation value="The type of channel for the sent notifications"/>
+			</searchParam>
+			<searchParam>
+				<name value="url"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Subscription-url"/>
+				<type value="uri"/>
+				<documentation value="The uri that will receive the notifications"/>
+			</searchParam>
+		</resource>
+		<resource>
+			<type value="Task"/>
+			<profile value="http://hl7.org/fhir/StructureDefinition/Task"/>
+			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentTask"/>
+			<interaction>
+				<code value="read"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="vread"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="update"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="delete"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-instance"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="history-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="create"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<interaction>
+				<code value="search-type"/>
+				<documentation value="Implemented per the specification"/>
+			</interaction>
+			<searchParam>
+				<name value="authored-on"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-authored-on"/>
+				<type value="date"/>
+				<documentation value="Search by creation date"/>
+			</searchParam>
+			<searchParam>
+				<name value="based-on"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-based-on"/>
+				<type value="reference"/>
+				<documentation value="Search by requests this task is based on"/>
+			</searchParam>
+			<searchParam>
+				<name value="business-status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-business-status"/>
+				<type value="token"/>
+				<documentation value="Search by business status"/>
+			</searchParam>
+			<searchParam>
+				<name value="code"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-code"/>
+				<type value="token"/>
+				<documentation value="Search by task code"/>
+			</searchParam>
+			<searchParam>
+				<name value="encounter"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-encounter"/>
+				<type value="reference"/>
+				<documentation value="Search by encounter"/>
+			</searchParam>
+			<searchParam>
+				<name value="focus"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-focus"/>
+				<type value="reference"/>
+				<documentation value="Search by task focus"/>
+			</searchParam>
+			<searchParam>
+				<name value="group-identifier"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-group-identifier"/>
+				<type value="token"/>
+				<documentation value="Search by group identifier"/>
+			</searchParam>
+			<searchParam>
+				<name value="identifier"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-identifier"/>
+				<type value="token"/>
+				<documentation value="Search for a task instance by its business identifier"/>
+			</searchParam>
+			<searchParam>
+				<name value="intent"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-intent"/>
+				<type value="token"/>
+				<documentation value="Search by task intent"/>
+			</searchParam>
+			<searchParam>
+				<name value="modified"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-modified"/>
+				<type value="date"/>
+				<documentation value="Search by last modification date"/>
+			</searchParam>
+			<searchParam>
+				<name value="owner"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-owner"/>
+				<type value="reference"/>
+				<documentation value="Search by task owner"/>
+			</searchParam>
+			<searchParam>
+				<name value="part-of"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-part-of"/>
+				<type value="reference"/>
+				<documentation value="Search by task this task is part of"/>
+			</searchParam>
+			<searchParam>
+				<name value="patient"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-patient"/>
+				<type value="reference"/>
+				<documentation value="Search by patient"/>
+			</searchParam>
+			<searchParam>
+				<name value="performer"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-performer"/>
+				<type value="token"/>
+				<documentation value="Search by recommended type of performer (e.g., Requester, Performer, Scheduler)."/>
+			</searchParam>
+			<searchParam>
+				<name value="period"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-period"/>
+				<type value="date"/>
+				<documentation value="Search by period Task is/was underway"/>
+			</searchParam>
+			<searchParam>
+				<name value="priority"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-priority"/>
+				<type value="token"/>
+				<documentation value="Search by task priority"/>
+			</searchParam>
+			<searchParam>
+				<name value="requester"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-requester"/>
+				<type value="reference"/>
+				<documentation value="Search by task requester"/>
+			</searchParam>
+			<searchParam>
+				<name value="status"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-status"/>
+				<type value="token"/>
+				<documentation value="Search by task status"/>
+			</searchParam>
+			<searchParam>
+				<name value="subject"/>
+				<definition value="http://hl7.org/fhir/SearchParameter/Task-subject"/>
+				<type value="reference"/>
+				<documentation value="Search by subject"/>
+			</searchParam>
+		</resource>
+	</rest>
+</CapabilityStatement>
