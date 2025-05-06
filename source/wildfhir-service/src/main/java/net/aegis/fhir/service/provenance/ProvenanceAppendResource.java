@@ -1,6 +1,6 @@
 /*
  * #%L
- * WildFHIR - wildfhir-service
+ * WildFHIR - wildfhir-model
  * %%
  * Copyright (C) 2024 AEGIS.net, Inc.
  * All rights reserved.
@@ -41,10 +41,10 @@ import org.hl7.fhir.r4.model.Provenance;
 import org.hl7.fhir.r4.model.Resource;
 
 /**
- * @author Venkat.Keesara
+ * @author richard.ettema
  *
  */
-public class ProvenanceCreateResource extends ProvenanceResourceProxy {
+public class ProvenanceAppendResource extends ProvenanceResourceProxy {
 
 	@Override
 	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, String operation) throws Exception {
@@ -60,9 +60,9 @@ public class ProvenanceCreateResource extends ProvenanceResourceProxy {
 	public CodeableConcept getActivity() {
 		CodeableConcept activity = new CodeableConcept();
 		Coding activityCoding = new Coding();
-		activityCoding.setSystem(ProvenanceActivityTypeEnum.CREATE.getSystem());
-		activityCoding.setCode(ProvenanceActivityTypeEnum.CREATE.getCode());
-		activityCoding.setDisplay(ProvenanceActivityTypeEnum.CREATE.getDisplay());
+		activityCoding.setSystem(ProvenanceActivityTypeEnum.APPEND.getSystem());
+		activityCoding.setCode(ProvenanceActivityTypeEnum.APPEND.getCode());
+		activityCoding.setDisplay(ProvenanceActivityTypeEnum.APPEND.getDisplay());
 		activity.addCoding(activityCoding);
 		return activity;
 	}

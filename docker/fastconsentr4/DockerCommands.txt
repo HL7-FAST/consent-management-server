@@ -1,17 +1,17 @@
 # -------------------------------------------------------------------------------
-# Set up named compose project fastconsentr4-wildfly-mysql80
+# Set up named compose project fastconsentri
 # - This will show up in Docker Desktop
 # - Uses compose.yaml in current directory/folder
 # -------------------------------------------------------------------------------
-docker compose -p fastconsentr4-wildfly-mysql80 create
+docker compose -p fastconsentri create
 
 =================================================================================
 
 # -------------------------------------------------------------------------------
-# Create docker bridge network fastconsentr4-net
+# Create docker bridge network fastconsentri-net
 # - This is needed for container-container communication
 # -------------------------------------------------------------------------------
-docker network create -d bridge fastconsentr4-net
+docker network create -d bridge fastconsentri-net
 
 # -------------------------------------------------------------------------------
 # Create and run wildfhirce-mysql image
@@ -19,25 +19,25 @@ docker network create -d bridge fastconsentr4-net
 # - Using the bridge network fastconsentr4-net
 # - Expose port 3306 for MySQL Workbench access
 # -------------------------------------------------------------------------------
-docker run --network=fastconsentr4-net -itd -p 3306:3306 --name=fastconsentr4-mysql80 aegisnetinc/fastconsentr4-mysql80:0.1.0
+docker run --network=fastconsentri-net -itd -p 3306:3306 --name=consent-management-db hlseven/consent-management-db:0.1.0
 
 # -------------------------------------------------------------------------------
-# Run fastconsentr4-mysql80 container
-# - Uses fastconsentr4-mysql80 container created from run command above
+# Run consent-management-db container
+# - Uses consent-management-db container created from run command above
 # -------------------------------------------------------------------------------
-docker start fastconsentr4-mysql80
+docker start consent-management-db
 
 # -------------------------------------------------------------------------------
-# Create and run fastconsentr4-wildfly image
+# Create and run consent-management-server image
 # - From tag 0.1.0
-# - Using the bridge network fastconsentr4-net
+# - Using the bridge network fastconsentri-net
 # - Define WildFHIR environment variable file
-# - Expose ports 80, 443, 9990 for browser and RESTful client access
+# - Expose ports 8080, 8443, 9990 for browser and RESTful client access
 # -------------------------------------------------------------------------------
-docker run --network=fastconsentr4-net -itd -p 80:80 -p 443:443 -p 9990:9990 --env-file env.list --name=fastconsentr4-wildfly aegisnetinc/fastconsentr4-wildfly:0.1.0
+docker run --network=fastconsentri-net -itd -p 8080:8080 -p 8443:8443 -p 9990:9990 --env-file env.list --name=consent-management-server hlseven/consent-management-server:0.1.0
 
 # -------------------------------------------------------------------------------
-# Run fastconsentr4-wildfly container
-# - Uses fastconsentr4-wildfly container created from run command above
+# Run consent-management-server container
+# - Uses consent-management-server container created from run command above
 # -------------------------------------------------------------------------------
-docker start fastconsentr4-wildfly
+docker start consent-management-server

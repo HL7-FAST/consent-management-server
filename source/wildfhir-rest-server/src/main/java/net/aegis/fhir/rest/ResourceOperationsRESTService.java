@@ -66,6 +66,8 @@ import net.aegis.fhir.service.ConformanceService;
 import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
+import net.aegis.fhir.service.audit.AuditEventService;
+import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
 
@@ -97,10 +99,16 @@ public class ResourceOperationsRESTService {
 	private Logger log;
 
 	@Inject
+	AuditEventService auditEventService;
+
+	@Inject
 	BatchService batchService;
 
 	@Inject
     CodeService codeService;
+
+	@Inject
+    ProvenanceService provenanceService;
 
 	@Inject
     ResourceService resourceService;
@@ -464,7 +472,7 @@ public class ResourceOperationsRESTService {
 
 					String softwareVersion = ServicesUtil.INSTANCE.getSoftwareVersion();
 					log.fine("softwareVersion: " + softwareVersion);
-					Parameters outputParameters = operationProxy.executeOperation(context, headers, resourceService, resourcemetadataService, batchService, transactionService, codeService, conformanceService, softwareVersion, resourceType, resourceId, inputParameters, inputResource, payload, contentType, isPost, returnedDirective);
+					Parameters outputParameters = operationProxy.executeOperation(context, headers, resourceService, resourcemetadataService, batchService, transactionService, codeService, auditEventService, provenanceService, conformanceService, softwareVersion, resourceType, resourceId, inputParameters, inputResource, payload, contentType, isPost, returnedDirective);
 
 					String locationPath = context.getPath();
 

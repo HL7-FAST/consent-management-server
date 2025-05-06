@@ -81,7 +81,9 @@ import net.aegis.fhir.service.ConformanceService;
 import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
+import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
+import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
 
 public class CapabilityStatementReload extends ResourceOperationProxy {
@@ -102,10 +104,10 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 	}
 
 	/* (non-Javadoc)
-	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
+	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
 	 */
 	@Override
-	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
+	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
 
         log.fine("CapabilityStatementReload.executeOperation() - [START] ");
 
@@ -125,7 +127,7 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 					baseUrl = codeService.getCodeValue("baseUrl");
 					if (baseUrl == null || baseUrl.isEmpty()) {
 						// Default base url with localhost
-						baseUrl = "http://localhost/r4";
+						baseUrl = "http://localhost:8080/r4";
 					}
 				}
 				// Update base url with current hostname
@@ -134,13 +136,13 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 						// Get local hostname
 						String hostname = ServicesUtil.INSTANCE.getHostName();
 						if (hostname != null && !hostname.equals("locahost")) {
-							baseUrl = "http://" + hostname + "/r4";
+							baseUrl = "http://" + hostname + ":8080/r4";
 						}
 					}
 				}
 				catch (Exception e) {
 					// Default base url with localhost
-					baseUrl = "http://localhost/r4";
+					baseUrl = "http://localhost:8080/r4";
 				}
 
 				boolean capStatementLoaded = reloadCapabilityStatement(conformanceService, softwareVersion, baseUrl, baseCapStmt);
@@ -235,33 +237,45 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 			capabilityStatementResource.setText(null);
 			capabilityStatementResource.setUrl(baseUrl + "/metadata");
 			capabilityStatementResource.setVersion(softwareVersion);
-			capabilityStatementResource.setName("AEGISWildFHIR401");
-			capabilityStatementResource.setTitle("AEGIS WildFHIR Test Server FHIR R4");
+			if (!capabilityStatementResource.hasName()) {
+				capabilityStatementResource.setName("AEGISWildFHIR401");
+			}
+			if (!capabilityStatementResource.hasTitle()) {
+				capabilityStatementResource.setTitle("AEGIS WildFHIR Community Edition Test Server FHIR R4");
+			}
 			capabilityStatementResource.setStatus(PublicationStatus.ACTIVE);
-			capabilityStatementResource.setPublisher("AEGIS.net, Inc.");
-			capabilityStatementResource.getContact().clear();
-			ContactDetail contact = new ContactDetail();
-			ContactPoint telcom = new ContactPoint();
-			telcom.setSystem(ContactPointSystem.URL);
-			telcom.setValue(baseUrl);
-			contact.addTelecom(telcom);
-			capabilityStatementResource.addContact(contact);
-			capabilityStatementResource.setDescription("AEGIS WildFHIR Test Server supporting the HL7 FHIR R4 (v4.0.1-Official) specification.");
+			if (!capabilityStatementResource.hasPublisher()) {
+				capabilityStatementResource.setPublisher("AEGIS.net, Inc.");
+			}
+			if (!capabilityStatementResource.hasContact()) {
+				ContactDetail contact = new ContactDetail();
+				ContactPoint telcom = new ContactPoint();
+				telcom.setSystem(ContactPointSystem.URL);
+				telcom.setValue(baseUrl);
+				contact.addTelecom(telcom);
+				capabilityStatementResource.addContact(contact);
+			}
+			if (!capabilityStatementResource.hasDescription()) {
+				capabilityStatementResource.setDescription("AEGIS WildFHIR Community Edition Test Server supporting the HL7 FHIR R4 (v4.0.1-Official) specification.");
+			}
 			capabilityStatementResource.setKind(CapabilityStatementKind.INSTANCE);
 			DateTimeType publishDateTime = new DateTimeType();
 			publishDateTime.setTimeZoneZulu(true);
 			publishDateTime.setValue(new Date());
 			capabilityStatementResource.setDateElement(publishDateTime);
-			if (capabilityStatementResource.hasSoftware()) {
+			if (!capabilityStatementResource.hasSoftware()) {
 				capabilityStatementResource.getSoftware().setName("WildFHIR");
 				// Set software version from build properties
 				capabilityStatementResource.getSoftware().setVersion(softwareVersion);
 				capabilityStatementResource.getSoftware().setReleaseDate(publishDateTime.getValue());
 			}
-			CapabilityStatementImplementationComponent implementation = new CapabilityStatementImplementationComponent();
-			implementation.setDescription(capabilityStatementResource.getDescription());
-			capabilityStatementResource.setImplementation(implementation);
-			capabilityStatementResource.setFhirVersion(FHIRVersion._4_0_1);
+			if (!capabilityStatementResource.hasSoftware()) {
+				CapabilityStatementImplementationComponent implementation = new CapabilityStatementImplementationComponent();
+				implementation.setDescription(capabilityStatementResource.getDescription());
+				capabilityStatementResource.setImplementation(implementation);
+				capabilityStatementResource.setFhirVersion(FHIRVersion._4_0_1);
+			}
+
 			// Format and Patch Format already defined in base
 			//capabilityStatementResource.addPatchFormat("application/xml-patch+xml");
 			//capabilityStatementResource.addPatchFormat("application/json-patch+json");
@@ -283,6 +297,11 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 
 					for (CapabilityStatementRestResourceComponent restResource : rest.getResource()) {
 						log.fine("Working on ResourceType " + restResource.getType());
+
+						if (restResource.getType().equals("Parameters")) {
+							// Skip non-persisted Resource Types
+							continue;
+						}
 
 						// Set resource type interactions
 						if (restResource.hasInteraction()) {

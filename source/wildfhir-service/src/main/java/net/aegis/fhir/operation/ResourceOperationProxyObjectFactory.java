@@ -87,6 +87,20 @@ public class ResourceOperationProxyObjectFactory {
 				proxy = new CompositionDocument();
 			}
 		}
+		else if (resourceType.equals(ResourceType.Consent.name())) {
+			if (operationName.equals("fileConsent")) {
+				proxy = new FASTConsentFileConsent();
+			}
+			else if (operationName.equals("recordDisclosure")) {
+				proxy = new FASTConsentRecordDisclosure();
+			}
+			else if (operationName.equals("revokeConsent")) {
+				proxy = new FASTConsentRevokeConsent();
+			}
+			else if (operationName.equals("updateConsent")) {
+				proxy = new FASTConsentUpdateConsent();
+			}
+		}
 		else if (resourceType.equals(ResourceType.Observation.name())) {
 			if (operationName.equals("lastn")) {
 				proxy = new ObservationLastNOperation();

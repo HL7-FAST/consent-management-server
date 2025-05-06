@@ -1,6 +1,6 @@
 /*
  * #%L
- * WildFHIR - wildfhir-service
+ * WildFHIR - wildfhir-model
  * %%
  * Copyright (C) 2024 AEGIS.net, Inc.
  * All rights reserved.
@@ -35,18 +35,18 @@ package net.aegis.fhir.service.audit;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventAction;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventEntityComponent;
 import org.hl7.fhir.r4.model.AuditEvent;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.AuditEvent.AuditEventAction;
-import org.hl7.fhir.r4.model.AuditEvent.AuditEventEntityComponent;
 import org.hl7.fhir.r4.model.Resource;
 
 /**
- * @author Venkat.Keesara
+ * @author richard.ettema
  *
  */
-public class AuditEventUpdateResource extends AuditEventResourceProxy {
+public class AuditEventDeleteResource extends AuditEventResourceProxy {
 
 	@Override
 	public Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, String operation) throws Exception {
@@ -55,10 +55,10 @@ public class AuditEventUpdateResource extends AuditEventResourceProxy {
 
 		prepareBasicData(audit, context, headers, response);
 
-		// subType is FHIR update
+		// subType is FHIR delete
 		Coding coding = new Coding();
 		coding.setSystem("http://hl7.org/fhir/restful-interaction");
-		coding.setCode("update");
+		coding.setCode("delete");
 		audit.addSubtype(coding);
 
 		// entity based on resourceType and resourceId
@@ -80,8 +80,8 @@ public class AuditEventUpdateResource extends AuditEventResourceProxy {
 
 		coding = new Coding();
 		coding.setSystem("http://terminology.hl7.org/CodeSystem/dicom-audit-lifecycle");
-		coding.setCode("3");
-		coding.setDisplay("Amendment");
+		coding.setCode("14");
+		coding.setDisplay("Logical deletion");
 		entity.setLifecycle(coding);
 
 		audit.addEntity(entity);
@@ -91,7 +91,7 @@ public class AuditEventUpdateResource extends AuditEventResourceProxy {
 
 	@Override
 	public AuditEventAction setAction() {
-		return AuditEventAction.U;
+		return AuditEventAction.D;
 	}
 
 }

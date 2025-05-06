@@ -1,6 +1,6 @@
 /*
  * #%L
- * WildFHIR - wildfhir-service
+ * WildFHIR - wildfhir-model
  * %%
  * Copyright (C) 2024 AEGIS.net, Inc.
  * All rights reserved.
@@ -37,9 +37,11 @@ import java.util.logging.Logger;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
+import org.hl7.fhir.r4.formats.XmlParser;
+import org.hl7.fhir.r4.model.AuditEvent;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 
 import net.aegis.fhir.service.BatchService;
@@ -49,19 +51,18 @@ import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
 import net.aegis.fhir.service.audit.AuditEventService;
-import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
 
 /**
+ * FAST Consent RI - $recordDisclosure operation
+ * 
  * @author richard.ettema
  *
  */
-public class ResourcePurgeAll extends ResourceOperationProxy {
+public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 
-	private Logger log = Logger.getLogger("ResourcePurgeAll");
-
-	private CodeService codeService;
+	private Logger log = Logger.getLogger("FASTConsentRecordDisclosure");
 
 	private ResourceService resourceService;
 
@@ -71,62 +72,92 @@ public class ResourcePurgeAll extends ResourceOperationProxy {
 	@Override
 	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
 
-		log.fine("[START] ResourcePurgeAll.executeOperation()");
+		log.fine("[START] FASTConsentRecordDisclosure.executeOperation()");
 
-        this.codeService = codeService;
-		this.resourceService = resourceService;
+        this.resourceService = resourceService;
 
 		Parameters out = new Parameters();
-		OperationOutcome rOutcome = null;
 
 		try {
-			// Ignore any input parameters as they are not expected
+			/*
+			 * If inputParameters is null, throw exception
+			 */
+			if (inputParameters == null) {
+				throw new Exception("$recordDisclosure failed. The input parameters contents were empty or null.");
+			}
 
-			// Check for operation level of global
-			if (resourceType == null && resourceId == null) {
-				// Check for Resource Purge All Enabled
-				if (this.codeService.isSupported("resourcePurgeAllEnabled")) {
-					// Global - Truncate resource and resourcemetadata tables
-					this.resourceService.resourcePurgeAll();
+			/*
+			 * Extract the individual expected parameters
+			 * - disclosure - FASTConsentAuditEvent resource (required)
+			 */
+			AuditEvent paramAuditEvent = null;
 
-					ParametersParameterComponent parameter = new ParametersParameterComponent();
-					parameter.setName("result");
-					StringType resultString = new StringType("Resource Purge All operation complete.");
-					parameter.setValue(resultString);
-					out.addParameter(parameter);
-				}
-				else {
-					rOutcome = new OperationOutcome();
-					OperationOutcome.OperationOutcomeIssueComponent issue =
-							ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED,
-									"Resource $purge-all not enabled!", null, null);
+			if (inputParameters != null && inputParameters.hasParameter()) {
 
-					if (issue != null) {
-						rOutcome.setText(null);
-						rOutcome.getIssue().add(issue);
+				for (ParametersParameterComponent parameter : inputParameters.getParameter()) {
 
-						// Use RI NarrativeGenerator
-						FHIRNarrativeGeneratorClient.instance().generate(rOutcome);
+					if (parameter.getName() != null && parameter.getName().equals("disclosure") && parameter.hasResource()) {
+
+						Resource paramResource = parameter.getResource();
+						if (paramResource != null && paramResource.fhirType().equals("AuditEvent")) {
+							paramAuditEvent = (AuditEvent) paramResource;
+						}
 					}
-
-					ParametersParameterComponent parameter = new ParametersParameterComponent();
-					parameter.setName("return");
-					parameter.setResource(rOutcome);
-
-					out.addParameter(parameter);
 				}
 			}
-			else {
-				throw new Exception("Invalid $purge-all operation request! Global-only operation cannot specify resource type or id.");
+
+			/*
+			 * If the 'disclosure' input parameter is null, throw exception
+			 */
+			if (paramAuditEvent == null) {
+				throw new Exception("$recordDisclosure failed. The 'disclosure' input parameter was not defined or its resource contents were empty or null.");
 			}
 
+			OperationOutcome rOutcome = performRecordDisclosure(paramAuditEvent);
+
+			if (rOutcome == null) {
+				/*
+				 * Returned OperationOutcome is null, throw exception (should not happen)
+				 */
+				throw new Exception("$recordDisclosure failed. The attempt to record the AuditEvent disclosure resource produced a null outcome. Please verify the contents of the input payload.");
+			}
+
+			out = new Parameters();
+
+			ParametersParameterComponent parameter = new ParametersParameterComponent();
+			parameter.setName("return");
+			parameter.setResource(rOutcome);
+
+			out.addParameter(parameter);
 		}
 		catch (Exception e) {
 			// Throw exceptions back
-			throw new Exception("Exception processing $purge-all operation request! " + e.getMessage());
+			e.printStackTrace();
+			throw new Exception("$recordDisclosure failed! Exception thrown: " + e.getMessage());
 		}
 
 		return out;
+	}
+
+	private OperationOutcome performRecordDisclosure(AuditEvent auditEvent) throws Exception {
+		OperationOutcome rOutcome = null;
+
+		/*
+		 * Creation of resources will generate corresponding Provenance and AuditEvent resource instances.
+		 * The AuditEvent resource must be processed in this order.
+		 * 
+		 * - Return the OperationOutcome
+		 */
+
+
+		// OPERATION NOT IMPLEMENTED DEFAULT RESPONSE - REMOVE WHEN IMPLEMENTATION IS COMPLETE
+		String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "$recordDisclosure not implemented.", null, null, "application/fhir+xml");
+
+		XmlParser xmlParser = new XmlParser();
+
+		rOutcome = (OperationOutcome) xmlParser.parse(outcome);
+
+		return rOutcome;
 	}
 
 }
