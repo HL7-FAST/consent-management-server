@@ -357,7 +357,7 @@ public class ResourceRESTService {
 
 		Response response = null;
 
-		debugRequest(request, headers, null);
+		debugRequest(request, headers, resourceInputStream, null, false);
 
 		try {
 			// Validate request fhir version with supported fhir version
@@ -855,7 +855,6 @@ public class ResourceRESTService {
 			}
 		}
 
-		log.info("----- PAYLOAD ----- [snipped; use fine logging]");
 		if (resourceInputStream != null) {
 			try {
 				StringWriter writer = new StringWriter();
@@ -864,10 +863,11 @@ public class ResourceRESTService {
 				payload = writer.toString();
 
 				if (snipped == false) {
+					log.info("----- PAYLOAD -----");
 					log.info(payload);
 				}
 				else {
-					log.fine(">> SNIPPED <<");
+					log.info("----- PAYLOAD ----- [snipped]");
 				}
 
 			}

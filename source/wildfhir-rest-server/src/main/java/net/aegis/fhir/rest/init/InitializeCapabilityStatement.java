@@ -106,7 +106,7 @@ public class InitializeCapabilityStatement extends HttpServlet {
 				ResourceOperationProxy operationProxy = operationFactory.getResourceOperationProxy(null, "capability-reload");
 
 				if (operationProxy != null) {
-					Parameters outputParameters = operationProxy.executeOperation(null, null, null, null, null, null, codeService, conformanceService, softwareVersion, null, null, null, null, null, null, false, null);
+					Parameters outputParameters = operationProxy.executeOperation(null, null, null, null, null, null, codeService, null, null, conformanceService, softwareVersion, null, null, null, null, null, null, false, null);
 
 					if (outputParameters != null) {
 						if (!outputParameters.hasParameter()) {

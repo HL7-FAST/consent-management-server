@@ -35,7 +35,8 @@ package net.aegis.fhir.service.provenance;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
-import org.hl7.fhir.r4.model.AuditEvent.AuditEventAction;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Provenance;
 import org.hl7.fhir.r4.model.Resource;
 
@@ -49,14 +50,21 @@ public class ProvenanceUpdateResource extends ProvenanceResourceProxy {
 	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, String operation) throws Exception {
 
 		Provenance fhirResource = new Provenance();
+
 		prepareBasicData(fhirResource, context, headers, locationPath);
 
 		return fhirResource;
 	}
 
 	@Override
-	public AuditEventAction setAction() {
-		return AuditEventAction.U;
+	public CodeableConcept getActivity() {
+		CodeableConcept activity = new CodeableConcept();
+		Coding activityCoding = new Coding();
+		activityCoding.setSystem(ProvenanceActivityTypeEnum.UPDATE.getSystem());
+		activityCoding.setCode(ProvenanceActivityTypeEnum.UPDATE.getCode());
+		activityCoding.setDisplay(ProvenanceActivityTypeEnum.UPDATE.getDisplay());
+		activity.addCoding(activityCoding);
+		return activity;
 	}
 
 }

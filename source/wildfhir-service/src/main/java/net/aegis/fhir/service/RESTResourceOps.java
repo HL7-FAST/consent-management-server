@@ -77,7 +77,6 @@ import com.google.gson.JsonSyntaxException;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.model.ResourceType;
-import net.aegis.fhir.service.audit.AuditEventActionEnum;
 import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import net.aegis.fhir.service.provenance.ProvenanceService;
@@ -420,7 +419,7 @@ public class RESTResourceOps {
      * @param resourceId
      * @return <code>Response</code>
      */
-    public Response create(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, String payload, String resourceType, String resourceId) {
+    public Response create(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, String payload, String resourceType, String resourceId) throws Exception {
 
         log.fine("[START] RESTResourceOps.create()");
 
@@ -721,9 +720,6 @@ public class RESTResourceOps {
 
         response = builder.build();
 
-		// Audit the create operation
-		auditEventService.createAuditEvent(context, headers, payload, resourceType, response , null, AuditEventActionEnum.CREATE.getCode());
-
         return response;
 
     }
@@ -740,7 +736,7 @@ public class RESTResourceOps {
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response update(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String payload, String resourceType) {
+    public Response update(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String payload, String resourceType) throws Exception {
 
         log.fine("[START] RESTResourceOps.update()");
 
@@ -1168,9 +1164,6 @@ public class RESTResourceOps {
         }
 
         response = builder.build();
-
-		// Audit the update operation
-		auditEventService.createAuditEvent(context, headers, payload, resourceType, response, id, AuditEventActionEnum.UPDATE.getCode());
 
         return response;
 

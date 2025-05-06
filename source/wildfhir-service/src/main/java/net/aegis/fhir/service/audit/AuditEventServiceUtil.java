@@ -35,7 +35,6 @@ package net.aegis.fhir.service.audit;
 import java.io.ByteArrayOutputStream;
 
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
@@ -54,7 +53,7 @@ public enum AuditEventServiceUtil {
 	private AuditEventServiceUtil() {
 	}
 
-	public Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, Response response, String resourceId, String operation) throws Exception {
+	public Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, String operation) throws Exception {
 		net.aegis.fhir.model.Resource resourceDomain = new net.aegis.fhir.model.Resource();
 		AuditEventResourceProxyObjectFactory objectFactory = new AuditEventResourceProxyObjectFactory();
 		AuditEventResourceProxy proxy = objectFactory.getAuditEventResourceProxy(resourceType, operation);
