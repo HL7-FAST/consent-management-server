@@ -1,0 +1,15 @@
+services:
+  fastconsent-ri:
+    image: hlseven/consent-management-server:0.1.0
+    environment:
+      - WILDFHIR_HOSTNAME=d29wn3k3.aegis.net
+      - WILDFHIR_RESOURCEPURGEALLENABLED=true
+      - WILDFHIR_DATABASE_HOST=d29wn3k3.aegis.net
+      - FHIR_PACKAGES=hl7.fhir.us.consent-management#0.1.0
+    container_name: fastconsent-ri
+    hostname: d29wn3k3.aegis.net
+    ports:
+      - "3306:3306"
+      - "8080:8080"
+      - "8443:8443"
+      - "9990:9990"
