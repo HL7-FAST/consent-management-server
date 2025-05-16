@@ -1,0 +1,30 @@
+# -------------------------------------------------------------------------------
+# Build consent-management-server image
+# - Named tag 0.1.0
+# -------------------------------------------------------------------------------
+docker build -t hlseven/consent-management-server:0.1.0 .
+
+# -------------------------------------------------------------------------------
+# Set up named compose project fastconsentri
+# - This will show up in Docker Desktop
+# - Uses compose.yaml in current directory/folder
+#   - This provides a simplified approach to defining environment variables
+# -------------------------------------------------------------------------------
+docker compose -p fastconsent-ri create
+
+# -------------------------------------------------------------------------------
+# Create and run consent-management-server image
+# - From tag 0.1.0
+# - Define WildFHIR environment variable file
+# - Expose ports 3306, 8080, 8443, 9990 for db, browser and RESTful client access
+# - 2nd command illustrates setting specific individual environment varables
+# -------------------------------------------------------------------------------
+docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 --env-file env.list --name=fastconsent-ri hlseven/consent-management-server:0.1.0
+
+docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 -e WILDFHIR_HOST=d29wn3k3.aegis.net -e WILDFHIR_DATABASE_HOST=localhost -e WILDFHIR_BASEURL=http://d29wn3k3.aegis.net:8080/r4 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#0.1.0 --name=fastconsent-ri hlseven/consent-management-server:0.1.0
+
+# -------------------------------------------------------------------------------
+# Run consent-management-server container
+# - Uses consent-management-server container created from run command above
+# -------------------------------------------------------------------------------
+docker start fastconsent-ri

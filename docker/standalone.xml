@@ -160,7 +160,7 @@
                     </security>
                 </datasource>
                 <datasource jta="true" jndi-name="java:/wildfhirR4DS" pool-name="wildfhirR4DS" enabled="true" use-java-context="true">
-                    <connection-url>jdbc:mysql://${env.WILDFHIR_DATABASE_HOST:wildfhircemysql}:3306/wildfhirr4?useUnicode=yes&amp;useSSL=false&amp;verifyServerCertificate=false&amp;allowPublicKeyRetrieval=true</connection-url>
+                    <connection-url>jdbc:mysql://${env.WILDFHIR_DATABASE_HOST:localhost}:3306/wildfhirr4?useUnicode=yes&amp;useSSL=false&amp;verifyServerCertificate=false&amp;allowPublicKeyRetrieval=true</connection-url>
                     <driver>mysql</driver>
                     <transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
                     <pool>
