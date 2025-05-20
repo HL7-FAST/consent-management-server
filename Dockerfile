@@ -19,6 +19,7 @@ FROM mysql:8.0
 
 # --- MySQL Setup ---
 COPY ./docker/wait_then_shutdown.sh /tmp/wait_then_shutdown.sh
+RUN chmod +x /tmp/wait_then_shutdown.sh
 USER mysql
 COPY ./docker/00_wildfhirr4_DDL.sql /docker-entrypoint-initdb.d/00_wildfhirr4_DDL.sql
 COPY ./docker/01_calcDistanceKm_function.sql /docker-entrypoint-initdb.d/01_calcDistanceKm_function.sql
