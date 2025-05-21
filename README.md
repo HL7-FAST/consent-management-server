@@ -29,7 +29,7 @@ This will run the docker image with the default configuration, mapping port 8080
 
 ### Configuration via environment variables
 
-You can customize the behavior and capabilities of the underlying WildFHIR CE server directly from the `run` command using environment variables. For example, FHIR validation support for the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management) via the $validate operation requires the installation of the correspond validation package via the FHIR_PACKAGES environment variable:
+You can customize the behavior and capabilities of the underlying WildFHIR CE server directly from the `run` command using environment variables. For example, FHIR validation support for the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management) via the $validate operation requires the installation of the corresponding validation package via the FHIR_PACKAGES environment variable:
 
 ```
 docker run -p 8080:8080 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#0.1.0 hlseven/fast-consent-management-server:latest
