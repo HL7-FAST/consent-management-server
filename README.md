@@ -16,9 +16,39 @@ Building and running the server locally requires either Docker or
 
 Please see the [WildFHIR Community Edition Wiki - Installation](https://github.com/AEGISnetInc/WildFHIR/wiki/Installation) instructions.
 
-## Using Docker
+## Running via [Docker Hub](https://hub.docker.com/r/hlseven/fast-consent-management-server)
 
-Please see the HL7 Foundry [WildFHIR Community Edition](https://foundry.hl7.org/products/3ffe9658-2849-417c-80d6-2ba3661f553f) product page.
+Each tagged/released version of `fast-consent-management-server` is built as a Docker image and published to Docker hub. To run the published Docker image from Docker Hub:
+
+```
+docker pull hlseven/fast-consent-management-server:latest
+docker run -p 8080:8080 hlseven/fast-consent-management-server:latest
+```
+
+This will run the docker image with the default configuration, mapping port 8080 from the container to port 8080 in the host. Once running, you can access `http://localhost:8080/r4` as the base URL for your REST requests.
+
+### Configuration via environment variables
+
+You can customize the behavior and capabilities of the underlying WildFHIR CE server directly from the `run` command using environment variables. For example, FHIR validation support for the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management) via the $validate operation requires the installation of the corresponding validation package via the FHIR_PACKAGES environment variable:
+
+```
+docker run -p 8080:8080 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#0.1.0 hlseven/fast-consent-management-server:latest
+```
+
+or, to facilitate the multiple settings you can create and use an environment variable list file; e.g. 'env.list' (see https://github.com/HL7-FAST/consent-management-server/blob/main/docker/env.list for a complete list):
+
+```
+docker run -p 8080:8080 --env-file env.list hlseven/fast-consent-management-server:latest
+```
+
+### Additional Port Mappings
+
+You can also expose the following additional ports if desired:
+
+- 3306:3306 - MySQL 8x database access; the MySQL root user does not define a password
+- 8443:8443 - Secured access; the WildFHIR CE Red Hat Wildfly container generates a self-signed SSL certificate to support https
+- 9990:9990 - Access to the WildFHIR CE Red Hat Wildfly admin console; default user 'admin' password 'admin'
+
 
 ## FAST Consent Custom Operations
 
@@ -27,7 +57,7 @@ The server implements the custom operations as described in the IG in the [Artif
 
 ## Security
 
-The server currently does not enable any security interface - OAuth, UDAP, etc.
+The server currently does not enable any security interface beyond HTTPS - OAuth, UDAP, etc.
 
 
 ## Questions and Contributions
