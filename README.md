@@ -1,10 +1,10 @@
 # FAST Consent Management Reference Implementation
 
-This is a FHIR server reference implementation of the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management).  It is built on the [WildFHIR Community Edition](https://github.com/AEGISnetInc/WildFHIR) project and more detailed configuration information can be found in that repository.
+This is the [FAST Consent Management Reference Implementation](https://github.com/HL7/fhir-consent-management) of the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management).  It is built on the [WildFHIR Community Edition](https://github.com/AEGISnetInc/WildFHIR) project and more detailed configuration information can be found in that repository.
 
 ## Foundry
-> [!NOTE]
-> **TBD** A live demo will be hosted by [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
+[!NOTE]
+A live demo is hosted in the [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
 
 ## Prerequisites
 Building and running the server locally requires either Docker or
@@ -35,7 +35,7 @@ You can customize the behavior and capabilities of the underlying WildFHIR CE se
 docker run -p 8080:8080 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#0.1.0 hlseven/fast-consent-management-server:latest
 ```
 
-or, to facilitate the multiple settings you can create and use an environment variable list file; e.g. 'env.list' (see https://github.com/HL7-FAST/consent-management-server/blob/main/docker/env.list for a complete list):
+or, to facilitate the definition of multiple settings you can create and use an environment variable list file; e.g. 'env.list' (see https://github.com/HL7-FAST/consent-management-server/blob/main/docker/env.list for a complete list):
 
 ```
 docker run -p 8080:8080 --env-file env.list hlseven/fast-consent-management-server:latest
