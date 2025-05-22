@@ -1,1 +1,1 @@
-docker build --tag hlseven/consent-management-server:latest --tag hlseven/consent-management-server:0.1.0 -m 3g .
+docker build --tag hlseven/fast-consent-management-server:latest --tag hlseven/fast-consent-management-server:0.1.0 -m 3g .

@@ -15,5 +15,5 @@ else
 fi
 
 if [[ $docker_build == true ]]; then
-	docker build -t hlseven/consent-management-server:0.1.0 .
+	docker build -t hlseven/fast-consent-management-server:0.1.0 .
 fi
