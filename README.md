@@ -3,7 +3,7 @@
 This is the [FAST Consent Management Reference Implementation](https://github.com/HL7/fhir-consent-management) of the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management).  It is built on the [WildFHIR Community Edition](https://github.com/AEGISnetInc/WildFHIR) project and more detailed configuration information can be found in that repository.
 
 ## Foundry
-[!NOTE]
+
 A live demo is hosted in the [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
 
 ## Prerequisites
