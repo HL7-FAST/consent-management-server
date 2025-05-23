@@ -9,8 +9,8 @@ WORKDIR /app
 
 COPY . .
 
-# Build with Maven (skipping tests)
-RUN mvn clean install -DskipTests
+# Build with Maven (assigning version and build values, skipping tests)
+RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=0.1.0-SNAPSHOT -DskipTests
 
 #####################################
 # STAGE 2: Final Image with MySQL + Wildfly
