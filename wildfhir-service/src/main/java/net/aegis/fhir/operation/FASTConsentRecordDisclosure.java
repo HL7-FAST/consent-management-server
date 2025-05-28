@@ -221,7 +221,7 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 								}
 							}
 						}
-						else if (entity.getWhat().hasIdentifier()) {
+						if (ok == false && entity.getWhat().hasIdentifier()) {
 							// Read didn't work; try searching based on what identifier
 
 							// Define query parameters and populate with search parameter values if defined
