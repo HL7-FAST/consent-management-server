@@ -266,7 +266,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 						String paramPatientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramPatient.getReference());
 						String patientReferenceId = ServicesUtil.INSTANCE.extractResourceIdFromURL(patientReference.getReference());
 						if (!paramPatientId.equals(patientReferenceId)) {
-							throw new Exception("Existing Consent resource patient reference does not match 'patient' parameter reference.");
+							throw new Exception("Existing Consent resource patient reference (" + patientReference.getReference() +
+								") does not match 'patient' parameter reference (" + paramPatient.getReference() + ").");
 						}
 					}
 					if (paramPatient.hasIdentifier() && patientReference.hasIdentifier()) {
@@ -286,8 +287,9 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 							patientReferenceIdentifier.append(patientReference.getIdentifier().getValue());
 						}
 
-						if (!paramPatientIdentifier.equals(patientReferenceIdentifier)) {
-							throw new Exception("Existing Consent resource patient reference.identifier does not match 'patient' parameter reference.identifier.");
+						if (!paramPatientIdentifier.toString().equals(patientReferenceIdentifier.toString())) {
+							throw new Exception("Existing Consent resource patient reference.identifier (" + patientReferenceIdentifier.toString() +
+								"] does not match 'patient' parameter reference.identifier (" + paramPatientIdentifier.toString()+ ").");
 						}
 					}
 				}
