@@ -45,6 +45,7 @@ import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.DocumentReference;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
@@ -104,7 +105,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 			 * If inputParameters is null, throw exception
 			 */
 			if (inputParameters == null) {
-				throw new Exception("$fileConsent failed. The input parameters contents were empty or null.");
+				throw new Exception("The input parameters contents were empty or null.");
 			}
 
 			/*
@@ -145,7 +146,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 			 * If the 'consent' input parameter is null, throw exception
 			 */
 			if (paramConsent == null) {
-				throw new Exception("$fileConsent failed. The 'consent' input parameter was not defined or its resource contents were empty or null.");
+				throw new Exception("The 'consent' input parameter was not defined or its resource contents were empty or null.");
 			}
 
 			OperationOutcome rOutcome = performFileConsent(context, headers, paramConsent, paramDocumentReference, paramQuestionnaireResponse);
@@ -154,7 +155,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 				/*
 				 * Returned OperationOutcome is null, throw exception (should not happen)
 				 */
-				throw new Exception("$fileConsent failed. The attempt to file the Consent and/or supporting document resources produced a null outcome. Please verify the contents of the input payload.");
+				throw new Exception("The attempt to file the Consent and/or supporting document resources produced a null outcome. Please verify the contents of the input payload.");
 			}
 
 			out = new Parameters();
@@ -179,6 +180,8 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 	/**
 	 * Create the Consent and optional supporting source document in the local repository.
 	 * 
+	 * @param context
+	 * @param headers
 	 * @param consent
 	 * @param documentReference
 	 * @param questionnaireResponse
@@ -203,6 +206,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 		String baseUrl = null;
 		Reference sourceReference = null;
 		Integer sourceId = null;
+		Identifier consentIdentifier = null;
 
 		try {
 			// Get server base url from code table configuration
@@ -303,6 +307,11 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 					consent.setSource(sourceReference);
 				}
 
+				// Save Consent.identifier if defined
+				if (consent.hasIdentifier()) {
+					consentIdentifier = consent.getIdentifierFirstRep();
+				}
+
 				// Convert consent to XML for WildFHIR resource create
 				oResource = new ByteArrayOutputStream();
 				xmlP.compose(oResource, consent, true);
@@ -315,11 +324,11 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 
 				if (resCon.getResponseStatus().equals(Status.CREATED)) {
 					// Create AuditEvent
-					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), AuditEventActionEnum.CREATE.getCode());
+					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.CREATE.getCode());
 					// Create Provenance
-					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), null, ProvenanceActivityTypeEnum.CREATE.getCode());
+					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.CREATE.getCode());
 
-					// Capture successful DocumentReference create to OperationOutcome.issue
+					// Capture successful Consent create to OperationOutcome.issue
 					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,
 							"Consent/" + resCon.getResource().getResourceId() + " successfully created.", null, "Parameters.parameter.where(name = 'consent')");
 					issues.add(issue);
@@ -356,17 +365,11 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 			baseUrl = null;
 			sourceReference = null;
 			sourceId = null;
+			consentIdentifier = null;
 		}
 
 		rOutcome = new OperationOutcome();
 		rOutcome.setIssue(issues);
-
-//		// OPERATION NOT IMPLEMENTED DEFAULT RESPONSE - REMOVE WHEN IMPLEMENTATION IS COMPLETE
-//		String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "$fileConsent not implemented.", null, null, "application/fhir+xml");
-//
-//		XmlParser xmlParser = new XmlParser();
-//
-//		rOutcome = (OperationOutcome) xmlParser.parse(outcome);
 
 		log.info("[END] FASTConsentFileConsent.performFileConsent()");
 

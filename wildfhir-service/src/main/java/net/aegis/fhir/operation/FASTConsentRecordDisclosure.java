@@ -32,18 +32,33 @@
  */
 package net.aegis.fhir.operation;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.Status;
 
 import org.hl7.fhir.r4.formats.XmlParser;
+import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.model.AuditEvent;
+import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventEntityComponent;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 
+import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.service.BatchService;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ConformanceService;
@@ -64,7 +79,9 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 
 	private Logger log = Logger.getLogger("FASTConsentRecordDisclosure");
 
+	private CodeService codeService;
 	private ResourceService resourceService;
+	private XmlParser xmlP;
 
 	/* (non-Javadoc)
 	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
@@ -74,6 +91,7 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 
 		log.fine("[START] FASTConsentRecordDisclosure.executeOperation()");
 
+		this.codeService = codeService;
         this.resourceService = resourceService;
 
 		Parameters out = new Parameters();
@@ -83,7 +101,7 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 			 * If inputParameters is null, throw exception
 			 */
 			if (inputParameters == null) {
-				throw new Exception("$recordDisclosure failed. The input parameters contents were empty or null.");
+				throw new Exception("The input parameters contents were empty or null.");
 			}
 
 			/*
@@ -110,16 +128,16 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 			 * If the 'disclosure' input parameter is null, throw exception
 			 */
 			if (paramAuditEvent == null) {
-				throw new Exception("$recordDisclosure failed. The 'disclosure' input parameter was not defined or its resource contents were empty or null.");
+				throw new Exception("The 'disclosure' input parameter was not defined or its resource contents were empty or null.");
 			}
 
-			OperationOutcome rOutcome = performRecordDisclosure(paramAuditEvent);
+			OperationOutcome rOutcome = performRecordDisclosure(context, headers, paramAuditEvent);
 
 			if (rOutcome == null) {
 				/*
 				 * Returned OperationOutcome is null, throw exception (should not happen)
 				 */
-				throw new Exception("$recordDisclosure failed. The attempt to record the AuditEvent disclosure resource produced a null outcome. Please verify the contents of the input payload.");
+				throw new Exception("The attempt to record the AuditEvent disclosure resource produced a null outcome. Please verify the contents of the input payload.");
 			}
 
 			out = new Parameters();
@@ -139,23 +157,187 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 		return out;
 	}
 
-	private OperationOutcome performRecordDisclosure(AuditEvent auditEvent) throws Exception {
+	/**
+	 * Create the AuditEvent disclosure in the local repository.
+	 * 
+	 * @param context
+	 * @param headers
+	 * @param auditEvent
+	 * @return OperationOutcome
+	 * @throws Exception
+	 */
+	private OperationOutcome performRecordDisclosure(UriInfo context, HttpHeaders headers, AuditEvent auditEvent) throws Exception {
+
+		log.info("[START] FASTConsentRecordDisclosure.performRecordDisclosure()");
+
 		OperationOutcome rOutcome = null;
+		List<OperationOutcomeIssueComponent> issues = new ArrayList<OperationOutcomeIssueComponent>();
+		OperationOutcomeIssueComponent issue = null;
 
-		/*
-		 * Creation of resources will generate corresponding Provenance and AuditEvent resource instances.
-		 * The AuditEvent resource must be processed in this order.
-		 * 
-		 * - Return the OperationOutcome
-		 */
+		boolean ok = false;
+		xmlP = new XmlParser();
+		xmlP.setOutputStyle(OutputStyle.PRETTY);
+		net.aegis.fhir.model.Resource createResource = null;
+		ResourceContainer resCon = null;
+		ByteArrayOutputStream oResource = null;
+		byte fileContent[] = null;
+		String baseUrl = null;
 
+		try {
+			// Get server base url from code table configuration
+			baseUrl = codeService.getCodeValue("baseUrl");
 
-		// OPERATION NOT IMPLEMENTED DEFAULT RESPONSE - REMOVE WHEN IMPLEMENTATION IS COMPLETE
-		String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "$recordDisclosure not implemented.", null, null, "application/fhir+xml");
+			if (auditEvent != null) {
+				// Create AuditEvent
+				createResource = new net.aegis.fhir.model.Resource();
 
-		XmlParser xmlParser = new XmlParser();
+				// Remove existing Resource.id
+				auditEvent.setIdElement(null);
 
-		rOutcome = (OperationOutcome) xmlParser.parse(outcome);
+				// Check AuditEvent.entity.what reference for Consent; if matches existing, update with local reference; if not, report error
+				String whatResourceType = null;
+				String whatResourceId = null;
+				Consent consent = null;
+
+				for (AuditEventEntityComponent entity : auditEvent.getEntity()) {
+					if (entity.hasWhat()) {
+						if (entity.getWhat().hasReference()) {
+							whatResourceType = ServicesUtil.INSTANCE.getResourceTypeFromReference(entity.getWhat().getReference());
+							if (whatResourceType.equals("Consent")) {
+								whatResourceId = ServicesUtil.INSTANCE.extractResourceIdFromURL(entity.getWhat().getReference());
+
+								ResourceContainer readExisting = resourceService.read("Consent", whatResourceId, null);
+								if (readExisting.getResponseStatus().equals(Response.Status.OK)) {
+									log.info("(read) " + entity.getWhat().getReference() + " found.");
+									byte[] resourceContents = readExisting.getResource().getResourceContents();
+									consent = (Consent) xmlP.parse(resourceContents);
+									// Assign local Consent reference to disclosure AuditEvent
+									entity.getWhat().setReference("Consent/" + consent.getId());
+									if (consent.hasIdentifier()) {
+										entity.getWhat().setIdentifier(consent.getIdentifierFirstRep());
+									}
+									ok = true;
+									break;
+								}
+							}
+						}
+						else if (entity.getWhat().hasIdentifier()) {
+							// Read didn't work; try searching based on what identifier
+
+							// Define query parameters and populate with search parameter values if defined
+							StringBuffer param = new StringBuffer();
+							Identifier identifier = entity.getWhat().getIdentifier();
+							MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+							if (identifier.hasSystem()) {
+								param.append(identifier.getSystem()).append("|");
+							}
+							if (identifier.hasValue()) {
+								param.append(identifier.getValue());
+							}
+							if (param.length() > 1) {
+								queryParams.add("identifier", param.toString());
+							}
+
+							if (!queryParams.isEmpty()) {
+								List<String[]> validParams = new ArrayList<String[]>();
+								List<String[]> invalidParams = new ArrayList<String[]>();
+
+								List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, null, "Consent", false, null, null, null, validParams, invalidParams);
+
+								// Log any invalidParams
+								if (!invalidParams.isEmpty()) {
+									for (String[] invalidParam : invalidParams) {
+										if (invalidParam[0].equals("ERROR")) {
+											log.severe("Invalid search parameter '" + invalidParam[0] + "' found in search criteria." + (invalidParam.length > 1 && invalidParam[1] != null ? " " + invalidParam[1] : ""));
+										}
+										else {
+											log.warning("Invalid search parameter '" + invalidParam[0] + "' found in search criteria." + (invalidParam.length > 1 && invalidParam[1] != null ? " " + invalidParam[1] : ""));
+										}
+									}
+								}
+
+								if (resources != null && resources.size() == 1) {
+									// Exact match found; get Consent resource
+									byte[] resourceContents = resources.get(0).getResourceContents();
+									consent = (Consent) xmlP.parse(resourceContents);
+									// Assign local Consent reference to disclosure AuditEvent
+									entity.getWhat().setReference("Consent/" + consent.getId());
+									if (consent.hasIdentifier()) {
+										entity.getWhat().setIdentifier(consent.getIdentifierFirstRep());
+									}
+									log.info("(search) Consent/" + consent.getId() + " found.");
+									ok = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				if (ok == true) {
+					// Convert AuditEvent to XML for WildFHIR resource create
+					oResource = new ByteArrayOutputStream();
+					xmlP.compose(oResource, auditEvent, true);
+					fileContent = oResource.toByteArray();
+
+					createResource.setResourceType("AuditEvent");
+					createResource.setResourceContents(fileContent);
+
+					resCon = resourceService.create(createResource, null, baseUrl);
+
+					if (resCon.getResponseStatus().equals(Status.CREATED)) {
+						// Capture successful AuditEvent create to OperationOutcome.issue
+						issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,
+								"AuditEvent/" + resCon.getResource().getResourceId() + " successfully created.", null, "Parameters.parameter.where(name = 'disclosure')");
+						issues.add(issue);
+					}
+					else {
+						// Capture failed AuditEvent create to OperationOutcome.issue
+						issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.ERROR, IssueType.PROCESSING,
+								"$recordDisclosure failed! Error attempting to create AuditEvent.",
+								resCon.getResponseStatus().getStatusCode() + " " + resCon.getResponseStatus().toString() + "" + (resCon.getMessage() != null ? resCon.getMessage() : ""),
+								"Parameters.parameter.where(name = 'disclosure')");
+						issues.add(issue);
+					}
+				}
+				else {
+					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.ERROR, IssueType.PROCESSING,
+							"$recordDisclosure failed! Error attempting to create AuditEvent.",
+							"AuditEvent.entity.what does not reference an existing Consent within this repository.",
+							"Parameters.parameter.where(name = 'disclosure')");
+					issues.add(issue);
+				}
+			}
+			else {
+				// Should never happen but, just in case
+				issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.ERROR, IssueType.PROCESSING,
+						"$recordDisclosure failed! Error attempting to create null AuditEvent.",
+						"AuditEvent contents are null or empty! Please verify the contents of the input payload.",
+						"Parameters.parameter.where(name = 'disclosure')");
+				issues.add(issue);
+			}
+		}
+		catch (Exception e) {
+			// Log exception
+			e.printStackTrace();
+			// Capture exception to OperationOutcome.issue
+			issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.FATAL, IssueType.EXCEPTION, e.getMessage(), null, "$recordDisclosure");
+			issues.add(issue);
+		}
+		finally {
+			// Release resources for garbage collection
+			xmlP = null;
+			createResource = null;
+			resCon = null;
+			oResource = null;
+			fileContent = null;
+			baseUrl = null;
+		}
+
+		rOutcome = new OperationOutcome();
+		rOutcome.setIssue(issues);
+
+		log.info("[END] FASTConsentRecordDisclosure.performRecordDisclosure()");
 
 		return rOutcome;
 	}

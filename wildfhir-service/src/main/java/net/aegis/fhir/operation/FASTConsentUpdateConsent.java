@@ -109,7 +109,7 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 			 * If inputParameters is null, throw exception
 			 */
 			if (inputParameters == null) {
-				throw new Exception("$updateConsent failed. The input parameters contents were empty or null.");
+				throw new Exception("The input parameters contents were empty or null.");
 			}
 
 			/*
@@ -260,7 +260,7 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 				}
 
 				if (existingConsent == false) {
-					throw new Exception("$updateConsent failed. Cannot find the existing Consent resource based on the 'consent' input parameter.");
+					throw new Exception("Cannot find the existing Consent resource based on the 'consent' input parameter.");
 				}
 			}
 
@@ -270,7 +270,7 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 				/*
 				 * Returned OperationOutcome is null, throw exception (should not happen)
 				 */
-				throw new Exception("$updateConsent failed. The attempt to file the Consent and/or supporting document resources produced a null outcome. Please verify the contents of the input payload.");
+				throw new Exception("The attempt to file the Consent and/or supporting document resources produced a null outcome. Please verify the contents of the input payload.");
 			}
 
 			out = new Parameters();
@@ -292,6 +292,17 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 		return out;
 	}
 
+	/**
+	 * Update the Consent and optionally create the supporting source document in the local repository.
+	 * 
+	 * @param context
+	 * @param headers
+	 * @param consent
+	 * @param documentReference
+	 * @param questionnaireResponse
+	 * @return OperationOutcome
+	 * @throws Exception
+	 */
 	private OperationOutcome performUpdateConsent(UriInfo context, HttpHeaders headers, Consent consent, DocumentReference documentReference, QuestionnaireResponse questionnaireResponse) throws Exception {
 
 		log.info("[START] FASTConsentUpdateConsent.performUpdateConsent()");
@@ -310,6 +321,7 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 		String baseUrl = null;
 		Reference sourceReference = null;
 		Integer sourceId = null;
+		Identifier consentIdentifier = null;
 
 		try {
 			// Get server base url from code table configuration
@@ -399,12 +411,17 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 			}
 
 			if (ok == true) {
-				// Create Consent
+				// Update Consent
 				createUpdateResource = new net.aegis.fhir.model.Resource();
 
 				// Set Consent.source if needed
 				if (sourceReference != null) {
 					consent.setSource(sourceReference);
+				}
+
+				// Save Consent.identifier if defined
+				if (consent.hasIdentifier()) {
+					consentIdentifier = consent.getIdentifierFirstRep();
 				}
 
 				// Convert consent to XML for WildFHIR resource create
@@ -419,9 +436,9 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 
 				if (resCon.getResponseStatus().equals(Status.OK)) {
 					// Create AuditEvent
-					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), AuditEventActionEnum.UPDATE.getCode());
+					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.UPDATE.getCode());
 					// Create Provenance
-					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), null, ProvenanceActivityTypeEnum.UPDATE.getCode());
+					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.UPDATE.getCode());
 
 					// Capture successful DocumentReference create to OperationOutcome.issue
 					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,
@@ -460,17 +477,11 @@ public class FASTConsentUpdateConsent extends ResourceOperationProxy {
 			baseUrl = null;
 			sourceReference = null;
 			sourceId = null;
+			consentIdentifier = null;
 		}
 
 		rOutcome = new OperationOutcome();
 		rOutcome.setIssue(issues);
-
-//		// OPERATION NOT IMPLEMENTED DEFAULT RESPONSE - REMOVE WHEN IMPLEMENTATION IS COMPLETE
-//		String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "$updateConsent not implemented.", null, null, "application/fhir+xml");
-//
-//		XmlParser xmlParser = new XmlParser();
-//
-//		rOutcome = (OperationOutcome) xmlParser.parse(outcome);
 
 		log.info("[END] FASTConsentUpdateConsent.performUpdateConsent()");
 
