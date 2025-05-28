@@ -38,6 +38,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.formats.XmlParser;
 
 import net.aegis.fhir.model.Resource;
@@ -51,11 +52,11 @@ public enum ProvenanceServiceUtil {
 	private ProvenanceServiceUtil() {
 	}
 
-	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, String operation) throws Exception {
+	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception {
 		net.aegis.fhir.model.Resource resourceDomain = new net.aegis.fhir.model.Resource();
 		ProvenanceResourceProxyObjectFactory objectFactory = new ProvenanceResourceProxyObjectFactory();
 		ProvenanceResourceProxy proxy = objectFactory.getProvenanceResourceProxy(resourceType, operation);
-		org.hl7.fhir.r4.model.Resource fhirModel = proxy.generateProvenance(context, headers, payload, resourceType, locationPath, resourceId, operation);
+		org.hl7.fhir.r4.model.Resource fhirModel = proxy.generateProvenance(context, headers, payload, resourceType, locationPath, resourceId, identifier, operation);
 
 		if (fhirModel != null) {
 			XmlParser xmlP = new XmlParser();
