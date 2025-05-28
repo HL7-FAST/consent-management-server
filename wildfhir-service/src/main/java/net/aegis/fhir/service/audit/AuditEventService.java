@@ -42,6 +42,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
 
+import org.hl7.fhir.r4.model.Identifier;
+
 import net.aegis.fhir.model.Resource;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.service.CodeService;
@@ -73,7 +75,7 @@ public class AuditEventService {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void createAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, String operation) throws Exception {
+	public void createAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, Identifier identifier, String operation) throws Exception {
 
 		Resource resource = null;
 		ResourceContainer resCon = null;
@@ -81,7 +83,7 @@ public class AuditEventService {
 
 		try {
 			if (codeService.isSupported("auditEventServiceEnabled")) {
-				resource = AuditEventServiceUtil.INSTANCE.generateAuditEvent(context, headers, payload, resourceType, response, resourceId, operation);
+				resource = AuditEventServiceUtil.INSTANCE.generateAuditEvent(context, headers, payload, resourceType, response, resourceId, identifier, operation);
 
 				// Get server base url from code table configuration
 				baseUrl = codeService.getCodeValue("baseUrl");
