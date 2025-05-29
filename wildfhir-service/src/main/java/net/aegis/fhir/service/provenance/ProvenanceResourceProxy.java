@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Provenance;
 import org.hl7.fhir.r4.model.Provenance.ProvenanceAgentComponent;
 import org.hl7.fhir.r4.model.Provenance.ProvenanceEntityRole;
@@ -70,11 +71,11 @@ public abstract class ProvenanceResourceProxy {
 	public static String userName = "FAST Consent RI System";
 	public static String site = "consent-ri-site";
 
-	public abstract Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, String operation) throws Exception;
+	public abstract Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception;
 
 	public abstract CodeableConcept getActivity();
 
-	protected void prepareBasicData(Provenance fhirResource, UriInfo context, HttpHeaders headers, String locationPath) throws Exception {
+	protected void prepareBasicData(Provenance fhirResource, UriInfo context, HttpHeaders headers, String locationPath, Identifier identifier) throws Exception {
 
 		try {
 			//URI location = response.getLocation();
@@ -95,14 +96,18 @@ public abstract class ProvenanceResourceProxy {
 			List<ProvenanceAgentComponent> agentList = new ArrayList<>();
 			agentList.add(getAgent(headers, location));
 			fhirResource.setAgent(agentList);
-	
-			fhirResource.getEntityFirstRep().setRole(ProvenanceEntityRole.SOURCE).setWhat(new Reference(locationStr));
+
+			Reference what = new Reference(locationStr);
+			if (identifier != null) {
+				what.setIdentifier(identifier);
+			}
+			fhirResource.getEntityFirstRep().setRole(ProvenanceEntityRole.SOURCE).setWhat(what);
 
 			// Signature
 			List<Signature> signatureList = new ArrayList<Signature>();
 			Signature signature = new Signature();
 			signature.setWhen(currentDate);
-			signature.setWho(new Reference(locationStr));
+			signature.setWho(what);
 			signatureList.add(signature);
 			fhirResource.setSignature(signatureList);
 

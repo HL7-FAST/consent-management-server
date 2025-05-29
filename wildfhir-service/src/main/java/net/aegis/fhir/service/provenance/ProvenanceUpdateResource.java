@@ -37,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Provenance;
 import org.hl7.fhir.r4.model.Resource;
 
@@ -47,11 +48,11 @@ import org.hl7.fhir.r4.model.Resource;
 public class ProvenanceUpdateResource extends ProvenanceResourceProxy {
 
 	@Override
-	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, String operation) throws Exception {
+	public Resource generateProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception {
 
 		Provenance fhirResource = new Provenance();
 
-		prepareBasicData(fhirResource, context, headers, locationPath);
+		prepareBasicData(fhirResource, context, headers, locationPath, identifier);
 
 		return fhirResource;
 	}

@@ -37,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.model.AuditEvent;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.AuditEvent.AuditEventAction;
 import org.hl7.fhir.r4.model.AuditEvent.AuditEventEntityComponent;
@@ -49,7 +50,7 @@ import org.hl7.fhir.r4.model.Resource;
 public class AuditEventUpdateResource extends AuditEventResourceProxy {
 
 	@Override
-	public Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, String operation) throws Exception {
+	public Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, Identifier identifier, String operation) throws Exception {
 
 		AuditEvent audit = new AuditEvent();
 
@@ -66,6 +67,9 @@ public class AuditEventUpdateResource extends AuditEventResourceProxy {
 
 		Reference what = new Reference();
 		what.setReference(resourceType + "/" + resourceId);
+		if (identifier != null) {
+			what.setIdentifier(identifier);
+		}
 		entity.setWhat(what);
 
 		coding = new Coding();

@@ -74,14 +74,13 @@ public abstract class AuditEventResourceProxy {
 	public static String userName = "FAST Consent RI System";
 	public static String site = "consent-ri-site";
 
-	public abstract Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, String operation) throws Exception;
+	public abstract Resource generateAuditEvent(UriInfo context, HttpHeaders headers, String payload, String resourceType, boolean response, String resourceId, Identifier identifier, String operation) throws Exception;
 
 	public abstract AuditEventAction setAction();
 
 	protected void prepareBasicData(AuditEvent audit, UriInfo context, HttpHeaders headers, boolean response) throws Exception {
 
 		try {
-			// audit.addChild("type"); // Not recommended as Oath is not implemented yet
 			audit.setType(getType(headers));
 
 			// sub type set in implementation class
@@ -99,7 +98,6 @@ public abstract class AuditEventResourceProxy {
 			// context will have Source info ( who sent to us )
 			audit.setSource(getSourceElement(headers));
 
-			audit.addEntity();
 			log.info("prepareBasicData");
 		}
 		catch (FHIRException e) {
