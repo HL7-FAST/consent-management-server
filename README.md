@@ -57,7 +57,7 @@ The server implements the custom operations as described in the IG in the [Artif
 
 ## Subscriptions R5 Backport Operations
 
-The server implements the `Subscription/$status` custom operation as described in the Subscriptions R5 Backport IG in the [OperationDefinition: Subscription Status Operation](hhttp://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-status.html) section.
+The server implements the `Subscription/$status` custom operation as described in the Subscriptions R5 Backport IG in the [OperationDefinition: Subscription Status Operation](http://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-status.html) section.
 
 
 ## Security
