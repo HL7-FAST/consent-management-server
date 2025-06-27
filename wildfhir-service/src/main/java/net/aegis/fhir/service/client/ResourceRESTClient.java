@@ -30,7 +30,7 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.client;
+package net.aegis.fhir.service.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
@@ -64,7 +64,6 @@ import net.aegis.fhir.service.util.WebClientHelper;
 
 /**
  * @author richard.ettema
- * @author rizwan.tanoli
  *
  */
 public class ResourceRESTClient implements Serializable {
@@ -100,6 +99,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param ifNonMatch
 	 * @param _format
 	 * @param _summary
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -180,6 +180,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param resourceType
 	 * @param contentType
 	 * @param _format
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -244,6 +245,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param ifMatch
 	 * @param prefer
 	 * @param _format
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -349,6 +351,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param ifMatch
 	 * @param prefer
 	 * @param _format
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -439,6 +442,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param baseUrl
 	 * @param resourceType
 	 * @param contentType
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -495,6 +499,8 @@ public class ResourceRESTClient implements Serializable {
 	 * @param contentType
 	 * @param _format
 	 * @param _count
+	 * @param _since
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -572,6 +578,7 @@ public class ResourceRESTClient implements Serializable {
 	 *
 	 * @param historyPageUrl
 	 * @param contentType
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -629,6 +636,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param contentType
 	 * @param prefer
 	 * @param _format
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -721,6 +729,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param contentType
 	 * @param _format
 	 * @param _summary
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -817,6 +826,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param contentType
 	 * @param _format
 	 * @param _summary
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -916,6 +926,7 @@ public class ResourceRESTClient implements Serializable {
 	 *
 	 * @param searchPageUrl
 	 * @param contentType
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -968,8 +979,8 @@ public class ResourceRESTClient implements Serializable {
 	/**
 	 *
 	 * @param baseUrl
-	 * @param payload
 	 * @param contentType
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
@@ -1012,6 +1023,7 @@ public class ResourceRESTClient implements Serializable {
 	 * @param baseUrl
 	 * @param payload
 	 * @param contentType
+	 * @param headers
 	 * @return {@link Response}
 	 * @throws Exception
 	 */

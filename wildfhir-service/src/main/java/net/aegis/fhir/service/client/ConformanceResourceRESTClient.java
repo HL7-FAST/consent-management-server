@@ -30,7 +30,7 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.client;
+package net.aegis.fhir.service.client;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
