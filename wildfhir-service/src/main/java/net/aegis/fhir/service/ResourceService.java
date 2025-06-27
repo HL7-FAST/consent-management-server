@@ -187,7 +187,7 @@ public class ResourceService {
 			int nextVersionId = 1;
 
 			if (resourceId == null) {
-				nextResourceIdString = UUIDUtil.getGUID();
+				nextResourceIdString = UUIDUtil.getUUID();
 				log.info("Next Resource Id String is " + nextResourceIdString);
 			}
 			else {
@@ -1179,6 +1179,89 @@ public class ResourceService {
 	}
 
 	/**
+	 * Return the List of current Resource instances for a given resource type
+	 *
+	 * @param resourceType
+	 * @return <code>List<Resource></code>
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public List<net.aegis.fhir.model.Resource> readAllResourceForType(String resourceType) throws Exception {
+
+		log.fine("[START] ResourceService.readAllResourceForType");
+
+		Query resourcQuery = null;
+		List<net.aegis.fhir.model.Resource> resourceList = null;
+
+		try {
+			resourcQuery = em.createNamedQuery("findAllCurrentResourcesByType").setParameter("resourceType", resourceType);
+
+			resourceList = (List<net.aegis.fhir.model.Resource>) resourcQuery.getResultList();
+
+		} catch (Exception e) {
+			// Exception caught
+			log.severe(e.getMessage());
+			throw e;
+		}
+
+		return resourceList;
+	}
+
+	/**
+	 * Return the List of current FHIR Resource instances for a given resource type
+	 * 
+	 * WARNING - The R5 resource types SubscriptionStatus, SubscriptionTopic are
+	 * stored as R4 resources types Parameters, Basic.
+	 *
+	 * @param resourceType
+	 * @return <code>List<Resource></code>
+	 * @throws Exception
+	 */
+	public List<org.hl7.fhir.r4.model.Resource> readAllFHIRResourceForType(String resourceType) throws Exception {
+
+		log.fine("[START] ResourceService.readAllFHIRResourceForType");
+
+		List<net.aegis.fhir.model.Resource> resourceList = null;
+		List<org.hl7.fhir.r4.model.Resource> fhirResourceList = null;
+		org.hl7.fhir.r4.model.Resource fhirResource = null;
+		ByteArrayInputStream iResource = null;
+		XmlParser xmlP = null;
+
+		try {
+			resourceList = this.readAllResourceForType(resourceType);
+
+			if (resourceList != null && !resourceList.isEmpty()) {
+				xmlP = new XmlParser();
+				fhirResourceList = new ArrayList<org.hl7.fhir.r4.model.Resource>();
+
+				for (net.aegis.fhir.model.Resource resource : resourceList) {
+					// Check the resource status; if not 'DELETED' then consider it 'VALID'
+					if (resource.getStatus() != null && !resource.getStatus().equalsIgnoreCase("DELETED") &&
+							resource.getResourceContents() != null) {
+
+						// Convert XML contents to Bundle object
+						iResource = new ByteArrayInputStream(resource.getResourceContents());
+						fhirResource = (org.hl7.fhir.r4.model.Resource)xmlP.parse(iResource);
+
+						fhirResourceList.add(fhirResource);
+					}
+				}
+			}
+		} catch (Exception e) {
+			// Exception caught
+			log.severe(e.getMessage());
+			throw e;
+		} finally {
+			resourceList = null;
+			fhirResource = null;
+			iResource = null;
+			xmlP = null;
+		}
+
+		return fhirResourceList;
+	}
+
+	/**
 	 * The vread interaction performs a version specific read of the specified resource type. The interaction is performed by an HTTP
 	 * GET command.
 	 * @param resourceType type of resource we are trying to read
@@ -1349,6 +1432,19 @@ public class ResourceService {
 			resourceMeta.setVersionId("1");
 			resourceMeta.setLastUpdated(updatedTime);
 			resourceObject.setMeta(resourceMeta);
+
+			/*
+			 * Subscription Framework - check for Subscription resource type and status of 'requested'
+			 * if found and SF enabled, change status to 'active'
+			 */
+			if (codeService.isSupported("subscriptionServiceEnabled")) {
+				if (resourceObject.getResourceType().equals(ResourceType.Subscription)) {
+					Subscription subscription = (Subscription)resourceObject;
+					if (subscription.getStatus().equals(SubscriptionStatus.REQUESTED)) {
+						subscription.setStatus(SubscriptionStatus.ACTIVE);
+					}
+				}
+			}
 
 			byte[] resourceBytes = xmlP.composeBytes(resourceObject);
 

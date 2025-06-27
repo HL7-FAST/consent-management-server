@@ -304,7 +304,7 @@ public class ResourceLoadExamples extends ResourceOperationProxy {
 						entryResourceId = entryResource.getId();
 					}
 					else {
-						entryResourceId = UUIDUtil.getGUID();
+						entryResourceId = UUIDUtil.getUUID();
 					}
 
 					resourceService.update(entryResourceId, updateResource, baseurl);
