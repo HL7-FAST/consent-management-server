@@ -18,4 +18,5 @@ INSERT INTO wildfhirr4.code (codeName,value,intValue,description,resourceContent
 ('auditEventServiceEnabled','true',1,'Audit service enabled setting (true, false)',NULL),
 ('provenanceServiceEnabled','true',1,'Provenance service enabled setting (true, false)',NULL),
 ('subscriptionServiceEnabled','true',1,'Subscription Framework support setting (true, false)',NULL),
+('subscriptionServiceInterval','true',600,'Subscription Framework interval in seconds setting (0 disabled, >0 enabled)',NULL),
 ('txConcurrentLimit','true',2,'Batch/transaction concurrent requests allowed processing limit (intValue); enabled setting (true, false)',NULL);

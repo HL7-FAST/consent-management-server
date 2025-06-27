@@ -21,6 +21,9 @@ COPY ./01_calcDistanceKm_function.sql /docker-entrypoint-initdb.d/01_calcDistanc
 COPY ./02_calcDistanceMi_function.sql /docker-entrypoint-initdb.d/02_calcDistanceMi_function.sql
 COPY ./03_code_insert.sql /docker-entrypoint-initdb.d/03_code_insert.sql
 COPY ./04_conformance_insert.sql /docker-entrypoint-initdb.d/04_conformance_insert.sql
+COPY ./05_serverdirectory_insert.sql /docker-entrypoint-initdb.d/05_serverdirectory_insert.sql
+COPY ./06_resource_insert.sql /docker-entrypoint-initdb.d/06_resource_insert.sql
+COPY ./07_resourcemetadata_insert.sql /docker-entrypoint-initdb.d/07_resourcemetadata_insert.sql
 COPY ./99_last_processed_file.sh /docker-entrypoint-initdb.d/99_last_processed_file.sh
 
 # Copy MySQL custom configuration
@@ -86,6 +89,7 @@ COPY ./standalone.xml $JBOSS_HOME/standalone/configuration
 
 # Copy WildFHIR CE Server Application for FHIR R4 to Wildfly standalone deployments
 COPY ../wildfhir-rest-server/target/wildfhir-rest-server.war $JBOSS_HOME/standalone/deployments
+COPY ../wildfhir-client/target/wildfhir-client.war $JBOSS_HOME/standalone/deployments
 
 # TEMPORARY - Copy hl7.fhir.us.consent-management#0.1.0 package contents to .fhir/packages
 RUN cd /home/jboss \
