@@ -208,6 +208,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 				for (Reference organization : consent.getOrganization()) {
 					rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "organization", 0, organization, null);
 					resourcemetadataList.addAll(rMetadataChain);
+
+					// organizationId : token (FAST Consent custom parameter used in Subscriptions Framework)
+					if (organization.hasIdentifier()) {
+						rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", organization.getIdentifier().getValue(), organization.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(organization.getIdentifier()));
+						resourcemetadataList.add(rMetadata);
+					}
 				}
 			}
 
@@ -215,6 +221,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 			if (consent.hasPatient()) {
 				rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "patient", 0, consent.getPatient(), null);
 				resourcemetadataList.addAll(rMetadataChain);
+
+				// patientId : token (FAST Consent custom parameter used in Subscriptions Framework)
+				if (consent.getPatient().hasIdentifier()) {
+					rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"patientId", consent.getPatient().getIdentifier().getValue(), consent.getPatient().getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consent.getPatient().getIdentifier()));
+					resourcemetadataList.add(rMetadata);
+				}
 			}
 
 			// scope : token

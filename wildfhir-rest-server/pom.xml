@@ -201,7 +201,7 @@
             <version>1.27.1</version>
         </dependency>
 
-        <!-- force use of commons-io 2.16.1 used in hapi-fhir-base; otherwise picks up 2.1 from resteasy-jaxrs dependency which causes errors due to missing IOUtils.toString() method -->
+        <!-- force use of commons-io 2.17.0 used in hapi-fhir-base; otherwise picks up 2.1 from resteasy-jaxrs dependency which causes errors due to missing IOUtils.toString() method -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

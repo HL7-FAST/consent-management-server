@@ -236,6 +236,8 @@ public class ResourceType {
 		resourceTypes.add("StructureDefinition");
 		resourceTypes.add("StructureMap");
 		resourceTypes.add("Subscription");
+		resourceTypes.add("SubscriptionStatus");
+		resourceTypes.add("SubscriptionTopic");
 		resourceTypes.add("Substance");
 		resourceTypes.add("SubstanceNucleicAcid");
 		resourceTypes.add("SubstancePolymer");
@@ -273,6 +275,8 @@ public class ResourceType {
 		resourceTypesOrdered.add("SubstanceProtein");
 		resourceTypesOrdered.add("SubstancePolymer");
 		resourceTypesOrdered.add("SubstanceNucleicAcid");
+		resourceTypesOrdered.add("SubscriptionTopic");
+		resourceTypesOrdered.add("SubscriptionStatus");
 		resourceTypesOrdered.add("Substance");
 		resourceTypesOrdered.add("Subscription");
 		resourceTypesOrdered.add("StructureMap");
@@ -538,6 +542,8 @@ public class ResourceType {
 		supportedResourceTypes.add("StructureDefinition");
 		supportedResourceTypes.add("StructureMap");
 		supportedResourceTypes.add("Subscription");
+		supportedResourceTypes.add("SubscriptionStatus");
+		supportedResourceTypes.add("SubscriptionTopic");
 		supportedResourceTypes.add("Substance");
 		supportedResourceTypes.add("SubstanceNucleicAcid");
 		supportedResourceTypes.add("SubstancePolymer");
@@ -1315,7 +1321,16 @@ public class ResourceType {
 
 		operationList = new ArrayList<LabelKeyValueBean>();
 		operationList.addAll(baseOperationList);
+		operationList.add(new LabelKeyValueBean("status", "subscription", "http://hl7.org/fhir/uv/subscriptions-backport/OperationDefinition/backport-subscription-status", "read"));
 		resourceOperations.put("Subscription", operationList);
+
+		operationList = new ArrayList<LabelKeyValueBean>();
+		operationList.addAll(baseOperationList);
+		resourceOperations.put("SubscriptionStatus", operationList);
+
+		operationList = new ArrayList<LabelKeyValueBean>();
+		operationList.addAll(baseOperationList);
+		resourceOperations.put("SubscriptionTopic", operationList);
 
 		operationList = new ArrayList<LabelKeyValueBean>();
 		operationList.addAll(baseOperationList);
@@ -1922,7 +1937,9 @@ public class ResourceType {
 		resourceCriteria.add(new LabelKeyValueBean("When this Consent was created or indexed", "date", "", "DATE", "http://hl7.org/fhir/SearchParameter/clinical-date"));
 		resourceCriteria.add(new LabelKeyValueBean("Identifier for this record (external references)", "identifier", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/clinical-identifier"));
 		resourceCriteria.add(new LabelKeyValueBean("Custodian of the consent", "organization", "", "REFERENCE", "http://hl7.org/fhir/SearchParameter/Consent-organization", "Organization"));
+		resourceCriteria.add(new LabelKeyValueBean("Custodian identifier of the consent", "organizationId", "", "TOKEN"));
 		resourceCriteria.add(new LabelKeyValueBean("Who the consent applies to", "patient", "", "REFERENCE", "http://hl7.org/fhir/SearchParameter/clinical-patient", "Patient"));
+		resourceCriteria.add(new LabelKeyValueBean("Identifier of who the consent applies to", "patientId", "", "TOKEN"));
 		resourceCriteria.add(new LabelKeyValueBean("Timeframe for this rule", "period", "", "PERIOD", "http://hl7.org/fhir/SearchParameter/Consent-period"));
 		resourceCriteria.add(new LabelKeyValueBean("Context of activities covered by this rule", "purpose", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-purpose"));
 		resourceCriteria.add(new LabelKeyValueBean("Which of the four areas this resource covers (extensible)", "scope", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-scope"));
@@ -3499,6 +3516,27 @@ public class ResourceType {
 		resourceCriteria.add(new LabelKeyValueBean("The type of channel for the sent notifications", "type", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Subscription-type"));
 		resourceCriteria.add(new LabelKeyValueBean("The uri that will receive the notifications", "url", "", "URI", "http://hl7.org/fhir/SearchParameter/Subscription-url"));
 		resourceTypeCriteria.put("Subscription", resourceCriteria);
+
+		resourceCriteria = new ArrayList<LabelKeyValueBean>();
+		resourceCriteria.add(new LabelKeyValueBean("requested | active | error | off | entered-in-error", "status", "", "TOKEN"));
+		resourceCriteria.add(new LabelKeyValueBean("The reference to the Subscription which generated this notification", "subscription", "", "REFERENCE", null, "Subscription"));
+		resourceCriteria.add(new LabelKeyValueBean("The reference to the SubscriptionTopic for the Subscription which generated this notification", "topic", "", "URI", null, "SubscriptionTopic"));
+		resourceCriteria.add(new LabelKeyValueBean("handshake | heartbeat | event-notification | query-status | query-event", "type", "", "TOKEN"));
+		resourceTypeCriteria.put("SubscriptionStatus", resourceCriteria);
+
+		resourceCriteria = new ArrayList<LabelKeyValueBean>();
+		resourceCriteria.add(new LabelKeyValueBean("Date status first applied", "date", "", "DATE", "http://hl7.org/fhir/SearchParameter/conformance-date"));
+		resourceCriteria.add(new LabelKeyValueBean("A server defined search that matches either the url or derivedFrom", "derived-or-self", "", "URI"));
+		resourceCriteria.add(new LabelKeyValueBean("Effective period", "effective", "", "PERIOD"));
+		resourceCriteria.add(new LabelKeyValueBean("Event trigger", "event", "", "TOKEN"));
+		resourceCriteria.add(new LabelKeyValueBean("Business Identifier for SubscriptionTopic", "identifier", "", "TOKEN"));
+		resourceCriteria.add(new LabelKeyValueBean("Allowed resource for this definition", "resource", "", "URI"));
+		resourceCriteria.add(new LabelKeyValueBean("draft | active | retired | unknown", "status", "", "TOKEN"));
+		resourceCriteria.add(new LabelKeyValueBean("Name for this SubscriptionTopic (Human friendly)", "title", "", "STRING"));
+		resourceCriteria.add(new LabelKeyValueBean("Text representation of the trigger", "trigger-description", "", "STRING"));
+		resourceCriteria.add(new LabelKeyValueBean("Logical canonical URL to reference this SubscriptionTopic (globally unique)", "url", "", "URI"));
+		resourceCriteria.add(new LabelKeyValueBean("Business version of the SubscriptionTopic", "version", "", "TOKEN"));
+		resourceTypeCriteria.put("SubscriptionTopic", resourceCriteria);
 
 		resourceCriteria = new ArrayList<LabelKeyValueBean>();
 		resourceCriteria.add(new LabelKeyValueBean("The category of the substance", "category", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Substance-category"));
