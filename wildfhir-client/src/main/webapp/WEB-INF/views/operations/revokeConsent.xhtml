@@ -8,8 +8,42 @@
 	<!-- This is the view file for the FAST Consent $revokeConsent Tab -->
 
 	<p:tab title="$revokeConsent" id="revokeConsentTab">
-		<h:outputText value="$revokeConsent"
-			style="padding:0px;font-style:italic;font-weight:bold;font-size:16px;" />
+
+		<h:form id="revokeConsentForm" prependId="false" style="width:100%;border:none;">
+			<p:panelGrid id="revokeConsentPanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+				<p:messages id="revokeConsentMessages" />
+				<h:outputText value="Update Consent"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:16px;" />
+				<h:outputText value="This operation is used to revoke a consent with a consent administration service."
+					style="padding:0px;font-style:italic;font-weight;font-size:14px;" />
+				<h:outputText value="The parameters are a reference to the Consent resource along with optional documentation in the form of a DocumentReference (for PDF or other forms) or a QuestionnaireResponse."
+					style="padding:0px;font-style:italic;font-weight;font-size:14px;" />
+			</p:panelGrid>
+
+			<hr></hr>
+
+			<p:panelGrid id="revokeConsentPanel2" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+				<h:outputText value="Format Type (Default JSON if not set): * " />
+				<p:selectOneMenu required="false" label="Select Format Type" value="#{context.selectedFormatType}" maxlength="10" style="width:80px;text-align:left;padding-right:30px;">
+					<f:selectItems value="#{context.formatTypes}" var="formatType" itemLabel="#{formatType}         " itemValue="#{formatType}" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Select Admin Server: * " />
+				<p:selectOneMenu required="true" label="Select Admin Server" value="#{context.selectedServerURL}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+					<f:selectItem itemValue="#{null}" itemLabel="-- Select Admin Server --         " noSelectionOption="true" />
+					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
+				</p:selectOneMenu>
+
+				<br/>
+
+				<p:commandButton value="Send Request" icon="ui-icon-check"
+					actionListener="#{controller.processRevokeConsent}"
+					update=":tabView:operationsTabView:revokeConsentForm">
+				</p:commandButton>
+				<h:outputText value="" />
+			</p:panelGrid>
+
+		</h:form>
 	</p:tab>
 
 </ui:composition>

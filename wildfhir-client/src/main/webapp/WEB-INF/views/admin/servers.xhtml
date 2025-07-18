@@ -7,8 +7,10 @@
 
 	<!-- This is the view file for the Servers Tab -->
 	<p:tab id="manageServers" title="Servers">
-		<p:messages for="manageServers" id="manageServerMessages"
-			showDetail="true" autoUpdate="true" closable="true" />
+		<h:form id="serversForm" prependId="false" style="width:100%;border:none;">
+			<p:messages for="manageServers" id="manageServerMessages"
+				showDetail="true" autoUpdate="true" closable="true" />
+		</h:form>
 
 		<p:toolbar>
 			<f:facet name="right">
@@ -38,13 +40,13 @@
 						<p:commandButton value="Delete" title="Delete Server"
 							icon="ui-icon-trash"
 							actionListener="#{controller.deleteServer(server)}"
-							update=":tabView:serverDataTableWrapper"
+							update=":tabView:adminTabView:serverDataTableWrapper,:tabView:adminTabView:serversForm"
 							rendered="#{server.id > 1}" />
 						<br />
 						<p:commandButton value="Modify" title="Modify Server"
 							icon="ui-icon-pencil"
 							actionListener="#{controller.serverToManage(server)}"
-							update=":tabView:manageServerForm"
+							update=":tabView:adminTabView:manageServerForm"
 							oncomplete="PF('manageServerPanel').show()"
 							rendered="#{server.id > 1}">
 							<f:param name="provider" value="#{provider}" />
@@ -70,19 +72,22 @@
 					<h:outputText value="Name: " />
 					<p:inputText id="selectedServerName"
 						value="#{context.selectedServer.name}" required="true"
-						label="Server Name">
+						label="Server Name"
+						maxlength="255" size="60">
 						<f:validateLength minimum="2" />
 					</p:inputText>
 					<h:outputText value="Description: " />
 					<p:inputText id="selectedServerDescription"
 						value="#{context.selectedServer.description}" required="true"
-						label="Server Description">
+						label="Server Description"
+						maxlength="255" size="60">
 						<f:validateLength minimum="2" />
 					</p:inputText>
 					<h:outputText value="Base URL: " />
 					<p:inputText id="selectedServerURL"
 						value="#{context.selectedServer.basePath}" required="true"
-						label="Server Base URL">
+						label="Server Base URL"
+						maxlength="255" size="60">
 						<f:validateLength minimum="10" />
 						<f:validateRegex
 							pattern="^(https?|ftp|file)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]" />
@@ -90,7 +95,7 @@
 					<p:commandButton value="Update Server"
 						actionListener="#{controller.manageServer('existing')}"
 						oncomplete="PF('manageServerPanel').close()"
-						update=":tabView:serverDataTableWrapper,:tabView:manageServerMessages">
+						update=":tabView:adminTabView:serverDataTableWrapper,:tabView:adminTabView:manageServerMessages,:tabView:adminTabView:serversForm">
 						<f:param name="updateExistingServer" value="true" />
 					</p:commandButton>
 				</p:panelGrid>
@@ -113,21 +118,24 @@
 					<h:outputText value="Name: " />
 					<p:inputText id="newServerName"
 						value="#{context.newServer.name}"
-						required="true" label="Server Name">
+						required="true" label="Server Name"
+						maxlength="255" size="60">
 						<f:validateLength minimum="2" />
 					</p:inputText>
 
 					<h:outputText value="Description: " />
 					<p:inputText id="newServerDescription"
 						value="#{context.newServer.description}" required="true"
-						label="Server Description">
+						label="Server Description"
+						maxlength="255" size="60">
 						<f:validateLength minimum="2" />
 					</p:inputText>
 
 					<h:outputText value="Base URL: " />
 					<p:inputText id="newServerURL"
 						value="#{context.newServer.basePath}" required="true"
-						label="Server Base URL">
+						label="Server Base URL"
+						maxlength="255" size="60">
 						<f:validateLength minimum="10" />
 						<f:validateRegex
 							pattern="^(https?|ftp|file)://[-a-zA-Z0-9+&amp;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&amp;@#/%=~_|]" />
@@ -136,7 +144,7 @@
 					<p:commandButton value="Create Server"
 						actionListener="#{controller.manageServer('new')}"
 						oncomplete="((args.validationFailed) ? PF('createServerPanel').show() : PF('createServerPanel').close())"
-						update="@(form),:tabView:serverDataTableWrapper" />
+						update=":tabView:adminTabView:serverDataTableWrapper,:tabView:adminTabView:serversForm" />
 				</p:panelGrid>
 			</h:form>
 		</p:panel>

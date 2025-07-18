@@ -21,14 +21,12 @@
 
 			<p:panelGrid id="subscriptionClientPanel2" columns="2" border="0"
 				cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
-				<h:outputText value="Since DateTime (yyyy-mm-ddThh:mm:ssXX)" />
-				<p:inputText required="false" label="Since DateTime" size="24"
-					maxlength="24" value="#{context.criteriaMap['sinceDateTime']}">
-					<f:validateLength minimum="10" maximum="24" />
-				</p:inputText>
+				<h:outputText value="Since DateTime: " />
+				<p:datePicker id="buttonbar" value="#{context.datePicker}" showButtonBar="true" pattern="yyyy-MM-dd" />
+
 				<p:commandButton value="Process Subscriptions" icon="ui-icon-wrench"
 					actionListener="#{controller.processSubscriptions}"
-					update="@(form)">
+					update=":tabView:subscriptionsTabView:subscriptionClientForm">
 				</p:commandButton>
 			</p:panelGrid>
 			<br />
