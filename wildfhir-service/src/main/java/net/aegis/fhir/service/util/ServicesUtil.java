@@ -691,6 +691,60 @@ public enum ServicesUtil {
 		return versionId;
 	}
 
+	public Integer extractVersionIdIntFromURL(String url) {
+		log.fine("extractVersionIdFromURL(" + url + ")");
+
+		Integer versionId = Integer.valueOf(0);
+
+		try {
+			int index = url.indexOf("/_history/", 0);
+			log.fine("extractVersionIdFromURL - index is " + index);
+
+			if (index > 0) {
+				// /111/_history/2
+				// 0123456789012345
+				StringBuffer sbVersionId = new StringBuffer("");
+				for (int i = index + 10; i < url.length(); i++) {
+					if (isDigit(url.charAt(i))) {
+						sbVersionId.append(url.charAt(i));
+					}
+					else {
+						break;
+					}
+				}
+
+				if (sbVersionId.length() > 0) {
+					versionId = Integer.valueOf(sbVersionId.toString());
+				}
+			}
+			else {
+				// Return zero if not found
+				versionId = Integer.valueOf(0);
+			}
+		}
+		catch (Exception e) {
+			log.severe("Exception parsing versionId in URL: " + e.getMessage());
+			// Return -1 on exception
+			versionId = Integer.valueOf(-1);
+		}
+
+		return versionId;
+	}
+
+	public boolean isDigit(char c) {
+		boolean result = false;
+		char[] digit = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+		for (int i = 0; i < 10; i++) {
+			if (c == digit[i]) {
+				result = true;
+				break;
+			}
+		}
+
+		return result;
+	}
+
 	/**
 	 * Extract the base URL path up to and excluding the '?' character.
 	 *
