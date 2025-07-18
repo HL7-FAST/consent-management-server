@@ -15,8 +15,9 @@ INSERT INTO wildfhirr4.code (codeName,value,intValue,description,resourceContent
 ('resourcePurgeAllEnabled','false',0,'Resource Purge All operation enabled setting (true, false)',NULL),
 ('lastnProcessEmptyDate','false',0,'Observation $lastn process empty effective date values setting (true, false)',NULL),
 ('lastnEmptyDateValue','1900-01-01',0,'Observation $lastn empty effective date value; set value to control date sort (yyyy-MM-dd)',NULL),
-('auditEventServiceEnabled','false',0,'Audit service enabled setting (true, false)',NULL),
-('provenanceServiceEnabled','false',0,'Provenance service enabled setting (true, false)',NULL),
-('subscriptionServiceEnabled','false',0,'Subscription Framework support setting (true, false)',NULL),
+('auditEventServiceEnabled','true',1,'Audit service enabled setting (true, false)',NULL),
+('provenanceServiceEnabled','true',1,'Provenance service enabled setting (true, false)',NULL),
+('subscriptionServiceEnabled','true',1,'Subscription Framework support setting (true, false)',NULL),
 ('subscriptionServiceInterval','true',600,'Subscription Framework interval in seconds setting (0 disabled, >0 enabled)',NULL),
-('txConcurrentLimit','true',2,'Batch/transaction concurrent requests allowed processing limit (intValue); enabled setting (true, false)',NULL);
+('txConcurrentLimit','true',2,'Batch/transaction concurrent requests allowed processing limit (intValue); enabled setting (true, false)',NULL),
+('initializeClientPath','D:/Temp/initializeClient',0,'Initialize Client directory path containing the default resource instance files',NULL);

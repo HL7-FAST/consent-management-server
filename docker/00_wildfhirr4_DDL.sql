@@ -142,6 +142,30 @@ CREATE INDEX idx_resourcemetadata_textValueU ON wildfhirr4.resourcemetadata (par
 
 CREATE INDEX idx_resourcemetadata_paramTypeNameCode ON wildfhirr4.resourcemetadata (paramType ASC, paramName ASC, codeValue ASC);
 
+
+-- -----------------------------------------------------
+-- Table wildfhirr4.clientresource
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS wildfhirr4.clientresource (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  resourceId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  resourceType VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  description VARCHAR(1000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  status VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  lastUser VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL DEFAULT NULL,
+  lastUpdate DATETIME NOT NULL,
+  resourceContents LONGTEXT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL DEFAULT NULL,
+  PRIMARY KEY (id))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Stores client resource instances without version history';
+
+CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.clientresource (id ASC);
+
+CREATE INDEX idx_resource_resourceType ON wildfhirr4.clientresource (resourceType ASC, resourceId ASC);
+
+
 -- grant privileges to wildfhiruser
 GRANT ALL ON wildfhirr4.* to wildfhiruser;
 
