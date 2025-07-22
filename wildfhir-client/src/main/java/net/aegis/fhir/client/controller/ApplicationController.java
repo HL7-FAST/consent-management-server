@@ -90,6 +90,7 @@ import org.primefaces.event.TabChangeEvent;
 
 import net.aegis.fhir.client.ApplicationContext;
 import net.aegis.fhir.client.model.ResourceResponseWrapper;
+import net.aegis.fhir.client.util.WildfhirClientException;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.LabelKeyValueBean;
@@ -169,6 +170,9 @@ public class ApplicationController implements Serializable {
 			String clientRelatedPersonId = context.getSelectedRelatedPersonId();
 			String clientOrganizationId = context.getSelectedOrganizationId();
 			String provisionType = context.getSelectedProvisionType();
+			Date consentDate = new Date();
+			Date startDate = context.getStartDate();
+			Date endDate = context.getEndDate();
 			StringBuilder sb = new StringBuilder();
 
 			sb.append("Patient id: ").append(clientPatientId);
@@ -252,8 +256,7 @@ public class ApplicationController implements Serializable {
 			referenceList.add(grantorReference);
 			consent.setPerformer(referenceList);
 
-			Date startDate = new Date();
-			consent.setDateTime(startDate);
+			consent.setDateTime(consentDate);
 
 			// Set sourceReference to DocumentReference below
 
@@ -265,9 +268,18 @@ public class ApplicationController implements Serializable {
 			consent.setPolicyRule(codeableConcept);
 
 			ProvisionComponent provision = new ProvisionComponent();
-			provision.setType(ConsentProvisionType.PERMIT);
+			provision.setType(ConsentProvisionType.fromCode(provisionType));
 			Period period = new Period();
+			if (startDate == null) {
+				startDate = new Date();
+			}
 			period.setStart(startDate);
+			if (endDate != null) {
+				if (endDate.compareTo(startDate) <= 0) {
+					throw new WildfhirClientException("Provision period error! End date must be greater than start date.");
+				}
+				period.setEnd(endDate);
+			}
 			provision.setPeriod(period);
 			provisionActorComponent actor = new provisionActorComponent();
 			codeableConcept = new CodeableConcept();
@@ -345,10 +357,12 @@ public class ApplicationController implements Serializable {
 			p.addParameter(param);
 
 			// Send $fileConsent request
+			JsonParser jsonParser = new JsonParser();
+			jsonParser.setOutputStyle(OutputStyle.PRETTY);
+			XmlParser xmlParser = new XmlParser();
+			xmlParser.setOutputStyle(OutputStyle.PRETTY);
 			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
 			if (formatType.equals("JSON")) {
-				JsonParser jsonParser = new JsonParser();
-				jsonParser.setOutputStyle(OutputStyle.PRETTY);
 				jsonParser.compose(oOp, p);
 
 				context.setResourceString(oOp.toString());
@@ -356,8 +370,6 @@ public class ApplicationController implements Serializable {
 				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "Consent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "fileConsent", null, null);
 			}
 			else {
-				XmlParser xmlParser = new XmlParser();
-				xmlParser.setOutputStyle(OutputStyle.PRETTY);
 				xmlParser.compose(oOp, p, true);
 
 				context.setResourceString(oOp.toString());
@@ -375,18 +387,45 @@ public class ApplicationController implements Serializable {
 					context.setResponseString(wrapper.getResourceXML());
 				}
 
-				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$fileConsent request successfully processed.", ""));
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$fileConsent request successfully processed.", ""));
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$fileConsent response failure [" + wrapper.getResponseStatus() + "].", ""));
+
+					consent.setStatus(ConsentState.INACTIVE);
+				}
 			}
 			else {
 				context.setResponseString("ERROR: Response is empty!");
 				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent! Response is empty.", "Error processing $fileConsent! Response is empty."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent! Response is empty.", ""));
 			}
 
+			// Save generated Consent and DocumentReference to client resources
+			Clientresource clientresource = new Clientresource();
+			clientresource.setResourceId(consentId);
+			clientresource.setResourceType("Consent");
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, consent);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().create(clientresource, consent);
+
+			clientresource = new Clientresource();
+			clientresource.setResourceId(consentId);
+			clientresource.setResourceType("DocumentReference");
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, docRef);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().create(clientresource, docRef);
+		}
+		catch (WildfhirClientException e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent! " + e.getMessage(), ""));
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent! Please check the client logs.", "Error processing $fileConsent! Please check the client logs."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent! Please check the client logs.", ""));
 			e.printStackTrace();
 		}
 

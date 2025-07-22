@@ -126,6 +126,8 @@ public class ApplicationContext implements Serializable {
 	private String selectedOrganizationId;
 	private List<LabelKeyValueBean> listProvisionTypes;
 	private String selectedProvisionType;
+	private Date endDate;
+	private Date startDate;
 
 	public ApplicationContext() {
 
@@ -401,6 +403,22 @@ public class ApplicationContext implements Serializable {
 
 	public void setSelectedProvisionType(String selectedProvisionType) {
 		this.selectedProvisionType = selectedProvisionType;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
 	}
 
 }

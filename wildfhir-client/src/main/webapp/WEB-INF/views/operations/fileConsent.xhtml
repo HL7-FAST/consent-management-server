@@ -59,28 +59,33 @@
 
 						<p:panelGrid id="fileConsentTabPanel1" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 							<h:outputText value="Select Manager *" />
-							<p:selectOneMenu required="true" label="Select Manager/Organization" value="#{context.selectedOrganizationId}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+							<p:selectOneMenu required="true" label="Select Manager/Organization" value="#{context.selectedOrganizationId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Manager/Organization --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientOrganizations}" var="org" itemLabel="#{org.description.trim()}         " itemValue="#{org.id}" />
 							</p:selectOneMenu>
 
 							<h:outputText value="Select Patient *" />
-							<p:selectOneMenu required="true" label="Select Patient/Grantor" value="#{context.selectedPatientId}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+							<p:selectOneMenu required="true" label="Select Patient/Grantor" value="#{context.selectedPatientId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Patient/Grantor --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientPatients}" var="pat" itemLabel="#{pat.description.trim()}         " itemValue="#{pat.id}" />
 							</p:selectOneMenu>
 
 							<h:outputText value="Select RelatedPerson *" />
-							<p:selectOneMenu required="true" label="Select RelatedPerson/Grantee" value="#{context.selectedRelatedPersonId}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+							<p:selectOneMenu required="true" label="Select RelatedPerson/Grantee" value="#{context.selectedRelatedPersonId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select RelatedPerson/Grantee --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientRelatedPersons}" var="rel" itemLabel="#{rel.description.trim()}         " itemValue="#{rel.id}" />
 							</p:selectOneMenu>
 
 							<h:outputText value="Select Provision *" />
-							<p:selectOneMenu required="true" label="Select Provision (Opt In/Out)" value="#{context.selectedProvisionType}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+							<p:selectOneMenu required="true" label="Select Provision (Opt In/Out)" value="#{context.selectedProvisionType}" maxlength="255" style="width:180px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Provision (Opt In/Out) --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.listProvisionTypes}" var="pro" itemLabel="#{pro.label.trim()}         " itemValue="#{pro.key}" />
 							</p:selectOneMenu>
+
+							<h:outputText value="Start Date (Optional)" />
+							<p:datePicker id="startDate" value="#{context.startDate}" showButtonBar="true" />
+							<h:outputText value="End Date (Optional)" />
+							<p:datePicker id="endDate" value="#{context.endDate}" showButtonBar="true" />
 						</p:panelGrid>
 					</p:tab>
 
