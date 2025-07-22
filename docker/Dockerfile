@@ -88,18 +88,16 @@ COPY ./standalone.sh $JBOSS_HOME/bin
 COPY ./standalone.xml $JBOSS_HOME/standalone/configuration
 
 # Copy WildFHIR CE Server Application for FHIR R4 to Wildfly standalone deployments
-COPY ../wildfhir-rest-server/target/wildfhir-rest-server.war $JBOSS_HOME/standalone/deployments
-COPY ../wildfhir-client/target/wildfhir-client.war $JBOSS_HOME/standalone/deployments
+COPY ./wildfhir-rest-server.war $JBOSS_HOME/standalone/deployments
+COPY ./wildfhir-client.war $JBOSS_HOME/standalone/deployments
 
-# TEMPORARY - Copy hl7.fhir.us.consent-management#0.1.0 package contents to .fhir/packages
-RUN cd /home/jboss \
-    && mkdir .fhir \
-    && cd .fhir \
-    && mkdir packages \
-    && cd packages \
-    && mkdir hl7.fhir.us.consent-management#0.1.0 \
-    && cd /home/jboss
+# FHIR Package
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 ADD ./hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
+
+# Client resources
+RUN mkdir -p /home/jboss/initializeClient
+ADD ./initializeClient /home/jboss/initializeClient
 
 # Expose the ports we're interested in
 EXPOSE 3306 8080 8443 9990

@@ -1,0 +1,51 @@
+{
+  "resourceType": "RelatedPerson",
+  "id": "relatedperson-fred-miren",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "relatedperson-fred-mire"
+    }
+  ],
+  "patient": {
+    "reference": "Patient/patient-lara-miren",
+    "identifier": {
+      "system": "http://example.org/identifiers",
+      "value": "patient-lara-miren"
+    }
+  },
+  "relationship": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+          "code": "BRO",
+          "display": "Brother-in-law"
+        }
+      ]
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Miren",
+      "given": [
+        "Fred"
+      ]
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1975-01-01",
+  "address": [
+    {
+      "use": "home",
+      "line": [
+        "456 Elm Street"
+      ],
+      "city": "Metropolis",
+      "state": "NY",
+      "postalCode": "10001",
+      "country": "US"
+    }
+  ]
+}
