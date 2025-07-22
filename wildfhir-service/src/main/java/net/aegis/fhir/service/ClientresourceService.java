@@ -58,6 +58,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Coverage;
+import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Endpoint;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Observation;
@@ -114,6 +115,7 @@ public class ClientresourceService {
 
 		try {
 			newClientresource = clientresource.clone(false);
+			newClientresource.setStatus("valid");
 			newClientresource.setLastUser("system");
 			newClientresource.setLastUpdate(new Date());
 
@@ -507,6 +509,17 @@ public class ClientresourceService {
 				else {
 					description.append("?");
 				}
+				break;
+			case DocumentReference:
+				DocumentReference docRef = (DocumentReference)resource;
+				description.append("(");
+				description.append((docRef.hasIdentifier() ? docRef.getIdentifierFirstRep().getValue() : (docRef.hasId() ? docRef.getId() : "?")));
+				description.append(") subject: ");
+				description.append((docRef.hasSubject() ? (docRef.getSubject().hasReference() ? docRef.getSubject().getReference() : (docRef.getSubject().hasIdentifier() ? docRef.getSubject().getIdentifier().getValue() : "?")) : "?"));
+				description.append("; type: ");
+				description.append((docRef.hasType() ? (docRef.getType().hasCoding() ? (docRef.getType().getCodingFirstRep().getSystem()) : "?") : "?"));
+				description.append("|");
+				description.append((docRef.hasType() ? (docRef.getType().hasCoding() ? (docRef.getType().getCodingFirstRep().getCode()) : "?") : "?"));
 				break;
 			case Endpoint:
 				Endpoint endpoint = (Endpoint)resource;
