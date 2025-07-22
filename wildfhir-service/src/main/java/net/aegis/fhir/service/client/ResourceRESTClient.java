@@ -164,7 +164,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -227,7 +226,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -333,7 +331,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -428,7 +425,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -483,7 +479,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -566,7 +561,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -620,7 +614,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -713,7 +706,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -810,7 +802,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -914,7 +905,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -968,7 +958,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -1010,7 +999,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -1059,7 +1047,6 @@ public class ResourceRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -1147,7 +1134,7 @@ public class ResourceRESTClient implements Serializable {
 			log.info("----- RESPONSE STATUS -----");
 			log.info(Integer.toString(response.getStatus()));
 
-			log.info("----- PAYLOAD (ENTITY) -----");
+			log.info("----- PAYLOAD ----- [snipped; use fine logging]");
 			String entity = null;
 			if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
 				entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
@@ -1158,7 +1145,7 @@ public class ResourceRESTClient implements Serializable {
 					entity = ">> NO ENTITY PAYLOAD <<";
 				}
 			}
-			log.info(entity);
+			log.fine(entity);
 
 		}
 		else {

@@ -115,7 +115,6 @@ public class ConformanceResourceRESTClient implements Serializable {
 
 		} catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}

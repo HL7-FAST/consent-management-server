@@ -164,7 +164,7 @@ public class ResourceOperationRESTClient implements Serializable {
 					jsonParser.compose(oResponse, inputParameters);
 					sInputParameters = oResponse.toString();
 
-					log.info("Operation Parameters object sent: " + sInputParameters);
+					log.fine("Operation Parameters object sent: " + sInputParameters);
 
 					//operationResponse = targetBuilder.post(Entity.json(sInputParameters));
 					operationResponse = targetBuilder.post(Entity.entity(sInputParameters, Constants.FHIR_JSON_CONTENT + Constants.CHARSET_UTF8_EXT));
@@ -179,9 +179,8 @@ public class ResourceOperationRESTClient implements Serializable {
 					xmlParser.compose(oResponse, inputParameters, true);
 					sInputParameters = oResponse.toString();
 
-					log.info("Operation Parameters object sent: " + sInputParameters);
+					log.fine("Operation Parameters object sent: " + sInputParameters);
 
-					//operationResponse = targetBuilder.post(Entity.xml(sInputParameters));
 					operationResponse = targetBuilder.post(Entity.entity(sInputParameters, Constants.FHIR_XML_CONTENT + Constants.CHARSET_UTF8_EXT));
 				}
 				else {
@@ -189,7 +188,7 @@ public class ResourceOperationRESTClient implements Serializable {
 				}
 			}
 			else if (inputString != null) {
-				log.info("Operation input string sent: " + inputString);
+				log.fine("Operation input string sent: " + inputString);
 
 				if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 					operationResponse = targetBuilder.post(Entity.entity(inputString, Constants.JSON_CONTENT + Constants.CHARSET_UTF8_EXT));
@@ -217,7 +216,6 @@ public class ResourceOperationRESTClient implements Serializable {
 		}
 		catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}
@@ -308,7 +306,7 @@ public class ResourceOperationRESTClient implements Serializable {
 			log.info("----- RESPONSE STATUS -----");
 			log.info(Integer.toString(response.getStatus()));
 
-			log.info("----- PAYLOAD (ENTITY) -----");
+			log.info("----- PAYLOAD ----- [snipped; use fine logging]");
 			String entity = null;
 			if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
 				entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
@@ -319,7 +317,7 @@ public class ResourceOperationRESTClient implements Serializable {
 					entity = ">> NO ENTITY PAYLOAD <<";
 				}
 			}
-			log.info(entity);
+			log.fine(entity);
 
 		}
 		else {
