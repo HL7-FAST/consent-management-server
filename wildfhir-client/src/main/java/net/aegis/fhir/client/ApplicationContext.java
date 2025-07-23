@@ -118,6 +118,8 @@ public class ApplicationContext implements Serializable {
 	private List<String> formatTypes;
 
 	// Consent operations
+	private List<Clientresource> clientConsents;
+	private String selectedConsentId;
 	private List<Clientresource> clientPatients;
 	private String selectedPatientId;
 	private List<Clientresource> clientRelatedPersons;
@@ -145,14 +147,18 @@ public class ApplicationContext implements Serializable {
 		this.responseString = null;
 		this.criteriaMap = new HashMap<String, String>();
 		this.datePicker = null;
+		this.selectedConsentId = null;
+		this.selectedPatientId = null;
+		this.selectedRelatedPersonId = null;
+		this.selectedOrganizationId = null;
+		this.selectedProvisionType = null;
+		this.endDate = null;
+		this.startDate = null;
 		try {
-			this.availableServers = serverDirectoryService.findAll();
+			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
 			this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
-			listProvisionTypes = new ArrayList<LabelKeyValueBean>();
-			listProvisionTypes.add(new LabelKeyValueBean("Opt In", "permit", "Opt In"));
-			listProvisionTypes.add(new LabelKeyValueBean("Opt Out", "deny", "Opt Out"));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -168,14 +174,18 @@ public class ApplicationContext implements Serializable {
 		this.responseString = null;
 		this.criteriaMap = new HashMap<String, String>();
 		this.datePicker = null;
+		this.selectedConsentId = null;
+		this.selectedPatientId = null;
+		this.selectedRelatedPersonId = null;
+		this.selectedOrganizationId = null;
+		this.selectedProvisionType = null;
+		this.endDate = null;
+		this.startDate = null;
 		try {
-			this.availableServers = serverDirectoryService.findAll();
+			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
 			this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
-			listProvisionTypes = new ArrayList<LabelKeyValueBean>();
-			listProvisionTypes.add(new LabelKeyValueBean("Opt In", "permit", "Opt In"));
-			listProvisionTypes.add(new LabelKeyValueBean("Opt Out", "deny", "Opt Out"));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -247,6 +257,12 @@ public class ApplicationContext implements Serializable {
 	}
 
 	public List<Serverdirectory> getAvailableServers() {
+		try {
+			availableServers = serverDirectoryService.findAll();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 		return availableServers;
 	}
 
@@ -341,6 +357,22 @@ public class ApplicationContext implements Serializable {
 		return formatTypes;
 	}
 
+	public List<Clientresource> getClientConsents() {
+		return clientConsents;
+	}
+
+	public void setClientConsents(List<Clientresource> clientConsents) {
+		this.clientConsents = clientConsents;
+	}
+
+	public String getSelectedConsentId() {
+		return selectedConsentId;
+	}
+
+	public void setSelectedConsentId(String selectedConsentId) {
+		this.selectedConsentId = selectedConsentId;
+	}
+
 	public List<Clientresource> getClientPatients() {
 		return clientPatients;
 	}
@@ -390,6 +422,10 @@ public class ApplicationContext implements Serializable {
 	}
 
 	public List<LabelKeyValueBean> getListProvisionTypes() {
+		listProvisionTypes = new ArrayList<LabelKeyValueBean>();
+		listProvisionTypes.add(new LabelKeyValueBean("Opt In", "permit", "Opt In"));
+		listProvisionTypes.add(new LabelKeyValueBean("Opt Out", "deny", "Opt Out"));
+		
 		return listProvisionTypes;
 	}
 

@@ -7,10 +7,11 @@
 
 	<!-- This is the view file for the FAST Consent Admin Tab -->
 
-	<p:tab title="Admin" id="adminTab">
+	<p:tab title="Admin" id="adminTab" cache="false">
 		<p:tabView id="adminTabView" widgetVar="adminTabView" cache="false">
 
-			<p:ajax event="tabChange" listener="#{controller.onTabChange}" process="@this" />
+			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
+				update=":tabView:adminTabView:initializeClientForm,:tabView:adminTabView:serversForm" />
 
 			<ui:include src="/WEB-INF/views/admin/servers.xhtml" />
 			<ui:include src="/WEB-INF/views/admin/initialize_client.xhtml" />

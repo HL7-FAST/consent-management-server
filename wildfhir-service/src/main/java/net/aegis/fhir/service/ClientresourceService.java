@@ -69,6 +69,7 @@ import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.ResourceType;
 
 import net.aegis.fhir.model.Clientresource;
+import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
 
 /**
@@ -373,7 +374,7 @@ public class ClientresourceService {
 	/**
 	 * Get the Client Resource records for a specific ResourceType
 	 *
-	 * @param basePath
+	 * @param resourceType
 	 * @return <code>List<Clientresource></code>
 	 * @throws Exception
 	 */
@@ -393,6 +394,45 @@ public class ClientresourceService {
 					resourceType);
 
 			result = (List<Clientresource>) clientresourceQuery.getResultList();
+		} catch (Exception e) {
+			// Exception caught
+			e.printStackTrace();
+			throw e;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Get the Client Resource record for a specific ResourceType and resourceId
+	 *
+	 * @param resourceType
+	 * @param resourceId
+	 * @return <code>List<Clientresource></code>
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public Clientresource findClientresourceByResourceTypeResourceId(String resourceType, String resourceId) throws Exception {
+
+		log.fine("[START] ClientresourceService.findClientresourceByResourceTypeResourceId");
+
+		Query clientresourceQuery = null;
+		List<Clientresource> results = new ArrayList<Clientresource>();
+		Clientresource result = null;
+
+		/*
+		 * Generate the Clientresource list of all records for the resourceType and resourceId values
+		 * We expect only one so take the first one
+		 */
+		try {
+			clientresourceQuery = em.createNamedQuery("findClientresourceByResourceTypeResourceId").setParameter("resourceType",
+					resourceType).setParameter("resourceId", resourceId);
+
+			results = (List<Clientresource>) clientresourceQuery.getResultList();
+
+			if (results != null && !results.isEmpty()) {
+				result = results.get(0);
+			}
 		} catch (Exception e) {
 			// Exception caught
 			e.printStackTrace();
@@ -456,19 +496,18 @@ public class ClientresourceService {
 			switch (type) {
 			case Coverage:
 				Coverage coverage = (Coverage)resource;
-				description.append("(");
-				description.append((coverage.hasIdentifier() ? coverage.getIdentifierFirstRep().getValue() : (coverage.hasId() ? coverage.getId() : "?")));
-				description.append(") beneficiary: ");
-				description.append((coverage.hasBeneficiary() ? (coverage.getBeneficiary().hasReference() ? coverage.getBeneficiary().getReference() : (coverage.getBeneficiary().hasIdentifier() ? coverage.getBeneficiary().getIdentifier().getValue() : "?")) : "?"));
+				description.append("beneficiary: ");
+				description.append((coverage.hasBeneficiary() ? (coverage.getBeneficiary().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(coverage.getBeneficiary().getReference()) : (coverage.getBeneficiary().hasIdentifier() ? coverage.getBeneficiary().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; subscriber: ");
-				description.append((coverage.hasSubscriber() ? (coverage.getSubscriber().hasReference() ? coverage.getSubscriber().getReference() : (coverage.getSubscriber().hasIdentifier() ? coverage.getSubscriber().getIdentifier().getValue() : "?")) : "?"));
+				description.append((coverage.hasSubscriber() ? (coverage.getSubscriber().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(coverage.getSubscriber().getReference()) : (coverage.getSubscriber().hasIdentifier() ? coverage.getSubscriber().getIdentifier().getValue() : "?")) : "?"));
+				description.append(" (");
+				description.append((coverage.hasIdentifier() ? coverage.getIdentifierFirstRep().getValue() : (coverage.hasId() ? coverage.getId() : "?")));
+				description.append(")");
 				break;
 			case Condition:
 				Condition condition = (Condition)resource;
-				description.append("(");
-				description.append((condition.hasIdentifier() ? condition.getIdentifierFirstRep().getValue() : (condition.hasId() ? condition.getId() : "?")));
-				description.append(") patient: ");
-				description.append((condition.hasSubject() ? (condition.getSubject().hasReference() ? condition.getSubject().getReference() : (condition.getSubject().hasIdentifier() ? condition.getSubject().getIdentifier().getValue() : "?")) : "?"));
+				description.append("patient: ");
+				description.append((condition.hasSubject() ? (condition.getSubject().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(condition.getSubject().getReference()) : (condition.getSubject().hasIdentifier() ? condition.getSubject().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; cat: ");
 				if (condition.hasCategory() && condition.getCategoryFirstRep().hasCoding()) {
 					Coding catCoding = condition.getCategoryFirstRep().getCodingFirstRep();
@@ -485,13 +524,14 @@ public class ClientresourceService {
 				else {
 					description.append("?");
 				}
+				description.append(" (");
+				description.append((condition.hasIdentifier() ? condition.getIdentifierFirstRep().getValue() : (condition.hasId() ? condition.getId() : "?")));
+				description.append(")");
 				break;
 			case Consent:
 				Consent consent = (Consent)resource;
-				description.append("(");
-				description.append((consent.hasIdentifier() ? consent.getIdentifierFirstRep().getValue() : (consent.hasId() ? consent.getId() : "?")));
-				description.append(") patient: ");
-				description.append((consent.hasPatient() ? (consent.getPatient().hasReference() ? consent.getPatient().getReference() : (consent.getPatient().hasIdentifier() ? consent.getPatient().getIdentifier().getValue() : "?")) : "?"));
+				description.append("patient: ");
+				description.append((consent.hasPatient() ? (consent.getPatient().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference()) : (consent.getPatient().hasIdentifier() ? consent.getPatient().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; prov: ");
 				description.append(consent.getProvision().getType().getDisplay());
 				description.append("; grantee: ");
@@ -509,31 +549,33 @@ public class ClientresourceService {
 				else {
 					description.append("?");
 				}
+				description.append(" (");
+				description.append((consent.hasIdentifier() ? consent.getIdentifierFirstRep().getValue() : (consent.hasId() ? consent.getId() : "?")));
+				description.append(")");
 				break;
 			case DocumentReference:
 				DocumentReference docRef = (DocumentReference)resource;
-				description.append("(");
-				description.append((docRef.hasIdentifier() ? docRef.getIdentifierFirstRep().getValue() : (docRef.hasId() ? docRef.getId() : "?")));
-				description.append(") subject: ");
-				description.append((docRef.hasSubject() ? (docRef.getSubject().hasReference() ? docRef.getSubject().getReference() : (docRef.getSubject().hasIdentifier() ? docRef.getSubject().getIdentifier().getValue() : "?")) : "?"));
+				description.append("subject: ");
+				description.append((docRef.hasSubject() ? (docRef.getSubject().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(docRef.getSubject().getReference()) : (docRef.getSubject().hasIdentifier() ? docRef.getSubject().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; type: ");
 				description.append((docRef.hasType() ? (docRef.getType().hasCoding() ? (docRef.getType().getCodingFirstRep().getSystem()) : "?") : "?"));
 				description.append("|");
 				description.append((docRef.hasType() ? (docRef.getType().hasCoding() ? (docRef.getType().getCodingFirstRep().getCode()) : "?") : "?"));
+				description.append(" (");
+				description.append((docRef.hasIdentifier() ? docRef.getIdentifierFirstRep().getValue() : (docRef.hasId() ? docRef.getId() : "?")));
+				description.append(")");
 				break;
 			case Endpoint:
 				Endpoint endpoint = (Endpoint)resource;
-				description.append("(");
-				description.append((endpoint.hasIdentifier() ? endpoint.getIdentifierFirstRep().getValue() : (endpoint.hasId() ? endpoint.getId() : "?")));
-				description.append(") ");
 				description.append((endpoint.hasName() ? endpoint.getName() : "?"));
+				description.append(" (");
+				description.append((endpoint.hasIdentifier() ? endpoint.getIdentifierFirstRep().getValue() : (endpoint.hasId() ? endpoint.getId() : "?")));
+				description.append(")");
 				break;
 			case Observation:
 				Observation observation = (Observation)resource;
-				description.append("(");
-				description.append((observation.hasIdentifier() ? observation.getIdentifierFirstRep().getValue() : (observation.hasId() ? observation.getId() : "?")));
-				description.append(") patient: ");
-				description.append((observation.hasSubject() ? (observation.getSubject().hasReference() ? observation.getSubject().getReference() : (observation.getSubject().hasIdentifier() ? observation.getSubject().getIdentifier().getValue() : "?")) : "?"));
+				description.append("patient: ");
+				description.append((observation.hasSubject() ? (observation.getSubject().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(observation.getSubject().getReference()) : (observation.getSubject().hasIdentifier() ? observation.getSubject().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; cat: ");
 				if (observation.hasCategory() && observation.getCategoryFirstRep().hasCoding()) {
 					Coding catCoding = observation.getCategoryFirstRep().getCodingFirstRep();
@@ -550,33 +592,38 @@ public class ClientresourceService {
 				else {
 					description.append("?");
 				}
+				description.append(" (");
+				description.append((observation.hasIdentifier() ? observation.getIdentifierFirstRep().getValue() : (observation.hasId() ? observation.getId() : "?")));
+				description.append(")");
 				break;
 			case Organization:
 				Organization organization = (Organization)resource;
-				description.append("(");
-				description.append((organization.hasIdentifier() ? organization.getIdentifierFirstRep().getValue() : (organization.hasId() ? organization.getId() : "?")));
-				description.append(") ");
 				description.append((organization.hasName() ? organization.getName() : "?"));
+				description.append(" (");
+				description.append((organization.hasIdentifier() ? organization.getIdentifierFirstRep().getValue() : (organization.hasId() ? organization.getId() : "?")));
+				description.append(")");
 				break;
 			case Patient:
 				Patient patient = (Patient)resource;
 				description.append((patient.hasName() ? (patient.getNameFirstRep().hasFamily() ? patient.getNameFirstRep().getFamily() + ", " + (patient.getNameFirstRep().hasGiven() ? patient.getNameFirstRep().getGivenAsSingleString() : "?") : "?") : "??"));
-				description.append(" (");
-				description.append((patient.hasIdentifier() ? patient.getIdentifierFirstRep().getValue() : (patient.hasId() ? patient.getId() : "?")));
-				description.append("); g: ");
+				description.append(" g: ");
 				description.append((patient.hasGender() ? patient.getGender().getDisplay() : "?"));
 				description.append("; b: ");
 				description.append((patient.hasBirthDate() ? utcDateUtil.formatDate(patient.getBirthDate(), UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "?"));
+				description.append(" (");
+				description.append((patient.hasIdentifier() ? patient.getIdentifierFirstRep().getValue() : (patient.hasId() ? patient.getId() : "?")));
+				description.append(")");
 				break;
 			case RelatedPerson:
 				RelatedPerson relatedPerson = (RelatedPerson)resource;
 				description.append((relatedPerson.hasName() ? (relatedPerson.getNameFirstRep().hasFamily() ? relatedPerson.getNameFirstRep().getFamily() + ", " + (relatedPerson.getNameFirstRep().hasGiven() ? relatedPerson.getNameFirstRep().getGivenAsSingleString() : "?") : "?") : "??"));
-				description.append(" (");
-				description.append((relatedPerson.hasIdentifier() ? relatedPerson.getIdentifierFirstRep().getValue() : (relatedPerson.hasId() ? relatedPerson.getId() : "?")));
-				description.append("); g: ");
+				description.append(" g: ");
 				description.append((relatedPerson.hasGender() ? relatedPerson.getGender().getDisplay() : "?"));
 				description.append("; b: ");
 				description.append((relatedPerson.hasBirthDate() ? utcDateUtil.formatDate(relatedPerson.getBirthDate(), UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "?"));
+				description.append(" (");
+				description.append((relatedPerson.hasIdentifier() ? relatedPerson.getIdentifierFirstRep().getValue() : (relatedPerson.hasId() ? relatedPerson.getId() : "?")));
+				description.append(")");
 				break;
 			default:
 				description.append(type.name() + "; id: " + resource.getId());

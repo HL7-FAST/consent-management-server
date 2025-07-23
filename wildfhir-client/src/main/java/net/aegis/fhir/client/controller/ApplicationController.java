@@ -95,6 +95,7 @@ import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.Serverdirectory;
+import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
 import net.aegis.fhir.service.util.UUIDUtil;
 
@@ -133,7 +134,7 @@ public class ApplicationController implements Serializable {
 	 */
 	public void onTabChange(TabChangeEvent<?> event) {
 		context.clear();
-		Iterator<?> iter = FacesContext.getCurrentInstance().getMessages();
+		Iterator<FacesMessage> iter = FacesContext.getCurrentInstance().getMessages();
     	while (iter.hasNext()) {
     		iter.remove();
     	}
@@ -344,7 +345,7 @@ public class ApplicationController implements Serializable {
 			sb = new StringBuilder("I, ");
 			sb.append(grantor.getNameFirstRep().getNameAsSingleString());
 			sb.append(", ");
-			sb.append(ConsentProvisionType.PERMIT.toCode());
+			sb.append(consent.getProvision().getType().toCode());
 			sb.append(" ");
 			sb.append(grantee.getNameFirstRep().getNameAsSingleString());
 			sb.append(" access to my medical records.");
@@ -412,7 +413,7 @@ public class ApplicationController implements Serializable {
 			context.getClientresourceService().create(clientresource, consent);
 
 			clientresource = new Clientresource();
-			clientresource.setResourceId(consentId);
+			clientresource.setResourceId(docRefId);
 			clientresource.setResourceType("DocumentReference");
 			oOp = new ByteArrayOutputStream();
 			jsonParser.compose(oOp, docRef);
@@ -432,6 +433,35 @@ public class ApplicationController implements Serializable {
 		log.fine("[END] ApplicationController.processFileConsent()");
 	}
 
+	public void handleUpdateConsentChange() throws Exception {
+		try {
+			// Get selected consent resource
+			String clientConsentId = context.getSelectedConsentId();
+			Consent consent = (Consent) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientConsentId));
+
+			if (consent != null) {
+				// Populate updateConsent values that can be changed
+				// We know these values exist because we populated them when performing fileConsent
+				String updateConsentProvisionType = consent.getProvision().getType().toCode();
+				context.setSelectedProvisionType(updateConsentProvisionType);
+
+				Period updateConsentProvisionPeriod = consent.getProvision().getPeriod();
+				context.setStartDate(updateConsentProvisionPeriod.getStart());
+				context.setEndDate(updateConsentProvisionPeriod.getEnd());
+
+				Reference updateConsentProvisionActor = consent.getProvision().getActorFirstRep().getReference();
+				String actorId = ServicesUtil.INSTANCE.extractResourceIdFromURL(updateConsentProvisionActor.getReference());
+				Clientresource actor = (Clientresource) context.getClientresourceService().findClientresourceByResourceTypeResourceId("RelatedPerson", actorId);
+				context.setSelectedRelatedPersonId(actor.getId().toString());
+			}
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $updateConsent handle Consent change! Please check the client logs.", ""));
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Process the $updateConsent operation request
 	 * 
@@ -442,10 +472,205 @@ public class ApplicationController implements Serializable {
 		log.info("$updateConsent info: ");
 
 		try {
-			log.info("Selected Format Type: " + context.getSelectedFormatType());
+			String formatType = context.getSelectedFormatType();
+			log.info("Selected Format Type: " + formatType);
 			log.info("BasePath for $updateConsent: " + context.getSelectedServerURL());
+			Response response = null;
 
-			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$updateConsent request successfully processed.", ""));
+			String clientConsentId = context.getSelectedConsentId();
+			String clientRelatedPersonId = context.getSelectedRelatedPersonId();
+			String provisionType = context.getSelectedProvisionType();
+			Date startDate = context.getStartDate();
+			Date endDate = context.getEndDate();
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("Consent id: ").append(clientConsentId);
+			sb.append("; RelatedPerson id: ").append(clientRelatedPersonId);
+			sb.append("; Provision: ").append(provisionType);
+			sb.append("; Start: ").append((startDate != null ? utcDateUtil.formatDate(startDate, UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "null"));
+			sb.append("; End: ").append((startDate != null ? utcDateUtil.formatDate(endDate, UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "null"));
+
+			context.setResourceString(sb.toString());
+			context.setResponseString("TBD");
+
+			Consent consent = (Consent) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientConsentId));
+			RelatedPerson grantee = (RelatedPerson) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientRelatedPersonId));
+
+			// Build $updateConsent Parameters with Consent and DocumentReference
+			Parameters p = new Parameters();
+			p.setId(UUIDUtil.getUUID());
+			Meta meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/UpdateConsentParameters");
+			p.setMeta(meta);
+
+			// consent parameter
+			ParametersParameterComponent param = new ParametersParameterComponent();
+			param.setName("consent");
+
+			// Check for updated grantee (RelatedPersion)
+			String currentGrantee = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference());
+			Extension extension = null;
+			if (!currentGrantee.equals(clientRelatedPersonId)) {
+				Reference referenceGrantee = new Reference();
+				referenceGrantee.setReference("RelatedPerson/" + grantee.getId());
+				if (grantee.hasIdentifier()) {
+					referenceGrantee.setIdentifier(grantee.getIdentifierFirstRep());
+				}
+
+				extension = consent.getExtensionByUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee");
+				if (extension == null) {
+					extension = new Extension();
+					extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee");
+					consent.addExtension(extension);
+				}
+				extension.setValue(referenceGrantee);
+
+				consent.getProvision().getActorFirstRep().setReference(referenceGrantee);
+			}
+
+			// Check for updated provision type
+			String currentProvisionType = consent.getProvision().getType().toCode();
+			if (!currentProvisionType.equals(provisionType)) {
+				consent.getProvision().setType(ConsentProvisionType.fromCode(currentProvisionType));
+			}
+			
+			// Check for updated provision period
+			if (startDate != null || endDate != null) {
+				Period updatedPeriod = new Period();
+				updatedPeriod.setStart(startDate);
+				updatedPeriod.setEnd(endDate);
+				consent.getProvision().setPeriod(updatedPeriod);
+			}
+
+			param.setResource(consent);
+
+			p.addParameter(param);
+
+			// document parameter
+			param = new ParametersParameterComponent();
+			param.setName("document");
+
+			DocumentReference docRef = new DocumentReference();
+			String docRefId = UUIDUtil.getUUID();
+			docRef.setId(docRefId);
+			meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference");
+			docRef.setMeta(meta);
+
+			Identifier docRefIidentifer = new Identifier();
+			docRefIidentifer.setSystem("http://example.org/identifiers");
+			docRefIidentifer.setValue(docRefId);
+			docRef.addIdentifier(docRefIidentifer);
+
+			// Set Consent.sourceReference to DocumentReference
+			Reference reference = new Reference();
+			reference.setReference("DocumentReference/" + docRefId);
+			reference.setIdentifier(docRefIidentifer);
+			consent.setSource(reference);
+
+			docRef.setStatus(DocumentReferenceStatus.CURRENT);
+
+			CodeableConcept codeableConcept = new CodeableConcept();
+			Coding coding = new Coding();
+			coding.setSystem("http://loinc.org");
+			coding.setCode("64292-6");
+			codeableConcept.addCoding(coding);
+			docRef.setType(codeableConcept);
+
+			codeableConcept = new CodeableConcept();
+			coding = new Coding();
+			coding.setSystem("http://loinc.org");
+			coding.setCode("57016-8");
+			codeableConcept.addCoding(coding);
+			docRef.addCategory(codeableConcept);
+
+			reference = consent.getPatient();
+			docRef.setSubject(reference);
+			docRef.setDate(startDate);
+			docRef.addAuthor(reference);
+
+			String consentPatientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference());
+			Clientresource consentPatient = context.getClientresourceService().readClientResource("Patient", consentPatientId);
+			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(consentPatient.getId());
+
+			DocumentReferenceContentComponent content = new DocumentReferenceContentComponent();
+			Attachment attachment = new Attachment();
+			attachment.setContentType("text/plain" + Constants.CHARSET_UTF8_EXT);
+			sb = new StringBuilder("I, ");
+			sb.append(grantor.getNameFirstRep().getNameAsSingleString());
+			sb.append(", update my consent to ");
+			sb.append(consent.getProvision().getType().toCode());
+			sb.append(" ");
+			sb.append(grantee.getNameFirstRep().getNameAsSingleString());
+			sb.append(" access to my medical records.");
+			attachment.setData(sb.toString().getBytes("UTF-8"));
+			content.setAttachment(attachment);
+			docRef.addContent(content);
+
+			param.setResource(docRef);
+
+			p.addParameter(param);
+
+			// Send $fileConsent request
+			JsonParser jsonParser = new JsonParser();
+			jsonParser.setOutputStyle(OutputStyle.PRETTY);
+			XmlParser xmlParser = new XmlParser();
+			xmlParser.setOutputStyle(OutputStyle.PRETTY);
+			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
+			if (formatType.equals("JSON")) {
+				jsonParser.compose(oOp, p);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "Consent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "updateConsent", null, null);
+			}
+			else {
+				xmlParser.compose(oOp, p, true);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "Consent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "updateConsent", null, null);
+			}
+
+			if (response != null) {
+				ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
+
+				if (formatType.equals("JSON")) {
+					context.setResponseString(wrapper.getResourceJSON());
+				}
+				else {
+					context.setResponseString(wrapper.getResourceXML());
+				}
+
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$updateConsent request successfully processed.", ""));
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$updateConsent response failure [" + wrapper.getResponseStatus() + "].", ""));
+
+					consent.setStatus(ConsentState.INACTIVE);
+				}
+			}
+			else {
+				context.setResponseString("ERROR: Response is empty!");
+				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $updateConsent! Response is empty.", ""));
+			}
+
+			// Save updated Consent and generated DocumentReference to client resources
+			Clientresource clientresource = context.getClientresourceService().read(Integer.valueOf(clientConsentId));
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, consent);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().update(clientresource, consent);
+
+			clientresource = new Clientresource();
+			clientresource.setResourceId(docRefId);
+			clientresource.setResourceType("DocumentReference");
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, docRef);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().create(clientresource, docRef);
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm",

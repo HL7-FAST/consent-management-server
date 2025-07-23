@@ -7,7 +7,7 @@
 
 	<!-- This is the view file for the FAST Consent $fileConsent Tab -->
 
-	<p:tab title="$fileConsent" id="fileConsentTab">
+	<p:tab title="$fileConsent" id="fileConsentTab" cache="false">
 
 		<h:form id="fileConsentForm" prependId="false" style="width:100%;border:none;">
 			<p:panelGrid id="fileConsentPanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
@@ -35,7 +35,6 @@
 				</p:selectOneMenu>
 			</p:panelGrid>
 
-
 			<p:panel id="fileConsentResultsPanel" visible="true"
 				widgetVar="fileConsentResultsPanel" toggleable="true" closable="true"
 				toggleSpeed="500" closeSpeed="500">
@@ -50,7 +49,7 @@
 					</f:facet>
 				</p:toolbar>
 
-				<p:tabView id="fileConsentTabView" widgetVar="fileConsentTabView" dynamic="true" cache="false">
+				<p:tabView id="fileConsentTabView" widgetVar="fileConsentTabView">
 					<p:tab title="Consent" id="fileConsentTab0">
 						<p:panelGrid id="fileConsentTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
 							<h:outputText value="The $fileConsent Parameters will be constructed from the selections. A fictitious DocumentReference resource will be generated for the supporting document parameter."
@@ -83,9 +82,10 @@
 							</p:selectOneMenu>
 
 							<h:outputText value="Start Date (Optional)" />
-							<p:datePicker id="startDate" value="#{context.startDate}" showButtonBar="true" />
+							<p:datePicker id="fileConsentStartDate" value="#{context.startDate}" showButtonBar="true" />
+
 							<h:outputText value="End Date (Optional)" />
-							<p:datePicker id="endDate" value="#{context.endDate}" showButtonBar="true" />
+							<p:datePicker id="fileConsentEndDate" value="#{context.endDate}" showButtonBar="true" />
 						</p:panelGrid>
 					</p:tab>
 

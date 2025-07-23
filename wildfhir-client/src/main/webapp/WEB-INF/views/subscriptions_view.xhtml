@@ -7,10 +7,11 @@
 
 	<!-- This is the view file for the FAST Consent Subscriptions Tab -->
 
-	<p:tab title="Subscriptions" id="subscriptionsTab">
+	<p:tab title="Subscriptions" id="subscriptionsTab" cache="false">
 		<p:tabView id="subscriptionsTabView" widgetVar="subscriptionsTabView" cache="false">
 
-			<p:ajax event="tabChange" listener="#{controller.onTabChange}" process="@this" />
+			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
+				update=":tabView:subscriptionsTabView:subscriptionClientForm" />
 
 			<ui:include src="/WEB-INF/views/subscriptions/subscriptionsClient.xhtml" />
 

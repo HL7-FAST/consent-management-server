@@ -12,6 +12,15 @@
         ]]></query>
     </named-query>
 
+    <named-query name="findClientresourceByResourceTypeResourceId">
+        <query><![CDATA[
+                select c
+                from Clientresource c
+                where c.resourceType = :resourceType
+                and c.resourceId = :resourceId
+        ]]></query>
+    </named-query>
+
     <named-query name="findServerdirectoryByBasePath">
         <query><![CDATA[
                 select s
