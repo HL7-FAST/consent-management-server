@@ -4,7 +4,7 @@
 su - mysql -c "mysqld" &
 
 # Wait for MySQL to start
-sleep 5
+sleep 15
 
 # Remove Wildfly bin/env.conf
 rm -f /opt/jboss/wildfly/bin/env.conf
