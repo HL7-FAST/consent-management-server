@@ -71,7 +71,6 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Patient;
@@ -169,7 +168,6 @@ public class ApplicationController implements Serializable {
 		try {
 			String clientPatientId = context.getSelectedPatientId();
 			String clientRelatedPersonId = context.getSelectedRelatedPersonId();
-			String clientOrganizationId = context.getSelectedOrganizationId();
 			String provisionType = context.getSelectedProvisionType();
 			Date consentDate = new Date();
 			Date startDate = context.getStartDate();
@@ -178,8 +176,8 @@ public class ApplicationController implements Serializable {
 
 			sb.append("Patient id: ").append(clientPatientId);
 			sb.append("; RelatedPerson id: ").append(clientRelatedPersonId);
-			sb.append("; Organization id: ").append(clientOrganizationId);
 			sb.append("; Provision: ").append(provisionType);
+			sb.append("; Server URL: ").append(context.getSelectedServerURL());
 
 			context.setResourceString(sb.toString());
 			context.setResponseString("TBD");
@@ -187,7 +185,7 @@ public class ApplicationController implements Serializable {
 			// Get selected client resources
 			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientId));
 			RelatedPerson grantee = (RelatedPerson) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientRelatedPersonId));
-			Organization manager = (Organization) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientOrganizationId));
+			Serverdirectory server = context.getServerDirectoryService().findServerdirectoryByBasePath(context.getSelectedServerURL());
 
 			// Build $fileConsent Parameters with Consent and DocumentReference
 			Parameters p = new Parameters();
@@ -219,14 +217,17 @@ public class ApplicationController implements Serializable {
 			extension = new Extension();
 			extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager");
 			Reference reference = new Reference();
-			reference.setReference("Organization/" + manager.getId());
-			if (manager.hasIdentifier()) {
-				reference.setIdentifier(manager.getIdentifierFirstRep());
-			}
+			// Build manager Organization reference from selected Serverdirectory
+			String serverId = server.getName().toLowerCase().replaceAll(" ", "-");
+			reference.setReference("Organization/" + serverId);
+			Identifier identifer = new Identifier();
+			identifer.setSystem("http://example.org/identifiers");
+			identifer.setValue(serverId);
+			reference.setIdentifier(identifer);
 			extension.setValue(reference);
 			consent.addExtension(extension);
 
-			Identifier identifer = new Identifier();
+			identifer = new Identifier();
 			identifer.setSystem("http://example.org/identifiers");
 			identifer.setValue(consentId);
 			consent.addIdentifier(identifer);
@@ -742,9 +743,6 @@ public class ApplicationController implements Serializable {
 		String loadPath = "??";
 
 		try {
-			log.info("Selected Format Type: " + context.getSelectedFormatType());
-			log.info("BasePath for initializeClient: " + context.getSelectedServerURL());
-
 			context.getClientresourceService().clientresourcePurgeAll();
 
 			log.info("Purge clientresource complete.");

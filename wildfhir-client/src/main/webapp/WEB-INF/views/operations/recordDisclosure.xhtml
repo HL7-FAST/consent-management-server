@@ -13,24 +13,24 @@
 			<p:panelGrid id="recordDisclosurePanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
 				<p:messages id="recordDisclosureMessages" />
 				<h:outputText value="Record Disclosure"
-					style="padding:0px;font-style:italic;font-weight:bold;font-size:16px;" />
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
 				<h:outputText value="This operation is used to record a disclosure based on a given consent for a given patient with a consent administration service."
-					style="padding:0px;font-style:italic;font-weight;font-size:14px;" />
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 				<h:outputText value="The parameters are a Consent AuditEvent and a reference to the Consent resource."
-					style="padding:0px;font-style:italic;font-weight;font-size:14px;" />
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 			</p:panelGrid>
 
 			<hr></hr>
 
 			<p:panelGrid id="recordDisclosurePanel2" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
-				<h:outputText value="Format Type (Default JSON if not set): * " />
+				<h:outputText value="Format Type (Default JSON): * " />
 				<p:selectOneMenu required="false" label="Select Format Type" value="#{context.selectedFormatType}" maxlength="10" style="width:80px;text-align:left;padding-right:30px;">
 					<f:selectItems value="#{context.formatTypes}" var="formatType" itemLabel="#{formatType}         " itemValue="#{formatType}" />
 				</p:selectOneMenu>
 
-				<h:outputText value="Select Admin Server: * " />
-				<p:selectOneMenu required="true" label="Select Admin Server" value="#{context.selectedServerURL}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
-					<f:selectItem itemValue="#{null}" itemLabel="-- Select Admin Server --         " noSelectionOption="true" />
+				<h:outputText value="Select Consent Mgmt Server: * " />
+				<p:selectOneMenu required="true" label="Select Consent Mgmt Server" value="#{context.selectedServerURL}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+					<f:selectItem itemValue="#{null}" itemLabel="-- Select Consent Mgmt Server --         " noSelectionOption="true" />
 					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
 				</p:selectOneMenu>
 

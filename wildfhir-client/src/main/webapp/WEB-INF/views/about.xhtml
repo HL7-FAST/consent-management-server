@@ -15,7 +15,7 @@
 
 		<hr></hr>
 
-		<p:panelGrid id="subscriptionClientPanel2" columns="2" border="0"
+		<p:panelGrid id="aboutPanel2" columns="2" border="0"
 			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 			<h:outputText value="Version"
 				style="font-weight:bold" />
@@ -28,6 +28,14 @@
 			<h:outputText value="Build Timestamp"
 				style="font-weight:bold" />
 			<h:outputText value="#{appRes['build.timestamp']}" />
+		</p:panelGrid>
+
+		<hr></hr>
+
+		<p:panelGrid id="aboutPanel3" columns="1" border="0"
+			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+			<h:outputText value="Additional details here"
+				style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 		</p:panelGrid>
 	</p:tab>
 
