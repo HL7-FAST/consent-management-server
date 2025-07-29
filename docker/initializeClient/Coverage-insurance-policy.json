@@ -1,0 +1,46 @@
+{
+  "resourceType": "Coverage",
+  "id": "coverage-lara-miren-insurance-policy",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "coverage-lara-miren-insurance-policy"
+    }
+  ],
+  "status": "active",
+  "beneficiary": {
+    "reference": "Patient/patient-lara-miren",
+    "identifier": {
+      "system": "http://example.org/identifiers",
+      "value": "patient-lara-miren"
+    }
+  },
+  "subscriber": {
+    "reference": "RelatedPerson/relatedperson-robert-miren",
+    "identifier": {
+      "system": "http://example.org/identifiers",
+      "value": "relatedperson-robert-miren"
+    }
+  },
+  "relationship": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+        "code": "self"
+      }
+    ]
+  },
+  "period": {
+    "start": "2023-01-01",
+    "end": "2023-12-31"
+  },
+  "payor": [
+    {
+      "reference": "Organization/organization-insurance-company",
+      "identifier": {
+        "system": "http://example.org/identifiers",
+        "value": "organization-insurance-company"
+      }
+    }
+  ]
+}

@@ -117,6 +117,11 @@ public class ResourceOperationProxyObjectFactory {
 				proxy = new PatientPurge();
 			}
 		}
+		else if (resourceType.equals(ResourceType.Subscription.name())) {
+			if (operationName.equals("status")) {
+				proxy = new SubscriptionStatus();
+			}
+		}
 
 		return proxy;
 

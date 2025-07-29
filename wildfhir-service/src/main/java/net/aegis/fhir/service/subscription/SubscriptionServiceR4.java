@@ -49,17 +49,17 @@ import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Subscription;
 
-import net.aegis.fhir.client.ResourceRESTClient;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ResourceService;
+import net.aegis.fhir.service.client.ResourceRESTClient;
 import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
 
 /**
  * Subscription Service for performing the set of functions supporting the
- * Subscriptions Framework.
+ * FHIR R4 Subscriptions Framework.
  *
  * Supported channel types: rest-hook
  *
@@ -69,9 +69,9 @@ import net.aegis.fhir.service.util.UTCDateUtil;
  *
  */
 @Stateless
-public class SubscriptionService {
+public class SubscriptionServiceR4 {
 
-	private Logger log = Logger.getLogger("SubscriptionService");
+	private Logger log = Logger.getLogger("SubscriptionServiceR4");
 
     @Inject
     CodeService codeService;
@@ -88,7 +88,7 @@ public class SubscriptionService {
 	 * Public Methods
 	 */
 
-	public SubscriptionService() throws Exception {
+	public SubscriptionServiceR4() throws Exception {
 		this.resourceClient = new ResourceRESTClient(codeService);
 	}
 
@@ -101,7 +101,7 @@ public class SubscriptionService {
 	 */
 	public List<LabelKeyValueBean> processSubscriptions(Date since, Date until) throws Exception {
 
-		log.fine("[START] SubscriptionService.processSubscriptions()");
+		log.fine("[START] SubscriptionServiceR4.processSubscriptions()");
 
 		// Verify since date is not null
 		if (since == null) {
@@ -259,7 +259,7 @@ public class SubscriptionService {
 				}
 			}
 			else {
-				log.info("SubscriptionService.processSubscriptions() - No active subscriptions found.");
+				log.info("SubscriptionServiceR4.processSubscriptions() - No active subscriptions found.");
 			}
 
 		} catch (Exception e) {

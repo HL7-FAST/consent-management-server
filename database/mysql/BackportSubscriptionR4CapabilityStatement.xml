@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CapabilityStatement xmlns="http://hl7.org/fhir">
+  <id value="backport-subscription-server-r4"/>
+  <text>
+    <status value="generated"/><div xmlns="http://www.w3.org/1999/xhtml"><h3 id="resource-details">FHIR RESTful Capabilities by Resource/Profile:</h3><h4>Summary</h4><table class="grid"><thead><tr><th>Resource Type</th><th>Supported Profiles</th><th>Supported Searches</th><th>Supported <code>_includes</code></th><th>Supported <code>_revincludes</code></th><th>Supported Operations</th></tr></thead><tbody><tr><td><a href="#subscription">Subscription</a></td><td><a href="https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/StructureDefinition-backport-subscription.html">Backported R5 Subscription</a></td><td>url, status</td><td>-</td><td>-</td><td>$status, $events, $get-ws-binding-token</td></tr></tbody></table><h4 id="subscription" class="no_toc">Subscription</h4><p>Conformance Expectation: <strong>SHALL</strong></p><p>Supported Profiles:</p><ul><li><strong>SHALL</strong> support: <a href="https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/StructureDefinition-backport-subscription.html">Backported R5 Subscription</a></li></ul><p>Operation Summary:</p><ul><li><strong>SHALL</strong> support the <a href="https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-status.html">$status</a> operation</li><li><strong>MAY</strong> support the <a href="https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-events.html">$events</a> operation , <a href="https://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-get-ws-binding-token.html">$get-ws-binding-token</a> operation</li></ul><p>Fetch and Search Criteria:</p><ul><li>A Server <strong>SHALL</strong> be capable of returning a Subscription resource using: <code class="highlighter-rouge">GET [base]/Subscription/[id]</code></li><li>A Server <strong>SHOULD</strong> be capable of creating a Subscription resource using either: <code class="highlighter-rouge">POST [base]/Subscription</code> or <code class="highlighter-rouge">PUT [base]/Subscription/[id]</code></li><li>A Server <strong>SHOULD</strong> be capable of modifying a Subscription resource using either: <code class="highlighter-rouge">PUT [base]/Subscription/[id]</code> or <code class="highlighter-rouge">PATCH [base]/Subscription/[id]</code></li><li>A Server <strong>SHOULD</strong> be capable of deleting a Subscription resource using: <code class="highlighter-rouge">DELETE [base]/Subscription/[id]</code></li><li>A Server <strong>SHOULD</strong> be capable of searching for Subscription resources using: <code class="highlighter-rouge">GET [base]/Subscription/?[parameters]</code></li></ul><p>Search Parameter Summary:</p><table class="grid"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th></tr></thead><tbody><tr><td><strong>SHOULD</strong></td><td><a href="http://hl7.org/fhir/subscription.html#search">url</a></td><td>uri</td></tr><tr><td><strong>SHOULD</strong></td><td><a href="http://hl7.org/fhir/subscription.html#search">status</a></td><td>token</td></tr></tbody></table><hr /></div>
+  </text>
+  <url value="http://hl7.org/fhir/uv/subscriptions-backport/CapabilityStatement/backport-subscription-server-r4"/>
+  <version value="1.1.0"/>
+  <name value="BackportSubscriptionCapabilityStatementR4"/>
+  <status value="active"/>
+  <date value="2020-11-30"/>
+  <publisher value="HL7 FHIR Infrastructure WG"/>
+  <contact>
+    <name value="HL7 FHIR Infrastructure WG"/>
+    <telecom>
+      <system value="url"/>
+      <value value="https://hl7.org/Special/committees/fiwg"/>
+    </telecom>
+  </contact>
+  <contact>
+    <name value="Gino Canessa"/>
+    <telecom>
+      <system value="email"/>
+      <value value="mailto:gino.canessa@microsoft.com"/>
+    </telecom>
+  </contact>
+  <contact>
+    <name value="Eric Haas"/>
+    <telecom>
+      <system value="email"/>
+      <value value="mailto:ehaas@healthedatainc.com"/>
+    </telecom>
+  </contact>
+  <description value="CapabilityStatement describing the required and optional capabilities of a FHIR Server supporting backported R5 Subscriptions in R4."/>
+  <jurisdiction>
+    <coding>
+      <system value="http://unstats.un.org/unsd/methods/m49/m49.htm"/>
+      <code value="001"/>
+      <display value="World"/>
+    </coding>
+  </jurisdiction>
+  <kind value="requirements"/>
+  <fhirVersion value="4.0.1"/>
+  <format value="xml"/>
+  <format value="json"/>
+  <implementationGuide value="http://hl7.org/fhir/uv/subscriptions-backport/ImplementationGuide/hl7.fhir.uv.subscriptions-backport"/>
+  <rest>
+    <mode value="server">
+      <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+        <valueCode value="SHALL"/>
+      </extension>
+    </mode>
+    <resource>
+      <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+        <valueCode value="SHALL"/>
+      </extension>
+      <type value="Subscription"/>
+      <supportedProfile value="http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription">
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHOULD"/>
+        </extension>
+      </supportedProfile>
+      <interaction>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHALL"/>
+        </extension>
+        <code value="read"/>
+      </interaction>
+      <interaction>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHOULD"/>
+        </extension>
+        <code value="create"/>
+      </interaction>
+      <interaction>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHOULD"/>
+        </extension>
+        <code value="update"/>
+      </interaction>
+      <interaction>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHOULD"/>
+        </extension>
+        <code value="delete"/>
+      </interaction>
+      <searchParam>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHALL"/>
+        </extension>
+        <name value="url"/>
+        <definition value="http://hl7.org/fhir/SearchParameter/Subscription-url"/>
+        <type value="uri"/>
+      </searchParam>
+      <searchParam>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHOULD"/>
+        </extension>
+        <name value="status"/>
+        <definition value="http://hl7.org/fhir/SearchParameter/Subscription-status"/>
+        <type value="token"/>
+      </searchParam>
+      <operation>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="SHALL"/>
+        </extension>
+        <name value="$status"/>
+        <definition value="http://hl7.org/fhir/uv/subscriptions-backport/OperationDefinition/backport-subscription-status"/>
+      </operation>
+      <operation>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="MAY"/>
+        </extension>
+        <name value="$events"/>
+        <definition value="http://hl7.org/fhir/uv/subscriptions-backport/OperationDefinition/backport-subscription-events"/>
+      </operation>
+      <operation>
+        <extension url="http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation">
+          <valueCode value="MAY"/>
+        </extension>
+        <name value="$get-ws-binding-token"/>
+        <definition value="http://hl7.org/fhir/uv/subscriptions-backport/OperationDefinition/backport-subscription-get-ws-binding-token"/>
+      </operation>
+    </resource>
+  </rest>
+</CapabilityStatement>

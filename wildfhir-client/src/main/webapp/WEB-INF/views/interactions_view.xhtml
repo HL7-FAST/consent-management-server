@@ -1,0 +1,32 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the FHIR Interactions Tab -->
+
+	<p:tab title="FHIR Int" id="interactionsTab" cache="false">
+
+		<p:panelGrid id="interactionsTabPanel1" columns="1" border="0"
+			cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+			<h:outputText value="FHIR Interactions"
+				style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+			<h:outputText value="These interfaces send the FHIR interactions required by the FAST Consent IG."
+				style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+		</p:panelGrid>
+
+		<!--
+		<p:tabView id="interactionsTabView" widgetVar="interactionsTabView" cache="false">
+
+			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
+				update=":tabView:interactionsTabView:fhirReadForm" />
+
+			<ui:include src="/WEB-INF/views/interactions/fhirRead.xhtml" />
+
+		</p:tabView>
+		-->
+	</p:tab>
+
+</ui:composition>

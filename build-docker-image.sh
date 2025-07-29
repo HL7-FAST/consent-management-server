@@ -1,19 +1,30 @@
 #!/bin/sh
 
-wildfhirce_war=wildfhir-rest-server.war
-path_to_war=./wildfhir-rest-server/target/
+wildfhirce_client_war=wildfhir-client.war
+path_to_client_war=./wildfhir-client/target/
+wildfhirce_server_war=wildfhir-rest-server.war
+path_to_server_war=./wildfhir-rest-server/target/
 
-wildfhirce="$path_to_war$wildfhirce_war"
+wildfhirceclient="$path_to_client_war$wildfhirce_client_war"
+wildfhirceserver="$path_to_server_war$wildfhirce_server_war"
 
-if test -f "$wildfhirce" ; then
-	echo "WildFHIR CE war FOUND in target"
-	docker_build=true
+docker_build=true
+if test -f "$wildfhirceclient" ; then
+	echo "WildFHIR Client war FOUND in target"
 else
-	echo "WildFHIR CE war NOT FOUND in target"
-	echo "Build the target war file before building the Docker images"
+	echo "WildFHIR Client war NOT FOUND in target"
+	docker_build=false
+fi
+
+if test -f "$wildfhirceserver" ; then
+	echo "WildFHIR Server war FOUND in target"
+else
+	echo "WildFHIR Server war NOT FOUND in target"
 	docker_build=false
 fi
 
 if [[ $docker_build == true ]]; then
 	docker build -t hlseven/fast-consent-management-server:0.1.0 .
+else
+	echo "Build the target war files before building the Docker image"
 fi

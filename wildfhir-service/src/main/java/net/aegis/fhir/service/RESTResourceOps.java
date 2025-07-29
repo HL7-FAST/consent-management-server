@@ -62,14 +62,20 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r5.model.Enumerations.SubscriptionStatusCodes;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionNotificationType;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionStatusNotificationEventComponent;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Subscription;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.google.gson.JsonSyntaxException;
@@ -468,57 +474,7 @@ public class RESTResourceOps {
 				if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
 
 					// Instantiate the Resource; this is the first, simple validation of the resource
-					Resource resource = null;
-
-					try {
-						if (contentType.indexOf("xml") >= 0) {
-							// Convert XML contents to Resource
-							XmlParser xmlP = new XmlParser();
-							resource = xmlP.parse(payload.getBytes());
-						}
-						else if (contentType.indexOf("json") >= 0) {
-							// Convert JSON contents to Resource
-							JsonParser jsonP = new JsonParser();
-							resource = jsonP.parse(payload.getBytes());
-						}
-						else {
-							// contentType did not contain a valid media type or was null; attempt to determine based on starting character
-							int firstValid = payload.indexOf("<"); // check for xml first
-							if (firstValid > -1 && firstValid < 5) {
-								if (firstValid > 0) {
-									payload = payload.substring(firstValid);
-								}
-								// Convert XML contents to Resource
-								contentType = "xml";
-								XmlParser xmlP = new XmlParser();
-								resource = xmlP.parse(payload.getBytes());
-							}
-							else {
-								firstValid = payload.indexOf("{"); // check for json next
-								if (firstValid > -1 && firstValid < 5) {
-									if (firstValid > 0) {
-										payload = payload.substring(firstValid);
-									}
-									// Convert JSON contents to Resource
-									contentType = "json";
-									JsonParser jsonP = new JsonParser();
-									resource = jsonP.parse(payload.getBytes());
-								}
-							}
-						}
-					}
-					catch (Exception e) {
-						// Log original exception
-						e.printStackTrace();
-						// JSON or XML FHIR parsing failed, content is not a valid FHIR resource; throw appropriate exception to catch below
-						if (contentType.indexOf("json") >= 0) {
-							throw new JsonSyntaxException(e.getMessage());
-						}
-						else {
-							// Default to XML exception
-							throw new XmlPullParserException(e.getMessage());
-						}
-					}
+					Resource resource = this.convertToR4Resource(contentType, resourceType, payload);
 
 					// Check okToCreate; if false, then create validation failed
 					if (okToCreate) {
@@ -675,6 +631,17 @@ public class RESTResourceOps {
 										+ " resource created with resource id " + resourceContainer.getResource().getResourceId() + ".", null, null);
 
 								resourceContainer.getResource().setResourceContents(outcome.getBytes());
+							}
+
+							/*
+							 * Subscription Framework - check for Subscription resource type successfully created
+							 * if yes and SF enabled, create initial SubscriptionStatus
+							 */
+							if (codeService.isSupported("subscriptionServiceEnabled")) {
+								if (resourceType.equals("Subscription") && resourceContainer.getResponseStatus().equals(Response.Status.CREATED)) {
+									// Create initial SubscriptionStatus for Subscription
+									this.initialSubscriptionStatus(resource, resourceContainer.getResource().getResourceId());
+								}
 							}
 
 							builder = buildResource(sbLocationPath.toString(), producesType, resourceContainer, Ops.CREATE, responseFhirVersion);
@@ -883,53 +850,8 @@ public class RESTResourceOps {
 						// Else, check for valid FHIR resource id data type compliance
 						else if (id != null && StringUtils.isValidFhirId(id)) {
 
-							// Parse inputStream into a FHIR resource type
-							Resource resource = null;
-
-							try {
-								if (contentType.indexOf("xml") >= 0) {
-									// Convert XML contents to Resource
-									resource = xmlP.parse(payload.getBytes());
-								}
-								else if (contentType.indexOf("json") >= 0) {
-									// Convert JSON contents to Resource
-									resource = jsonP.parse(payload.getBytes());
-								}
-								else {
-									// contentType did not contain a valid media type or was null; attempt to determine based on starting character
-									int firstValid = payload.indexOf("<"); // check for xml first
-									if (firstValid > -1 && firstValid < 5) {
-										if (firstValid > 0) {
-											payload = payload.substring(firstValid);
-										}
-										// Convert XML contents to Resource
-										contentType = "xml";
-										resource = xmlP.parse(payload.getBytes());
-									}
-									else {
-										firstValid = payload.indexOf("{"); // check for json next
-										if (firstValid > -1 && firstValid < 5) {
-											if (firstValid > 0) {
-												payload = payload.substring(firstValid);
-											}
-											// Convert JSON contents to Resource
-											contentType = "json";
-											resource = jsonP.parse(payload.getBytes());
-										}
-									}
-								}
-							}
-							catch (Exception e) {
-								// Log original exception
-								e.printStackTrace();
-								// JSON or XML FHIR parsing failed, content is not a valid FHIR resource; throw appropriate exception to catch below
-								if (contentType.indexOf("json") >= 0) {
-									throw new JsonSyntaxException(e.getMessage());
-								} else {
-									// Default to XML exception
-									throw new XmlPullParserException(e.getMessage());
-								}
-							}
+							// Instantiate the Resource; this is the first, simple validation of the resource
+							Resource resource = this.convertToR4Resource(contentType, resourceType, payload);
 
 							// Attempt to read current version of the resource
 							resourceContainer = resourceService.read(resourceType, id, null);
@@ -2163,6 +2085,178 @@ public class RESTResourceOps {
 		}
 
 		return builder.build();
+    }
+
+    /*
+     * Private methods
+     */
+
+	private void initialSubscriptionStatus(org.hl7.fhir.r4.model.Resource resource, String resourceId) throws Exception {
+
+		org.hl7.fhir.r5.model.SubscriptionStatus subscriptionStatus = new org.hl7.fhir.r5.model.SubscriptionStatus();
+
+		org.hl7.fhir.r5.model.Reference reference = new org.hl7.fhir.r5.model.Reference();
+		reference.setReference("Subscription/" + resourceId);
+		subscriptionStatus.setSubscription(reference);
+
+		subscriptionStatus.setTopic(((Subscription) resource).getCriteria());
+
+		subscriptionStatus.setStatus(SubscriptionStatusCodes.ACTIVE);
+
+		subscriptionStatus.setType(SubscriptionNotificationType.EVENTNOTIFICATION);
+
+		subscriptionStatus.setEventsSinceSubscriptionStart(0);
+
+		SubscriptionStatusNotificationEventComponent ssne = new SubscriptionStatusNotificationEventComponent();
+
+		ssne.setEventNumber(0);
+		ssne.setTimestamp(new Date());
+		ssne.setFocus(reference);
+
+		subscriptionStatus.addNotificationEvent(ssne);
+
+		Parameters pSubscriptionStatus = (Parameters) ServicesUtil.INSTANCE.convertR5SubscriptionStatusToR4Parameters(subscriptionStatus);
+
+		// Convert the Resource to XML byte[]
+		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
+		XmlParser xmlParser = new XmlParser();
+		xmlParser.setOutputStyle(OutputStyle.PRETTY);
+		xmlParser.compose(oResource, pSubscriptionStatus, true);
+		byte[] bResource = oResource.toByteArray();
+
+		// Initialize a Resource to be created
+		net.aegis.fhir.model.Resource aegisResource = new net.aegis.fhir.model.Resource();
+		aegisResource.setResourceType("SubscriptionStatus");
+		aegisResource.setResourceContents(bResource);
+
+		resourceService.create(aegisResource, null, codeService.getCodeValue("baseUrl"));
+	}
+
+    private Resource convertToR4Resource(String contentType, String resourceType, String payload) throws Exception, JsonSyntaxException, XmlPullParserException {
+    	Resource resource = null;
+
+    	// Check for special R5 resource types: SubscriptionStatus, SubscriptionTopic
+    	if (resourceType.equals("SubscriptionStatus") || resourceType.equals("SubscriptionTopic")) {
+    		org.hl7.fhir.r5.model.Resource resourceR5 = this.convertToR5Resource(contentType, payload);
+
+    		if (resourceType.equals("SubscriptionStatus")) {
+    			// convert SubscriptionStatus to R4 resource
+    			resource = ServicesUtil.INSTANCE.convertR5SubscriptionStatusToR4Parameters(resourceR5);
+    		}
+    		else if (resourceType.equals("SubscriptionTopic")) {
+    			// convert SubscriptionTopic to R4 resource
+    			resource = VersionConvertorFactory_40_50.convertResource(resourceR5);
+    		}
+    	}
+    	else {
+	    	try {
+				if (contentType.indexOf("xml") >= 0) {
+					// Convert XML contents to Resource
+					XmlParser xmlP = new XmlParser();
+					resource = xmlP.parse(payload.getBytes());
+				}
+				else if (contentType.indexOf("json") >= 0) {
+					// Convert JSON contents to Resource
+					JsonParser jsonP = new JsonParser();
+					resource = jsonP.parse(payload.getBytes());
+				}
+				else {
+					// contentType did not contain a valid media type or was null; attempt to determine based on starting character
+					int firstValid = payload.indexOf("<"); // check for xml first
+					if (firstValid > -1 && firstValid < 5) {
+						if (firstValid > 0) {
+							payload = payload.substring(firstValid);
+						}
+						// Convert XML contents to Resource
+						contentType = "xml";
+						XmlParser xmlP = new XmlParser();
+						resource = xmlP.parse(payload.getBytes());
+					}
+					else {
+						firstValid = payload.indexOf("{"); // check for json next
+						if (firstValid > -1 && firstValid < 5) {
+							if (firstValid > 0) {
+								payload = payload.substring(firstValid);
+							}
+							// Convert JSON contents to Resource
+							contentType = "json";
+							JsonParser jsonP = new JsonParser();
+							resource = jsonP.parse(payload.getBytes());
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				// Log original exception
+				e.printStackTrace();
+				// JSON or XML FHIR parsing failed, content is not a valid FHIR resource; throw appropriate exception to catch below
+				if (contentType.indexOf("json") >= 0) {
+					throw new JsonSyntaxException(e.getMessage());
+				}
+				else {
+					// Default to XML exception
+					throw new XmlPullParserException(e.getMessage());
+				}
+			}
+    	}
+    	
+    	return resource;
+    }
+
+    private org.hl7.fhir.r5.model.Resource convertToR5Resource(String contentType, String payload) throws Exception {
+    	org.hl7.fhir.r5.model.Resource resource = null;
+
+		try {
+			if (contentType.indexOf("xml") >= 0) {
+				// Convert XML contents to Resource
+				org.hl7.fhir.r5.formats.XmlParser xmlP = new org.hl7.fhir.r5.formats.XmlParser();
+				resource = xmlP.parse(payload.getBytes());
+			}
+			else if (contentType.indexOf("json") >= 0) {
+				// Convert JSON contents to Resource
+				org.hl7.fhir.r5.formats.JsonParser jsonP = new org.hl7.fhir.r5.formats.JsonParser();
+				resource = jsonP.parse(payload.getBytes());
+			}
+			else {
+				// contentType did not contain a valid media type or was null; attempt to determine based on starting character
+				int firstValid = payload.indexOf("<"); // check for xml first
+				if (firstValid > -1 && firstValid < 5) {
+					if (firstValid > 0) {
+						payload = payload.substring(firstValid);
+					}
+					// Convert XML contents to Resource
+					contentType = "xml";
+					org.hl7.fhir.r5.formats.XmlParser xmlP = new org.hl7.fhir.r5.formats.XmlParser();
+					resource = xmlP.parse(payload.getBytes());
+				}
+				else {
+					firstValid = payload.indexOf("{"); // check for json next
+					if (firstValid > -1 && firstValid < 5) {
+						if (firstValid > 0) {
+							payload = payload.substring(firstValid);
+						}
+						// Convert JSON contents to Resource
+						contentType = "json";
+						org.hl7.fhir.r5.formats.JsonParser jsonP = new org.hl7.fhir.r5.formats.JsonParser();
+						resource = jsonP.parse(payload.getBytes());
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			// Log original exception
+			e.printStackTrace();
+			// JSON or XML FHIR parsing failed, content is not a valid FHIR resource; throw appropriate exception to catch below
+			if (contentType.indexOf("json") >= 0) {
+				throw new JsonSyntaxException(e.getMessage());
+			}
+			else {
+				// Default to XML exception
+				throw new XmlPullParserException(e.getMessage());
+			}
+		}
+    	
+    	return resource;
     }
 
     /**

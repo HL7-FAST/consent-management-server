@@ -1,0 +1,100 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the FAST Consent $fileConsent Tab -->
+
+	<p:tab title="$fileConsent" id="fileConsentTab" cache="false">
+
+		<h:form id="fileConsentForm" prependId="false" style="width:100%;border:none;">
+			<p:panelGrid id="fileConsentPanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+				<p:messages id="fileConsentMessages" />
+				<h:outputText value="File Consent"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+				<h:outputText value="This operation is used to file a consent with a consent administration service."
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+				<h:outputText value="The parameters are the Consent resource along with optional documentation in the form of a DocumentReference (for PDF or other forms) or a QuestionnaireResponse."
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+			</p:panelGrid>
+
+			<hr></hr>
+
+			<p:panelGrid id="fileConsentPanel2" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+				<h:outputText value="Format Type (Default JSON): * " />
+				<p:selectOneMenu required="false" label="Select Format Type" value="#{context.selectedFormatType}" maxlength="10" style="width:80px;text-align:left;padding-right:30px;">
+					<f:selectItems value="#{context.formatTypes}" var="formatType" itemLabel="#{formatType}         " itemValue="#{formatType}" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Select Consent Mgmt Server: * " />
+				<p:selectOneMenu required="true" label="Select Consent Mgmt Server" value="#{context.selectedServerURL}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+					<f:selectItem itemValue="#{null}" itemLabel="-- Select Consent Mgmt Server --         " noSelectionOption="true" />
+					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
+				</p:selectOneMenu>
+			</p:panelGrid>
+
+			<p:panel id="fileConsentResultsPanel" visible="true"
+				widgetVar="fileConsentResultsPanel" toggleable="true" closable="true"
+				toggleSpeed="500" closeSpeed="500">
+
+				<p:toolbar>
+					<f:facet name="right">
+						<p:commandButton value="Send Request" icon="ui-icon-document"
+							actionListener="#{controller.processFileConsent}"
+							oncomplete="PF('fileConsentTabView').select(2)"
+							update=":tabView:operationsTabView:fileConsentForm">
+						</p:commandButton>
+					</f:facet>
+				</p:toolbar>
+
+				<p:tabView id="fileConsentTabView" widgetVar="fileConsentTabView">
+					<p:tab title="Consent" id="fileConsentTab0">
+						<p:panelGrid id="fileConsentTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+							<h:outputText value="The $fileConsent Parameters will be constructed from the selections. A fictitious DocumentReference resource will be generated for the supporting document parameter."
+								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+						</p:panelGrid>
+
+						<p:panelGrid id="fileConsentTabPanel1" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+							<h:outputText value="Select Patient *" />
+							<p:selectOneMenu required="true" label="Select Patient/Grantor" value="#{context.selectedPatientId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
+								<f:selectItem itemValue="#{null}" itemLabel="-- Select Patient/Grantor --         " noSelectionOption="true" />
+								<f:selectItems value="#{context.clientPatients}" var="pat" itemLabel="#{pat.description.trim()}         " itemValue="#{pat.id}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="Select RelatedPerson *" />
+							<p:selectOneMenu required="true" label="Select RelatedPerson/Grantee" value="#{context.selectedRelatedPersonId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
+								<f:selectItem itemValue="#{null}" itemLabel="-- Select RelatedPerson/Grantee --         " noSelectionOption="true" />
+								<f:selectItems value="#{context.clientRelatedPersons}" var="rel" itemLabel="#{rel.description.trim()}         " itemValue="#{rel.id}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="Select Provision *" />
+							<p:selectOneMenu required="true" label="Select Provision (Opt In/Out)" value="#{context.selectedProvisionType}" maxlength="255" style="width:180px;text-align:left;padding-right:30px;">
+								<f:selectItem itemValue="#{null}" itemLabel="-- Select Provision (Opt In/Out) --         " noSelectionOption="true" />
+								<f:selectItems value="#{context.listProvisionTypes}" var="pro" itemLabel="#{pro.label.trim()}         " itemValue="#{pro.key}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="Start Date (Optional)" />
+							<p:datePicker id="fileConsentStartDate" value="#{context.startDate}" showButtonBar="true" />
+
+							<h:outputText value="End Date (Optional)" />
+							<p:datePicker id="fileConsentEndDate" value="#{context.endDate}" showButtonBar="true" />
+						</p:panelGrid>
+					</p:tab>
+
+					<p:tab title="Parameters" id="fileConsentTab1">
+						<h:inputTextarea value="#{context.resourceString}" cols="80" rows="24" />
+					</p:tab>
+
+					<p:tab title="Results" id="fileConsentResultsTab">
+						<h:outputText id="lblfileConsentResults" escape="true"
+							value="#{context.responseString}"
+							styleClass="whiteSpaceClass" />
+					</p:tab>
+				</p:tabView>
+			</p:panel>
+		</h:form>
+	</p:tab>
+
+</ui:composition>

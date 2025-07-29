@@ -26,6 +26,9 @@ COPY ./docker/01_calcDistanceKm_function.sql /docker-entrypoint-initdb.d/01_calc
 COPY ./docker/02_calcDistanceMi_function.sql /docker-entrypoint-initdb.d/02_calcDistanceMi_function.sql
 COPY ./docker/03_code_insert.sql /docker-entrypoint-initdb.d/03_code_insert.sql
 COPY ./docker/04_conformance_insert.sql /docker-entrypoint-initdb.d/04_conformance_insert.sql
+COPY ./docker/05_serverdirectory_insert.sql /docker-entrypoint-initdb.d/05_serverdirectory_insert.sql
+COPY ./docker/06_resource_insert.sql /docker-entrypoint-initdb.d/06_resource_insert.sql
+COPY ./docker/07_resourcemetadata_insert.sql /docker-entrypoint-initdb.d/07_resourcemetadata_insert.sql
 COPY ./docker/99_last_processed_file.sh /docker-entrypoint-initdb.d/99_last_processed_file.sh
 COPY ./docker/my.cnf /etc/my.cnf
 
@@ -67,6 +70,7 @@ COPY ./docker/standalone.xml ${JBOSS_HOME}/standalone/configuration
 
 # ✅ COPY WAR FROM MAVEN BUILD STAGE
 COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JBOSS_HOME}/standalone/deployments/
+COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/standalone/deployments/
 
 # FHIR Package
 RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0

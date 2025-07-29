@@ -30,7 +30,7 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.client;
+package net.aegis.fhir.service.client;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
@@ -115,7 +115,6 @@ public class ConformanceResourceRESTClient implements Serializable {
 
 		} catch (Exception e) {
 			// Exception caught
-			log.severe(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		}

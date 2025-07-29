@@ -59,15 +59,28 @@ import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.NameValuePair;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
+import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
+import org.hl7.fhir.r5.model.SubscriptionStatus;
+import org.hl7.fhir.r5.model.Enumerations.SubscriptionStatusCodes;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionNotificationType;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionStatusNotificationEventComponent;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Composition;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.InstantType;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 
 /**
@@ -678,6 +691,60 @@ public enum ServicesUtil {
 		return versionId;
 	}
 
+	public Integer extractVersionIdIntFromURL(String url) {
+		log.fine("extractVersionIdFromURL(" + url + ")");
+
+		Integer versionId = Integer.valueOf(0);
+
+		try {
+			int index = url.indexOf("/_history/", 0);
+			log.fine("extractVersionIdFromURL - index is " + index);
+
+			if (index > 0) {
+				// /111/_history/2
+				// 0123456789012345
+				StringBuffer sbVersionId = new StringBuffer("");
+				for (int i = index + 10; i < url.length(); i++) {
+					if (isDigit(url.charAt(i))) {
+						sbVersionId.append(url.charAt(i));
+					}
+					else {
+						break;
+					}
+				}
+
+				if (sbVersionId.length() > 0) {
+					versionId = Integer.valueOf(sbVersionId.toString());
+				}
+			}
+			else {
+				// Return zero if not found
+				versionId = Integer.valueOf(0);
+			}
+		}
+		catch (Exception e) {
+			log.severe("Exception parsing versionId in URL: " + e.getMessage());
+			// Return -1 on exception
+			versionId = Integer.valueOf(-1);
+		}
+
+		return versionId;
+	}
+
+	public boolean isDigit(char c) {
+		boolean result = false;
+		char[] digit = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+		for (int i = 0; i < 10; i++) {
+			if (c == digit[i]) {
+				result = true;
+				break;
+			}
+		}
+
+		return result;
+	}
+
 	/**
 	 * Extract the base URL path up to and excluding the '?' character.
 	 *
@@ -1013,7 +1080,7 @@ public enum ServicesUtil {
 
 		OperationOutcome op = new OperationOutcome();
 
-		op.setId(UUIDUtil.getGUID());
+		op.setId(UUIDUtil.getUUID());
 
 		OperationOutcome.OperationOutcomeIssueComponent issue = getOperationOutcomeIssueComponent(severity, type, details, diagnostics, location);
 
@@ -1047,7 +1114,7 @@ public enum ServicesUtil {
 
 		OperationOutcome op = new OperationOutcome();
 
-		op.setId(UUIDUtil.getGUID());
+		op.setId(UUIDUtil.getUUID());
 
 		for (OperationOutcome.OperationOutcomeIssueComponent issue : issues) {
 			if (issue != null) {
@@ -1108,7 +1175,7 @@ public enum ServicesUtil {
 		try {
 			OperationOutcome op = new OperationOutcome();
 
-			op.setId(UUIDUtil.getGUID());
+			op.setId(UUIDUtil.getUUID());
 
 			OperationOutcome.OperationOutcomeIssueComponent issue = getOperationOutcomeIssueComponent(severity, type, details, diagnostics, location);
 
@@ -1416,6 +1483,11 @@ public enum ServicesUtil {
 		return requestFhirVersion;
 	}
 
+	/**
+	 * Get softwareVersion from application.properties
+	 * @param softwareVersion
+	 * @return
+	 */
 	public String getSoftwareVersion() throws IOException {
         InputStream inputStream = null;
         String softwareVersion = "";
@@ -1439,6 +1511,268 @@ public enum ServicesUtil {
         }
         return softwareVersion;
 	}
+
+	/**
+	 * @param resourceR4
+	 * @return org.hl7.fhir.r5.model.Resource
+	 * @throws Exception
+	 */
+	public org.hl7.fhir.r5.model.Resource convertR4ParametersToR5SubscriptionStatus(Resource resourceR4) throws Exception {
+
+		SubscriptionStatus subscriptionStatus = null;
+		org.hl7.fhir.r5.model.CanonicalType canonical = null;
+		org.hl7.fhir.r5.model.CodeableConcept codeableConcept = null;
+		org.hl7.fhir.r5.model.CodeType code = null;
+		org.hl7.fhir.r5.model.InstantType instant = null;
+		org.hl7.fhir.r5.model.Reference reference = null;
+
+		if (resourceR4 != null && resourceR4 instanceof Parameters) {
+			Parameters parameters = (Parameters) resourceR4;
+
+			subscriptionStatus = new SubscriptionStatus();
+			List<SubscriptionStatusNotificationEventComponent> ne = new ArrayList<SubscriptionStatusNotificationEventComponent>();
+			List<org.hl7.fhir.r5.model.CodeableConcept> errors = new ArrayList<org.hl7.fhir.r5.model.CodeableConcept>();
+
+			subscriptionStatus.setId(parameters.getId());
+			org.hl7.fhir.r5.model.Meta meta = new org.hl7.fhir.r5.model.Meta();
+			if (parameters.hasMeta()) {
+				meta.setVersionId(parameters.getMeta().getVersionId());
+				subscriptionStatus.setMeta(meta);
+			}
+
+			for (ParametersParameterComponent parameter : parameters.getParameter()) {
+				if (parameter.hasName() && parameter.getName().equals("subscription") &&
+						parameter.hasValue() && parameter.getValue() instanceof Reference) {
+					reference = (org.hl7.fhir.r5.model.Reference) VersionConvertorFactory_40_50.convertType(parameter.getValue());
+					subscriptionStatus.setSubscription(reference);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("topic") &&
+						parameter.hasValue() && parameter.getValue() instanceof CanonicalType) {
+					canonical = (org.hl7.fhir.r5.model.CanonicalType) VersionConvertorFactory_40_50.convertType(parameter.getValue());
+					subscriptionStatus.setTopicElement(canonical);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("status") &&
+						parameter.hasValue() && parameter.getValue() instanceof CodeType) {
+					code = (org.hl7.fhir.r5.model.CodeType) VersionConvertorFactory_40_50.convertType(parameter.getValue());
+					SubscriptionStatusCodes statusCode = SubscriptionStatusCodes.fromCode(code.getValueAsString());
+					subscriptionStatus.setStatus(statusCode);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("type") &&
+						parameter.hasValue() && parameter.getValue() instanceof CodeType) {
+					code = (org.hl7.fhir.r5.model.CodeType) VersionConvertorFactory_40_50.convertType(parameter.getValue());
+					SubscriptionNotificationType typeCode = SubscriptionNotificationType.fromCode(code.getValueAsString());
+					subscriptionStatus.setType(typeCode);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("events-since-subscription-start") &&
+						parameter.hasValue() && parameter.getValue() instanceof StringType) {
+					long events = Long.parseLong(parameter.getValue().primitiveValue());
+					subscriptionStatus.setEventsSinceSubscriptionStart(events);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("notification-event") &&
+						parameter.hasPart()) {
+
+					SubscriptionStatusNotificationEventComponent ssne = new SubscriptionStatusNotificationEventComponent();
+					List<org.hl7.fhir.r5.model.Reference> addContext = new ArrayList<org.hl7.fhir.r5.model.Reference>();
+
+					for (ParametersParameterComponent part : parameter.getPart()) {
+
+						if (part.hasName() && part.getName().equals("event-number") &&
+								part.hasValue() && part.getValue() instanceof StringType) {
+							long eventNumber = Long.parseLong(part.getValue().primitiveValue());
+							ssne.setEventNumber(eventNumber);
+						}
+
+						if (part.hasName() && part.getName().equals("timestamp") &&
+								part.hasValue() && part.getValue() instanceof InstantType) {
+							instant = (org.hl7.fhir.r5.model.InstantType) VersionConvertorFactory_40_50.convertType(part.getValue());
+							ssne.setTimestampElement(instant);
+						}
+
+						if (part.hasName() && part.getName().equals("focus") &&
+								part.hasValue() && part.getValue() instanceof Reference) {
+							reference = (org.hl7.fhir.r5.model.Reference) VersionConvertorFactory_40_50.convertType(part.getValue());
+							ssne.setFocus(reference);
+						}
+
+						if (part.hasName() && part.getName().equals("additional-context") &&
+								part.hasValue() && part.getValue() instanceof Reference) {
+							reference = (org.hl7.fhir.r5.model.Reference) VersionConvertorFactory_40_50.convertType(part.getValue());
+							addContext.add(reference);
+						}
+					}
+
+					if (addContext != null && !addContext.isEmpty()) {
+						ssne.setAdditionalContext(addContext);
+					}
+
+					ne.add(ssne);
+				}
+
+				if (parameter.hasName() && parameter.getName().equals("error") &&
+						parameter.hasValue() && parameter.getValue() instanceof CodeableConcept) {
+					codeableConcept = (org.hl7.fhir.r5.model.CodeableConcept) VersionConvertorFactory_40_50.convertType(parameter.getValue());
+					errors.add(codeableConcept);
+				}
+
+			}
+
+			if (ne != null && !ne.isEmpty()) {
+				subscriptionStatus.setNotificationEvent(ne);
+			}
+
+			if (errors != null && !errors.isEmpty()) {
+				subscriptionStatus.setError(errors);
+			}
+		}
+
+		return subscriptionStatus;
+	}
+
+	/**
+	 * @param resourceR5
+	 * @return org.hl7.fhir.r4.model.Resource
+	 * @throws Exception
+	 */
+	public Resource convertR5SubscriptionStatusToR4Parameters(org.hl7.fhir.r5.model.Resource resourceR5) throws Exception {
+		Parameters parameters = null;
+		ParametersParameterComponent parameter = null;
+		ParametersParameterComponent parameterPart = null;
+		CanonicalType canonical = null;
+		CodeableConcept codeableConcept = null;
+		CodeType code = null;
+		InstantType instant = null;
+		Reference reference = null;
+		StringType stringType = null;
+
+		if (resourceR5 != null && resourceR5 instanceof SubscriptionStatus) {
+			SubscriptionStatus subscriptionStatus = (SubscriptionStatus) resourceR5;
+
+			parameters = new Parameters();
+
+			parameters.setId(subscriptionStatus.getId());
+			Meta meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4");
+			if (subscriptionStatus.hasMeta()) {
+				meta.setVersionId(subscriptionStatus.getMeta().getVersionId());
+			}
+			parameters.setMeta(meta);
+
+			if (subscriptionStatus.hasSubscription()) {
+				reference = (Reference) VersionConvertorFactory_40_50.convertType(subscriptionStatus.getSubscription());
+
+				parameter = new ParametersParameterComponent();
+				parameter.setName("subscription");
+				parameter.setValue(reference);
+				parameters.addParameter(parameter);
+			}
+
+			if (subscriptionStatus.hasTopic()) {
+				canonical = (CanonicalType) VersionConvertorFactory_40_50.convertType(subscriptionStatus.getTopicElement());
+
+				parameter = new ParametersParameterComponent();
+				parameter.setName("topic");
+				parameter.setValue(canonical);
+				parameters.addParameter(parameter);
+			}
+
+			if (subscriptionStatus.hasStatus()) {
+				code = new CodeType();
+				code.setSystem(subscriptionStatus.getStatus().getSystem());
+				code.setValue(subscriptionStatus.getStatus().toCode());
+
+				parameter = new ParametersParameterComponent();
+				parameter.setName("status");
+				parameter.setValue(code);
+				parameters.addParameter(parameter);
+			}
+
+			if (subscriptionStatus.hasType()) {
+				code = new CodeType();
+				code.setSystem(subscriptionStatus.getType().getSystem());
+				code.setValue(subscriptionStatus.getType().toCode());
+
+				parameter = new ParametersParameterComponent();
+				parameter.setName("type");
+				parameter.setValue(code);
+				parameters.addParameter(parameter);
+			}
+
+			if (subscriptionStatus.hasEventsSinceSubscriptionStart()) {
+				stringType = new StringType(subscriptionStatus.getEventsSinceSubscriptionStartElement().getValueAsString());
+
+				parameter = new ParametersParameterComponent();
+				parameter.setName("events-since-subscription-start");
+				parameter.setValue(stringType);
+				parameters.addParameter(parameter);
+			}
+
+			if (subscriptionStatus.hasNotificationEvent()) {
+				for (org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionStatusNotificationEventComponent r5NE : subscriptionStatus.getNotificationEvent()) {
+					parameter = new ParametersParameterComponent();
+					parameter.setName("notification-event");
+
+					if (r5NE.hasEventNumber()) {
+						stringType = new StringType(r5NE.getEventNumberElement().getValueAsString());
+
+						parameterPart = new ParametersParameterComponent();
+						parameterPart.setName("event-number");
+						parameterPart.setValue(stringType);
+						parameter.addPart(parameterPart);
+					}
+
+					if (r5NE.hasTimestamp()) {
+						instant = (InstantType) VersionConvertorFactory_40_50.convertType(r5NE.getTimestampElement());
+
+						parameterPart = new ParametersParameterComponent();
+						parameterPart.setName("timestamp");
+						parameterPart.setValue(instant);
+						parameter.addPart(parameterPart);
+					}
+
+					if (r5NE.hasFocus()) {
+						reference = (Reference) VersionConvertorFactory_40_50.convertType(r5NE.getFocus());
+
+						parameterPart = new ParametersParameterComponent();
+						parameterPart.setName("focus");
+						parameterPart.setValue(reference);
+						parameter.addPart(parameterPart);
+					}
+
+					if (r5NE.hasAdditionalContext()) {
+						for (org.hl7.fhir.r5.model.Reference r5Ref : r5NE.getAdditionalContext()) {
+							reference = (Reference) VersionConvertorFactory_40_50.convertType(r5Ref);
+
+							parameterPart = new ParametersParameterComponent();
+							parameterPart.setName("additional-context");
+							parameterPart.setValue(reference);
+							parameter.addPart(parameterPart);
+						}
+					}
+
+					parameters.addParameter(parameter);
+				}
+			}
+
+			if (subscriptionStatus.hasError()) {
+				for (org.hl7.fhir.r5.model.CodeableConcept r5CC : subscriptionStatus.getError()) {
+					codeableConcept = (CodeableConcept) VersionConvertorFactory_40_50.convertType(r5CC);
+
+					parameter = new ParametersParameterComponent();
+					parameter.setName("error");
+					parameter.setValue(codeableConcept);
+					parameters.addParameter(parameter);
+				}
+			}
+
+		}
+
+		return parameters;
+    }
 
 
 	/*

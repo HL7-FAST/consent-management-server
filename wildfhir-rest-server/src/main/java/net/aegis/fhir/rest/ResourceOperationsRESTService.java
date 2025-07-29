@@ -367,7 +367,8 @@ public class ResourceOperationsRESTService {
 		log.fine("context.baseuri.path = " + context.getBaseUri().getPath());
 		log.fine("context.absolutePath = " + context.getAbsolutePath());
 
-		debugRequest(request, headers, null);
+		// convert input stream to String
+		String payload = debugRequest(request, headers, resourceInputStream);
 
 		Response.ResponseBuilder builder = null;
         String contentType = null;
@@ -403,16 +404,10 @@ public class ResourceOperationsRESTService {
 				Parameters inputParameters = null;
 				Resource inputResource = null;
 
-				// convert input stream to String
-				String payload = null;
-
-				if (isPost && resourceInputStream != null) {
+				if (isPost && payload != null) {
 					// POST Operations with expected Parameters payload
 					log.fine("POST Operations with expected Parameters payload");
 					isPost = true;
-
-					// convert input stream to String
-					payload = IOUtils.toString(resourceInputStream, "UTF-8");
 
 					if (payload != null && !payload.isEmpty() && payload.length() > 3) {
 						if (contentType != null && contentType.indexOf("xml") >= 0) {

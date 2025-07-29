@@ -1,0 +1,42 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the About view -->
+	<p:tab title="About" id="aboutTab" cache="false">
+		<p:panelGrid id="aboutPanel1" columns="1" border="0"
+			cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+			<h:outputText value="#{appRes['application.name']}"
+				style="padding:0px;font-style:italic;font-weight:bold;font-size:16px;" />
+		</p:panelGrid>
+
+		<hr></hr>
+
+		<p:panelGrid id="aboutPanel2" columns="2" border="0"
+			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+			<h:outputText value="Version"
+				style="font-weight:bold" />
+			<h:outputText value="#{appRes['version.number']}" />
+
+			<h:outputText value="Build Number"
+				style="font-weight:bold" />
+			<h:outputText value="#{appRes['build.number']}" />
+
+			<h:outputText value="Build Timestamp"
+				style="font-weight:bold" />
+			<h:outputText value="#{appRes['build.timestamp']}" />
+		</p:panelGrid>
+
+		<hr></hr>
+
+		<p:panelGrid id="aboutPanel3" columns="1" border="0"
+			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+			<h:outputText value="Additional details here"
+				style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+		</p:panelGrid>
+	</p:tab>
+
+</ui:composition>

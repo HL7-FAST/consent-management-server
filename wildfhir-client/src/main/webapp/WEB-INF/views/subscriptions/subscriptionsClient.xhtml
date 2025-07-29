@@ -1,0 +1,65 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the Subscription Client Tab -->
+
+	<p:tab id="subscriptionClientTab" title="Subscriptions" cache="false">
+		<h:form id="subscriptionClientForm" prependId="false"
+			style="width:100%;border:none;">
+			<p:panelGrid id="subscriptionClientPanel1" columns="1" border="0"
+				cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+				<p:messages id="messagesForSubscriptionClientForm" />
+				<h:outputText value="Subscription Client"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+				<h:outputText value="This is a manual execution of the subscription notification service."
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+			</p:panelGrid>
+
+			<hr></hr>
+
+			<p:panelGrid id="subscriptionClientPanel2" columns="2" border="0"
+				cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+				<h:outputText value="Since DateTime: " />
+				<p:datePicker id="buttonbar" value="#{context.datePicker}" showButtonBar="true" pattern="yyyy-MM-dd" />
+
+				<p:commandButton value="Process Subscriptions" icon="ui-icon-wrench"
+					actionListener="#{controller.processSubscriptions}"
+					update=":tabView:subscriptionsTabView:subscriptionClientForm">
+				</p:commandButton>
+			</p:panelGrid>
+			<br />
+			<hr width="100%" />
+			<br />
+			<p:panel id="subscriptionResultsPanel" visible="true"
+				widgetVar="subscriptionResultsPanel" toggleable="true"
+				closable="true" toggleSpeed="500" closeSpeed="500">
+
+				<p:dataTable rowIndexVar="index" var="res"
+					value="#{context.listLabelKeyValue}"
+					rendered="#{context.listLabelKeyValue.size() > 0}">
+					<p:column headerText="Subscription" width="35%">
+						<h:outputText value="#{res.label}" />
+					</p:column>
+					<p:column headerText="Channel" width="10%">
+						<h:outputText value="#{res.key}" />
+					</p:column>
+					<p:column headerText="Criteria" width="30%"
+						styleClass="preformatted">
+						<h:outputText value="#{res.value}" />
+					</p:column>
+					<p:column headerText="Results" width="15%"
+						styleClass="preformatted">
+						<h:outputText value="#{res.type}" />
+					</p:column>
+					<p:column headerText="Status" width="10%">
+						<h:outputText value="#{res.path}" />
+					</p:column>
+				</p:dataTable>
+			</p:panel>
+		</h:form>
+	</p:tab>
+</ui:composition>

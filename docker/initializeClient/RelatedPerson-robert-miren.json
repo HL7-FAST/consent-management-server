@@ -1,0 +1,51 @@
+{
+  "resourceType": "RelatedPerson",
+  "id": "relatedperson-robert-miren",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "relatedperson-robert-mire"
+    }
+  ],
+  "patient": {
+    "reference": "Patient/patient-lara-miren",
+    "identifier": {
+      "system": "http://example.org/identifiers",
+      "value": "patient-lara-miren"
+    }
+  },
+  "relationship": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+          "code": "SPS",
+          "display": "Spouse"
+        }
+      ]
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Miren",
+      "given": [
+        "Robert"
+      ]
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1978-01-01",
+  "address": [
+    {
+      "use": "home",
+      "line": [
+        "123 Main Street"
+      ],
+      "city": "Metropolis",
+      "state": "NY",
+      "postalCode": "10001",
+      "country": "US"
+    }
+  ]
+}

@@ -4,10 +4,12 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>java:/wildfhirR4DS</jta-data-source>
         <mapping-file>queries.xml</mapping-file>
+        <class>net.aegis.fhir.model.Clientresource</class>
         <class>net.aegis.fhir.model.Code</class>
         <class>net.aegis.fhir.model.Conformance</class>
         <class>net.aegis.fhir.model.Resource</class>
         <class>net.aegis.fhir.model.Resourcemetadata</class>
+        <class>net.aegis.fhir.model.Serverdirectory</class>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
             <property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver"/>

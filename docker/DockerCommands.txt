@@ -1,6 +1,8 @@
 # -------------------------------------------------------------------------------
 # Build consent-management-server image
 # - Named tag 0.1.0
+# - IMPORTANT Copy wildfhir-client.war and wildfhir-rest-server.war files to
+#   docker folder first
 # -------------------------------------------------------------------------------
 docker build -t hlseven/consent-management-server:0.1.0 .
 

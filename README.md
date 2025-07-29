@@ -55,6 +55,11 @@ You can also expose the following additional ports if desired:
 The server implements the custom operations as described in the IG in the [Artifacts - Operation Definitions](https://build.fhir.org/ig/HL7/fhir-consent-management/artifacts.html#behavior-operation-definitions) section.
 
 
+## Subscriptions R5 Backport Operations
+
+The server implements the `Subscription/$status` custom operation as described in the Subscriptions R5 Backport IG in the [OperationDefinition: Subscription Status Operation](http://hl7.org/fhir/uv/subscriptions-backport/STU1.1/OperationDefinition-backport-subscription-status.html) section.
+
+
 ## Security
 
 The server currently does not enable any security interface beyond HTTPS - OAuth, UDAP, etc.

@@ -81,7 +81,7 @@ public abstract class ProvenanceResourceProxy {
 			//URI location = response.getLocation();
 			URI location = new URI(locationPath);
 			String locationStr = "";
-			fhirResource.setId(UUIDUtil.getGUID());
+			fhirResource.setId(UUIDUtil.getUUID());
 			List<Reference> target = new ArrayList<Reference>();
 			if (location != null) {
 				locationStr = location.toString();

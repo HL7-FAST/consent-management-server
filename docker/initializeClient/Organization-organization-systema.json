@@ -1,0 +1,33 @@
+{
+  "resourceType": "Organization",
+  "id": "organization-systema",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "organization-systema"
+    }
+  ],
+  "active": "true",
+  "type": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+          "value": "other",
+          "display": "Other"
+        }
+      ],
+      "text": "FAST Consent Administrative Server"
+    }
+  ],
+  "name": "FAST Consent Administrative Server - System A",
+  "endpoint": [
+    {
+      "reference": "Endpoint/endpoint-systema",
+      "identifier": {
+        "system": "http://example.org/identifiers",
+        "value": "endpoint-systema"
+      }
+    }
+  ]
+}

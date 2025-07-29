@@ -4,6 +4,31 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd"
     version="2.0">
 
+    <named-query name="findClientresourceByResourceType">
+        <query><![CDATA[
+                select c
+                from Clientresource c
+                where c.resourceType = :resourceType
+        ]]></query>
+    </named-query>
+
+    <named-query name="findClientresourceByResourceTypeResourceId">
+        <query><![CDATA[
+                select c
+                from Clientresource c
+                where c.resourceType = :resourceType
+                and c.resourceId = :resourceId
+        ]]></query>
+    </named-query>
+
+    <named-query name="findServerdirectoryByBasePath">
+        <query><![CDATA[
+                select s
+                from Serverdirectory s
+                where s.basePath = :basePath
+        ]]></query>
+    </named-query>
+
     <named-query name="findResourceById">
         <query><![CDATA[
                 select r

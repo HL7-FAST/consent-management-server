@@ -71,6 +71,7 @@ import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
 import org.hl7.fhir.r4.model.Enumerations.SearchParamType;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 
+import net.aegis.fhir.model.Code;
 import net.aegis.fhir.model.Conformance;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.ResourceContainer;
@@ -122,8 +123,8 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 				String baseCapStatement = new String(baseCapStmt, UTF8_CHARSET);
 				log.fine("softwareVersion:" + softwareVersion);
 				log.fine("baseCapStatement:" + baseCapStatement);
-				String baseUrl = "";
-				if (codeService != null)	{
+				String baseUrl = "http://localhost:8080/r4";
+				if (codeService != null) {
 					baseUrl = codeService.getCodeValue("baseUrl");
 					if (baseUrl == null || baseUrl.isEmpty()) {
 						// Default base url with localhost
@@ -143,6 +144,15 @@ public class CapabilityStatementReload extends ResourceOperationProxy {
 				catch (Exception e) {
 					// Default base url with localhost
 					baseUrl = "http://localhost:8080/r4";
+				}
+
+				// Update baseUrl code value
+				if (codeService != null) {
+					Code baseUrlCode = codeService.findCodeByName("baseUrl");
+					if (baseUrlCode != null) {
+						baseUrlCode.setValue(baseUrl);
+						codeService.update(baseUrlCode);
+					}
 				}
 
 				boolean capStatementLoaded = reloadCapabilityStatement(conformanceService, softwareVersion, baseUrl, baseCapStmt);
