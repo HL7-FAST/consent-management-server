@@ -46,9 +46,12 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
@@ -65,6 +68,14 @@ import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.AuditEvent;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventAction;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventAgentComponent;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventEntityComponent;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventOutcome;
+import org.hl7.fhir.r4.model.AuditEvent.AuditEventSourceComponent;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Bundle.BundleLinkComponent;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Consent;
@@ -88,11 +99,13 @@ import org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus;
 import org.primefaces.event.TabChangeEvent;
 
 import net.aegis.fhir.client.ApplicationContext;
+import net.aegis.fhir.client.model.BundleWrapper;
 import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.client.util.WildfhirClientException;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.LabelKeyValueBean;
+import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
@@ -145,6 +158,422 @@ public class ApplicationController implements Serializable {
 
 	public void setContext(ApplicationContext context) {
 		this.context = context;
+	}
+
+	/*
+	 * FHIR Interaction methods
+	 */
+
+	/**
+	 * Perform a FHIR read for the supplied resource id
+	 *
+	 * @return
+	 */
+	public void fhirRead(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirRead()");
+
+		try {
+			log.info("BasePath for FHIR read: " + context.getSelectedServerURL());
+			context.setResourceResults(null);
+			String resourceId = context.getResourceId();
+			String ifModifiedSince = context.getIfModifiedSince();
+			String ifNoneMatch = context.getIfNoneMatch();
+			String _format = context.get_format();
+			String _summary = context.get_summary();
+			Response resourceResponse = null;
+			context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+			String formatType = context.getSelectedFormatType();
+
+			resourceResponse = context.getResourceRESTClient().read(resourceId, context.getSelectedServerURL(), context.getSelectedResourceType(), formatType, ifModifiedSince, ifNoneMatch, _format, _summary, null);
+
+			if (resourceResponse != null) {
+				String contentType = resourceResponse.getHeaderString("Content-Type");
+				if (contentType != null) {
+					if (contentType.toUpperCase().contains("XML")) {
+						context.setReturnedFormatType("XML");
+					}
+					else if (contentType.toUpperCase().contains("JSON")) {
+						context.setReturnedFormatType("JSON");
+					}
+					else {
+						context.setReturnedFormatType(formatType);
+					}
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+
+				if (resourceResponse.getStatus() == (Response.Status.OK.getStatusCode())) {
+					try {
+						context.getResourceResults().add((new ResourceResponseWrapper(resourceResponse)));
+					}
+					catch (Exception e) {
+						log.info(e.getMessage());
+						FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirReadForm",
+								new FacesMessage(FacesMessage.SEVERITY_ERROR, "Resource parsing failed! Please check the client logs.", "Resource parsing failed! Please check the client logs."));
+						e.printStackTrace();
+					}
+
+				}
+				else if (resourceResponse.getStatus() == (Response.Status.NOT_MODIFIED.getStatusCode())) {
+					log.info(Integer.toString(resourceResponse.getStatus()));
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirReadForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "RESOURCE " + resourceId + " NOT MODIFIED", "RESOURCE " + resourceId + " NOT MODIFIED"));
+				}
+				else {
+					log.info(Integer.toString(resourceResponse.getStatus()));
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirReadForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Response " + resourceResponse.getStatus() + " - No Resource found matching ID " + resourceId, "Response " + resourceResponse.getStatus() + " - No Resource found matching ID " + resourceId));
+				}
+			}
+		}
+		catch (Exception e) {
+			log.info(e.getMessage());
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirReadForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error reading resource! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+
+		log.fine("[END] ApplicationController.fhirRead()");
+	}
+
+	/**
+	 * Perform a FHIR search operation based on the entered resource type (optional) and search parameter values
+	 *
+	 * @param event
+	 */
+	public void fhirSearch(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirSearch()");
+		log.info("BasePath for FHIR search: " + context.getSelectedServerURL());
+		log.info("Search Criteria: ");
+
+		Map<String, String> criteriaToSend = new HashMap<String, String>();
+
+		for (LabelKeyValueBean lkvb : context.getResourceCriteria()) {
+			if (!lkvb.getValue().isEmpty()) {
+				log.info(lkvb.getKey() + " = " + lkvb.getValue());
+				criteriaToSend.put(lkvb.getKey(), lkvb.getValue());
+			}
+		}
+
+		String _format = context.get_format();
+		String _summary = context.get_summary();
+		String formatType = context.getSelectedFormatType();
+		String httpOperation = context.getSelectedHttpOperation();
+
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		try {
+			if (formatType.equals("XML")) {
+				if (httpOperation.equals("GET")) {
+					response = context.getResourceRESTClient().searchGet(criteriaToSend, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_XML_CONTENT, _format, _summary, null);
+				}
+				else {
+					response = context.getResourceRESTClient().searchPost(criteriaToSend, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_XML_CONTENT, _format, _summary, null);
+				}
+			}
+			else {
+				if (httpOperation.equals("GET")) {
+					response = context.getResourceRESTClient().searchGet(criteriaToSend, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_JSON_CONTENT, _format, _summary, null);
+				}
+				else {
+					response = context.getResourceRESTClient().searchPost(criteriaToSend, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_JSON_CONTENT, _format, _summary, null);
+				}
+			}
+		}
+		catch (Exception e1) {
+			log.info(e1.getMessage());
+			e1.printStackTrace();
+		}
+		if (response != null) {
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				try {
+					wrapper = new ResourceResponseWrapper(response);
+					context.getResourceResults().add(wrapper);
+
+					// Check for Bundle Links
+					BundleWrapper searchBundleWrapper = wrapper.getBundle();
+					Bundle searchBundle = searchBundleWrapper.getBundle();
+
+					if (searchBundle.hasLink()) {
+						context.getPageReference().clear();
+
+						for (BundleLinkComponent bundleLink : searchBundle.getLink()) {
+
+							if (bundleLink.hasRelation()) {
+
+								if (bundleLink.getRelation().equals("first")) {
+									LabelKeyValueBean firstPage = new LabelKeyValueBean("First", "first", bundleLink.getUrl());
+									context.getPageReference().add(firstPage);
+								}
+
+								if (bundleLink.getRelation().equals("next")) {
+									LabelKeyValueBean nextPage = new LabelKeyValueBean("Next", "next", bundleLink.getUrl());
+									context.getPageReference().add(nextPage);
+								}
+
+								if (bundleLink.getRelation().equals("previous")) {
+									LabelKeyValueBean prevPage = new LabelKeyValueBean("Prev", "previous", bundleLink.getUrl());
+									context.getPageReference().add(prevPage);
+								}
+
+								if (bundleLink.getRelation().equals("last")) {
+									LabelKeyValueBean lastPage = new LabelKeyValueBean("Last", "last", bundleLink.getUrl());
+									context.getPageReference().add(lastPage);
+								}
+							}
+						}
+					}
+
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Search successfully executed.", "Search successfully excuted."));
+				}
+				catch (Exception e1) {
+					log.info(e1.getMessage());
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error searching resource(s)! Please check the client logs.", "Error reading resource! Please check the client logs."));
+					e1.printStackTrace();
+				}
+
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "No Resource Results found based on supplied criteria", "No Resource Results found based on supplied criteria"));
+			}
+		}
+
+		log.fine("[END] ApplicationController.fhirSearch()");
+	}
+
+	/**
+	 * Performs a FHIR search read for a specific page from a previous history result Bundle.
+	 *
+	 * @param searchPageUrl
+	 */
+	public void fhirSearchPage(String searchPageUrl) {
+		log.fine("[START] ApplicationController.fhirSearchPage()");
+		log.info("BasePath for FHIR delete: " + context.getSelectedServerURL());
+
+		String formatType = context.getSelectedFormatType();
+
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		try {
+			if (formatType.equals("XML")) {
+				response = context.getResourceRESTClient().searchPage(searchPageUrl, Constants.FHIR_XML_CONTENT, null);
+			}
+			else {
+				response = context.getResourceRESTClient().searchPage(searchPageUrl, Constants.FHIR_JSON_CONTENT, null);
+			}
+		}
+		catch (NumberFormatException e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Number format error getting page resources! Please check the client logs.", "Number format error getting page resources! Please check the client logs."));
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error getting page resources! Please check the client logs.", "Error getting page resources! Please check the client logs."));
+			e.printStackTrace();
+		}
+
+		if (response != null) {
+
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				try {
+					wrapper = new ResourceResponseWrapper(response);
+					context.getResourceResults().add(wrapper);
+
+					// Check for Bundle Links
+					BundleWrapper searchBundleWrapper = wrapper.getBundle();
+					Bundle searchBundle = searchBundleWrapper.getBundle();
+
+					if (searchBundle.hasLink()) {
+						context.getPageReference().clear();
+
+						for (BundleLinkComponent bundleLink : searchBundle.getLink()) {
+
+							if (bundleLink.hasRelation()) {
+
+								if (bundleLink.getRelation().equals("first")) {
+									LabelKeyValueBean firstPage = new LabelKeyValueBean("First", "first", bundleLink.getUrl());
+									context.getPageReference().add(firstPage);
+								}
+
+								if (bundleLink.getRelation().equals("next")) {
+									LabelKeyValueBean nextPage = new LabelKeyValueBean("Next", "next", bundleLink.getUrl());
+									context.getPageReference().add(nextPage);
+								}
+
+								if (bundleLink.getRelation().equals("previous")) {
+									LabelKeyValueBean prevPage = new LabelKeyValueBean("Prev", "previous", bundleLink.getUrl());
+									context.getPageReference().add(prevPage);
+								}
+
+								if (bundleLink.getRelation().equals("last")) {
+									LabelKeyValueBean lastPage = new LabelKeyValueBean("Last", "last", bundleLink.getUrl());
+									context.getPageReference().add(lastPage);
+								}
+							}
+						}
+					}
+
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Search successfully executed.", "Search successfully excuted."));
+				}
+				catch (Exception e1) {
+					log.info(e1.getMessage());
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error searching resource(s)! Please check the client logs.", "Error searching resource(s)! Please check the client logs."));
+					e1.printStackTrace();
+				}
+
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirSearchForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "No Resource Results found based on supplied criteria", "No Resource Results found based on supplied criteria"));
+			}
+		}
+
+		log.fine("[END] ApplicationController.fhirSearchPage()");
+	}
+
+	/**
+	 * Display resource specific search criteria based on the selected resource type
+	 *
+	 * @param event
+	 */
+	public void showSearchCriteria(ActionEvent event) {
+		log.fine("[START] ApplicationController.showSearchCriteria()");
+
+		List<LabelKeyValueBean> criteriaList = new ArrayList<LabelKeyValueBean>();
+
+		criteriaList.addAll(ResourceType.getGlobalCriteria());
+
+		String resourceType = context.getSelectedResourceType();
+		criteriaList.addAll(ResourceType.getResourceTypeCriteria().get(resourceType));
+
+		context.setResourceCriteria(criteriaList);
+
+		context.setResourceResults(null);
+
+		log.fine("[END] ApplicationController.showSearchCriteria()");
+	}
+
+	/**
+	 * Perform a FHIR metadata against the specified server
+	 *
+	 * @return
+	 */
+	public void fhirMetadata(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirMetadata()");
+		log.info("BasePath for FHIR metadata " + context.getSelectedServerURL());
+
+		String formatType = context.getSelectedFormatType();
+
+		Response response = null;
+		context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		try {
+			if (formatType.equals("XML")) {
+				response = context.getConformanceResourceRESTClient().metadata(context.getSelectedServerURL(), Constants.FHIR_XML_CONTENT);
+			}
+			else {
+				response = context.getConformanceResourceRESTClient().metadata(context.getSelectedServerURL(), Constants.FHIR_JSON_CONTENT);
+			}
+		}
+		catch (Exception e) {
+			log.info(e.getMessage());
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirMetadataForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error executing metadata request! " + e.getMessage(), ""));
+			e.printStackTrace();
+		}
+
+		if (response != null) {
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				try {
+					context.getResourceResults().add(new ResourceResponseWrapper(response));
+				}
+				catch (Exception e) {
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirMetadataForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "CapabilityStatement parsing failed! " + e.getMessage(), ""));
+					e.printStackTrace();
+				}
+
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:fhirMetadataForm",
+						new FacesMessage(FacesMessage.SEVERITY_INFO, "CapabilityStatement retrieval failed; response [" + response.getStatus() + "].", ""));
+			}
+		}
+
+		log.fine("[END] ApplicationController.fhirMetadata()");
+	}
+
+	/**
+	 * Execute the FHIR metadata operation and display the response in a new HTML page
+	 * @param event
+	 */
+	public void fhirMetadataNewPage(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirMetadataNewPage");
+		log.info("BasePath for FHIR metadata (new page) " + context.getSelectedServerURL());
+
+		String conformanceUrl = context.getSelectedServerURL() + "/metadata";
+
+		try {
+			FacesContext.getCurrentInstance().getExternalContext().redirect(conformanceUrl);
+		}
+		catch (IOException e) {
+			log.severe(e.getMessage());
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error accessing server's metadata endpoint! " + e.getMessage(), ""));
+		}
+
+		log.fine("[END] ApplicationController.fhirMetadataNewPage");
 	}
 
 	/*
@@ -271,18 +700,23 @@ public class ApplicationController implements Serializable {
 
 			ProvisionComponent provision = new ProvisionComponent();
 			provision.setType(ConsentProvisionType.fromCode(provisionType));
-			Period period = new Period();
-			if (startDate == null) {
-				startDate = new Date();
-			}
-			period.setStart(startDate);
-			if (endDate != null) {
-				if (endDate.compareTo(startDate) <= 0) {
-					throw new WildfhirClientException("Provision period error! End date must be greater than start date.");
+
+			if (startDate != null || endDate != null) {
+				Period period = new Period();
+				if (startDate != null) {
+					period.setStart(startDate);
 				}
-				period.setEnd(endDate);
+				if (endDate != null) {
+					period.setEnd(endDate);
+				}
+				if (startDate != null && endDate != null) {
+					if (endDate.compareTo(startDate) <= 0) {
+						throw new WildfhirClientException("Provision period error! End date must be greater than start date.");
+					}
+				}
+				provision.setPeriod(period);
 			}
-			provision.setPeriod(period);
+
 			provisionActorComponent actor = new provisionActorComponent();
 			codeableConcept = new CodeableConcept();
 			coding = new Coding();
@@ -434,6 +868,24 @@ public class ApplicationController implements Serializable {
 		log.fine("[END] ApplicationController.processFileConsent()");
 	}
 
+	public void handleFileConsentPatientChange() throws Exception {
+		try {
+			// Get selected patient resource
+			String patientId = context.getSelectedPatientId();
+			Patient patient = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(patientId));
+
+			if (patient != null) {
+				// Populate fileConsent RelatedPerson list for selected Patient
+				context.setClientRelatedPersons(patient);
+			}
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $fileConsent handle Patient change! Please check the client logs.", ""));
+			e.printStackTrace();
+		}
+	}
+
 	public void handleUpdateConsentChange() throws Exception {
 		try {
 			// Get selected consent resource
@@ -459,6 +911,24 @@ public class ApplicationController implements Serializable {
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:updateConsentForm",
 					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $updateConsent handle Consent change! Please check the client logs.", ""));
+			e.printStackTrace();
+		}
+	}
+
+	public void handleRecordDisclosurePatientChange() throws Exception {
+		try {
+			// Get selected patient resource
+			String patientId = context.getSelectedPatientId();
+			Patient patient = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(patientId));
+
+			if (patient != null) {
+				// Populate record-disclosure Consent list for selected Patient
+				context.setClientPatientConsents(patient);
+			}
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $record-disclosure handle Patient change! Please check the client logs.", ""));
 			e.printStackTrace();
 		}
 	}
@@ -538,8 +1008,17 @@ public class ApplicationController implements Serializable {
 			// Check for updated provision period
 			if (startDate != null || endDate != null) {
 				Period updatedPeriod = new Period();
-				updatedPeriod.setStart(startDate);
-				updatedPeriod.setEnd(endDate);
+				if (startDate != null) {
+					updatedPeriod.setStart(startDate);
+				}
+				if (endDate != null) {
+					updatedPeriod.setEnd(endDate);
+				}
+				if (startDate != null && endDate != null) {
+					if (endDate.compareTo(startDate) <= 0) {
+						throw new WildfhirClientException("Provision period error! End date must be greater than start date.");
+					}
+				}
 				consent.getProvision().setPeriod(updatedPeriod);
 			}
 
@@ -692,10 +1171,173 @@ public class ApplicationController implements Serializable {
 		log.info("$revokeConsent info: ");
 
 		try {
-			log.info("Selected Format Type: " + context.getSelectedFormatType());
+			String formatType = context.getSelectedFormatType();
+			log.info("Selected Format Type: " + formatType);
 			log.info("BasePath for $fileConsent: " + context.getSelectedServerURL());
+			Response response = null;
 
-			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:revokeConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$revokeConsent request successfully processed.", ""));
+			String clientConsentId = context.getSelectedConsentId();
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("Consent id: ").append(clientConsentId);
+
+			context.setResourceString(sb.toString());
+			context.setResponseString("TBD");
+
+			Consent consent = (Consent) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientConsentId));
+
+			// Build revokeConsent Parameters with Consent and DocumentReference
+			Parameters p = new Parameters();
+			p.setId(UUIDUtil.getUUID());
+			Meta meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters");
+			p.setMeta(meta);
+
+			// consent parameter
+			ParametersParameterComponent param = new ParametersParameterComponent();
+			param.setName("consent");
+
+			// Build consent Reference parameter value
+			Reference reference = new Reference();
+			reference.setReference("Consent/" + consent.getId());
+			if (consent.hasIdentifier()) {
+				reference.setIdentifier(consent.getIdentifierFirstRep());
+			}
+			param.setValue(reference);
+
+			p.addParameter(param);
+
+			// patient parameter
+			param = new ParametersParameterComponent();
+			param.setName("patient");
+			param.setValue(consent.getPatient());
+
+			p.addParameter(param);
+
+			// document parameter
+			param = new ParametersParameterComponent();
+			param.setName("document");
+
+			DocumentReference docRef = new DocumentReference();
+			String docRefId = UUIDUtil.getUUID();
+			docRef.setId(docRefId);
+			meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference");
+			docRef.setMeta(meta);
+
+			Identifier docRefIidentifer = new Identifier();
+			docRefIidentifer.setSystem("http://example.org/identifiers");
+			docRefIidentifer.setValue(docRefId);
+			docRef.addIdentifier(docRefIidentifer);
+
+			docRef.setStatus(DocumentReferenceStatus.CURRENT);
+
+			CodeableConcept codeableConcept = new CodeableConcept();
+			Coding coding = new Coding();
+			coding.setSystem("http://loinc.org");
+			coding.setCode("64292-6");
+			codeableConcept.addCoding(coding);
+			docRef.setType(codeableConcept);
+
+			codeableConcept = new CodeableConcept();
+			coding = new Coding();
+			coding.setSystem("http://loinc.org");
+			coding.setCode("57016-8");
+			codeableConcept.addCoding(coding);
+			docRef.addCategory(codeableConcept);
+
+			reference = consent.getPatient();
+			docRef.setSubject(reference);
+			docRef.setDate(new Date());
+			docRef.addAuthor(reference);
+
+			String consentPatientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference());
+			Clientresource consentPatient = context.getClientresourceService().readClientResource("Patient", consentPatientId);
+			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(consentPatient.getId());
+			// Get Consent grantee (RelatedPersion)
+			String granteeId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference());
+			RelatedPerson grantee = (RelatedPerson) context.getClientresourceService().readFHIRResource("RelatedPerson", granteeId);
+
+			DocumentReferenceContentComponent content = new DocumentReferenceContentComponent();
+			Attachment attachment = new Attachment();
+			attachment.setContentType("text/plain" + Constants.CHARSET_UTF8_EXT);
+			sb = new StringBuilder("I, ");
+			sb.append(grantor.getNameFirstRep().getNameAsSingleString());
+			sb.append(", revoke my consent to ");
+			sb.append(consent.getProvision().getType().toCode());
+			sb.append(" ");
+			sb.append(grantee.getNameFirstRep().getNameAsSingleString());
+			sb.append(" access to my medical records.");
+			attachment.setData(sb.toString().getBytes("UTF-8"));
+			content.setAttachment(attachment);
+			docRef.addContent(content);
+
+			param.setResource(docRef);
+
+			p.addParameter(param);
+
+			// Send $fileConsent request
+			JsonParser jsonParser = new JsonParser();
+			jsonParser.setOutputStyle(OutputStyle.PRETTY);
+			XmlParser xmlParser = new XmlParser();
+			xmlParser.setOutputStyle(OutputStyle.PRETTY);
+			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
+			if (formatType.equals("JSON")) {
+				jsonParser.compose(oOp, p);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "Consent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "revokeConsent", null, null);
+			}
+			else {
+				xmlParser.compose(oOp, p, true);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "Consent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "revokeConsent", null, null);
+			}
+
+			if (response != null) {
+				ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
+
+				if (formatType.equals("JSON")) {
+					context.setResponseString(wrapper.getResourceJSON());
+				}
+				else {
+					context.setResponseString(wrapper.getResourceXML());
+				}
+
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:revokeConsentForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$revokeConsent request successfully processed.", ""));
+
+					consent.setStatus(ConsentState.REJECTED);
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:revokeConsentForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$revokeConsent response failure [" + wrapper.getResponseStatus() + "].", ""));
+
+					consent.setStatus(ConsentState.INACTIVE);
+				}
+			}
+			else {
+				context.setResponseString("ERROR: Response is empty!");
+				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:revokeConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $revokeConsent! Response is empty.", ""));
+			}
+
+			// Save updated Consent and generated DocumentReference to client resources
+			Clientresource clientresource = context.getClientresourceService().read(Integer.valueOf(clientConsentId));
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, consent);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().update(clientresource, consent);
+
+			clientresource = new Clientresource();
+			clientresource.setResourceId(docRefId);
+			clientresource.setResourceType("DocumentReference");
+			oOp = new ByteArrayOutputStream();
+			jsonParser.compose(oOp, docRef);
+			clientresource.setResourceContents(oOp.toByteArray());
+			context.getClientresourceService().create(clientresource, docRef);
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:revokeConsentForm",
@@ -716,14 +1358,230 @@ public class ApplicationController implements Serializable {
 		log.info("$recordDisclosure info: ");
 
 		try {
-			log.info("Selected Format Type: " + context.getSelectedFormatType());
-			log.info("BasePath for $fileConsent: " + context.getSelectedServerURL());
+			String formatType = context.getSelectedFormatType();
+			log.info("Selected Format Type: " + formatType);
+			log.info("BasePath for $record-disclosure: " + context.getSelectedServerURL());
+			Response response = null;
+			String fhirInteraction = context.getSelectedFhirInteraction();
+			Date startDate = context.getStartDate();
+			Date endDate = context.getEndDate();
 
-			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$recordDisclosure request successfully processed.", ""));
+			String clientPatientId = context.getSelectedPatientId();
+			String clientPatientConsentId = context.getSelectedPatientConsentId();
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("Patient id: ").append(clientPatientId);
+			sb.append("; Consent id: ").append(clientPatientConsentId);
+			sb.append("; Interaction: ").append(fhirInteraction);
+			sb.append("; Start: ").append((startDate != null ? utcDateUtil.formatDate(startDate, UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "null"));
+			sb.append("; End: ").append((startDate != null ? utcDateUtil.formatDate(endDate, UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "null"));
+
+			context.setResourceString(sb.toString());
+			context.setResponseString("TBD");
+
+			// Get selected client resources
+			Patient patient = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientId));
+			Consent consent = (Consent) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientConsentId));
+
+			// Build revokeConsent Parameters with Consent and DocumentReference
+			Parameters p = new Parameters();
+			p.setId(UUIDUtil.getUUID());
+			Meta meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters");
+			p.setMeta(meta);
+
+			// disclosure parameter
+			ParametersParameterComponent param = new ParametersParameterComponent();
+			param.setName("disclosure");
+
+			AuditEvent disclosure = new AuditEvent();
+			String disclosureId = UUIDUtil.getUUID();
+			disclosure.setId(disclosureId);
+			meta = new Meta();
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent");
+			disclosure.setMeta(meta);
+
+			// POPULATE AUDITEVENT ELEMENTS
+			//type (fixed)
+			Coding coding = new Coding();
+			coding.setSystem("http://dicom.nema.org/resources/ontology/DCM");
+			coding.setCode("110106");
+			coding.setDisplay("Export");
+			disclosure.setType(coding);
+
+			//subtype (choice - restful get interactions)
+			coding = new Coding();
+			coding.setSystem("http://hl7.org/fhir/restful-interaction");
+			coding.setCode(fhirInteraction);
+			disclosure.addSubtype(coding);
+
+			//action (fixed)
+			disclosure.setAction(AuditEventAction.R);
+
+			//period (set start and end)
+			if (startDate != null || endDate != null) {
+				Period period = new Period();
+				if (startDate != null) {
+					period.setStart(startDate);
+				}
+				if (endDate != null) {
+					period.setEnd(endDate);
+				}
+				if (startDate != null && endDate != null) {
+					if (endDate.compareTo(startDate) <= 0) {
+						//throw new WildfhirClientException("AuditEvent period error! End date must be greater than start date.");
+						// set endDate to startDate + 1 minute
+						Calendar calendar = Calendar.getInstance();
+						calendar.setTime(startDate);
+						calendar.add(Calendar.MINUTE, 1);
+						endDate = calendar.getTime();
+						period.setEnd(endDate);
+					}
+				}
+				disclosure.setPeriod(period);
+			}
+
+			//recorded (current datetime)
+			disclosure.setRecorded(new Date());
+
+			//outcome (fixed 0)
+			disclosure.setOutcome(AuditEventOutcome._0);
+
+			//agent
+			AuditEventAgentComponent agent = new AuditEventAgentComponent();
+
+			//agent.who (selected patient)
+			Reference reference = new Reference();
+			reference.setIdentifier(patient.getIdentifierFirstRep());
+			agent.setWho(reference);
+
+			//agent.requestor (true)
+			agent.setRequestor(true);
+
+			disclosure.addAgent(agent);
+
+			//source
+			AuditEventSourceComponent source = new AuditEventSourceComponent();
+
+			//source.observer (fixed - consent-client-ri-site)
+			reference = new Reference();
+			Identifier identifier = new Identifier();
+			identifier.setSystem("http://example.org/identifiers");
+			identifier.setValue("consent-client-ri-site");
+			reference.setIdentifier(identifier);
+			source.setObserver(reference);
+
+			//source.type (fixed - 3 Web Server)
+			coding = new Coding();
+			coding.setSystem("http://hl7.org/fhir/security-source-type");
+			coding.setCode("3");
+			coding.setDisplay("Web Server");
+			source.addType(coding);
+
+			disclosure.setSource(source);
+
+			//entity
+			AuditEventEntityComponent entity = new AuditEventEntityComponent();
+
+			//entity.what (selected Consent)
+			reference = new Reference();
+			reference.setIdentifier(consent.getIdentifierFirstRep());
+			entity.setWhat(reference);
+
+			//entity.type (Consent)
+			coding = new Coding();
+			coding.setSystem("http://hl7.org/fhir/resource-types");
+			coding.setCode("Consent");
+			entity.setType(coding);
+
+			//entity.role (4 Domain Resource)
+			coding = new Coding();
+			coding.setSystem("http://terminology.hl7.org/CodeSystem/object-role");
+			coding.setCode("4");
+			coding.setDisplay("Domain Resource");
+			entity.setRole(coding);
+
+			//entity.lifecycle (6 Access / Use)
+			coding = new Coding();
+			coding.setSystem("http://terminology.hl7.org/CodeSystem/dicom-audit-lifecycle");
+			coding.setCode("6");
+			coding.setDisplay("Access / Use");
+			entity.setLifecycle(coding);
+
+			disclosure.addEntity(entity);
+
+			param.setResource(disclosure);
+
+			p.addParameter(param);
+
+			// consent parameter
+			param = new ParametersParameterComponent();
+			param.setName("consent");
+
+			// Build consent Reference parameter value
+			reference = new Reference();
+			reference.setReference("Consent/" + consent.getId());
+			if (consent.hasIdentifier()) {
+				reference.setIdentifier(consent.getIdentifierFirstRep());
+			}
+			param.setValue(reference);
+
+			p.addParameter(param);
+
+			// Send $record-disclosure request
+			JsonParser jsonParser = new JsonParser();
+			jsonParser.setOutputStyle(OutputStyle.PRETTY);
+			XmlParser xmlParser = new XmlParser();
+			xmlParser.setOutputStyle(OutputStyle.PRETTY);
+			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
+			if (formatType.equals("JSON")) {
+				jsonParser.compose(oOp, p);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "record-disclosure", null, null);
+			}
+			else {
+				xmlParser.compose(oOp, p, true);
+
+				context.setResourceString(oOp.toString());
+
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "record-disclosure", null, null);
+			}
+
+			if (response != null) {
+				ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
+
+				if (formatType.equals("JSON")) {
+					context.setResponseString(wrapper.getResourceJSON());
+				}
+				else {
+					context.setResponseString(wrapper.getResourceXML());
+				}
+
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$record-disclosure request successfully processed.", ""));
+
+					consent.setStatus(ConsentState.REJECTED);
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$record-disclosure response failure [" + wrapper.getResponseStatus() + "].", ""));
+
+					consent.setStatus(ConsentState.INACTIVE);
+				}
+			}
+			else {
+				context.setResponseString("ERROR: Response is empty!");
+				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $record-disclosure! Response is empty.", ""));
+			}
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Please check the client logs.", "Error processing $recordDisclosure! Please check the client logs."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Please check the client logs.", "Error processing $record-disclosure! Please check the client logs."));
+
+			context.setResourceString(e.getMessage());
+			
 			e.printStackTrace();
 		}
 
@@ -741,6 +1599,7 @@ public class ApplicationController implements Serializable {
 
 		int loadCount = 0;
 		String loadPath = "??";
+		StringBuilder responseString = new StringBuilder();
 
 		try {
 			context.getClientresourceService().clientresourcePurgeAll();
@@ -777,18 +1636,54 @@ public class ApplicationController implements Serializable {
 				result = null;
 			}
 
-			FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm",
-					new FacesMessage(FacesMessage.SEVERITY_INFO, "initializeClient request successfully processed " + loadCount + " files.", ""));
+			responseString.append("Reset Test Data request successfully processed ").append(loadCount).append(" files.");
 
+			FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm",
+					new FacesMessage(FacesMessage.SEVERITY_INFO, responseString.toString(), responseString.toString()));
+
+			Serverdirectory localServer = context.getServerDirectoryService().read(1);
+
+			Response response = context.getResourceOperationClient().resourceOperation(null, null, localServer.getBasePath(), null, Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "purge-all", null, null);
+
+			if (response != null) {
+				ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
+
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Purge server data request successfully processed.", ""));
+					responseString.append(" Purge server data request successfully processed.");
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "Purge server data response failure [" + wrapper.getResponseStatus() + "].", ""));
+					responseString.append(" Purge server data response failure [").append(wrapper.getResponseStatus()).append("].");
+				}
+			}
+			else {
+				responseString.append(" ERROR: Purge server data returned empty response!");
+				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:fileConsentForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR: Purge server data returned empty response!", "ERROR: Purge server data returned empty response!"));
+			}
+
+			context.setResponseString(responseString.toString());
 		}
 		catch (NoSuchFileException e) {
+			responseString.append("Error processing Reset Test Data! ").append(loadPath).append(" is not found.");
+
 			FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing initializeClient! " + loadPath + " is not found.", "Error processing initializeClient! " + loadPath + " is not found."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, responseString.toString(), responseString.toString()));
+
+			context.setResponseString(responseString.toString());
+
 			e.printStackTrace();
 		}
 		catch (Exception e) {
+			responseString.append("Error processing Reset Test Data! Please check the client logs.");
+
 			FacesContext.getCurrentInstance().addMessage("tabView:adminTabView:initializeClientForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing initializeClient! Please check the client logs.", "Error processing initializeClient! Please check the client logs."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, responseString.toString(), responseString.toString()));
+
+			responseString.append(" ").append(e.getMessage());
+			context.setResponseString(responseString.toString());
+
 			e.printStackTrace();
 		}
 

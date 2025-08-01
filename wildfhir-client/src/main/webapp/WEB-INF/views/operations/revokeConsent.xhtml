@@ -33,15 +33,49 @@
 					<f:selectItem itemValue="#{null}" itemLabel="-- Select Consent Mgmt Server --         " noSelectionOption="true" />
 					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
 				</p:selectOneMenu>
-
-				<br/>
-
-				<p:commandButton value="Send Request" icon="ui-icon-check"
-					actionListener="#{controller.processRevokeConsent}"
-					update=":tabView:operationsTabView:revokeConsentForm">
-				</p:commandButton>
-				<h:outputText value="" />
 			</p:panelGrid>
+
+			<p:panel id="revokeConsentResultsPanel" visible="true"
+				widgetVar="revokeConsentResultsPanel" toggleable="true" closable="true"
+				toggleSpeed="500" closeSpeed="500">
+
+				<p:toolbar>
+					<f:facet name="right">
+						<p:commandButton value="Send Request" icon="ui-icon-document"
+							actionListener="#{controller.processRevokeConsent}"
+							oncomplete="PF('revokeConsentTabView').select(2)"
+							update=":tabView:operationsTabView:revokeConsentForm">
+						</p:commandButton>
+					</f:facet>
+				</p:toolbar>
+
+				<p:tabView id="revokeConsentTabView" widgetVar="revokeConsentTabView" dynamic="true" cache="false">
+					<p:tab title="Consent" id="revokeConsentTab0">
+						<p:panelGrid id="revokeConsentTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+							<h:outputText value="The $revokeConsent Parameters will be constructed from the selections. The patient reference parameter will be populated from the Consent patient reference. A fictitious DocumentReference resource will be generated for the supporting document parameter."
+								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+						</p:panelGrid>
+
+						<p:panelGrid id="revokeConsentTabPanel1" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+							<h:outputText value="Select Consent *" />
+							<p:selectOneMenu required="true" label="Select Consent" value="#{context.selectedConsentId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
+								<f:selectItem itemValue="#{null}" itemLabel="-- Select Consent --         " noSelectionOption="true" />
+								<f:selectItems value="#{context.clientConsents}" var="con" itemLabel="#{con.description.trim()}         " itemValue="#{con.id}" />
+							</p:selectOneMenu>
+						</p:panelGrid>
+					</p:tab>
+
+					<p:tab title="Parameters" id="revokeConsentTab1">
+						<h:inputTextarea value="#{context.resourceString}" cols="80" rows="24" />
+					</p:tab>
+
+					<p:tab title="Results" id="revokeConsentResultsTab">
+						<h:outputText id="lblrevokeConsentResults" escape="true"
+							value="#{context.responseString}"
+							styleClass="whiteSpaceClass" />
+					</p:tab>
+				</p:tabView>
+			</p:panel>
 
 		</h:form>
 	</p:tab>

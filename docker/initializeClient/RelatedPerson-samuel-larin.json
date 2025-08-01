@@ -1,17 +1,17 @@
 {
   "resourceType": "RelatedPerson",
-  "id": "relatedperson-robert-miren",
+  "id": "relatedperson-samuel-larin",
   "identifier": [
     {
       "system": "http://example.org/identifiers",
-      "value": "relatedperson-robert-miren"
+      "value": "relatedperson-samuel-larin"
     }
   ],
   "patient": {
-    "reference": "Patient/patient-lara-miren",
+    "reference": "Patient/patient-gerald-larin",
     "identifier": {
       "system": "http://example.org/identifiers",
-      "value": "patient-lara-miren"
+      "value": "patient-gerald-larin"
     }
   },
   "relationship": [
@@ -19,8 +19,8 @@
       "coding": [
         {
           "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
-          "code": "SPS",
-          "display": "spouse"
+          "code": "SONC",
+          "display": "son"
         }
       ]
     }
@@ -28,23 +28,23 @@
   "name": [
     {
       "use": "official",
-      "family": "Miren",
+      "family": "Larin",
       "given": [
-        "Robert"
+        "Samuel"
       ]
     }
   ],
   "gender": "male",
-  "birthDate": "1978-01-01",
+  "birthDate": "1979-07-11",
   "address": [
     {
       "use": "home",
       "line": [
-        "123 Main Street"
+        "2122 Oak Street"
       ],
       "city": "Metropolis",
       "state": "NY",
-      "postalCode": "10001",
+      "postalCode": "10002",
       "country": "US"
     }
   ]

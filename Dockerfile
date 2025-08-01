@@ -76,6 +76,10 @@ COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/
 RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 
+# Client resources
+RUN mkdir -p /home/jboss/initializeClient
+ADD ./docker/initializeClient /home/jboss/initializeClient
+
 EXPOSE 3306 8080 8443 9990
 
 USER root

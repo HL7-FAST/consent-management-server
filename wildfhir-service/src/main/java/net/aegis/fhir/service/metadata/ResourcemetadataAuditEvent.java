@@ -203,7 +203,7 @@ public class ResourcemetadataAuditEvent extends ResourcemetadataProxy {
 
 					// entity : reference
 					if (entity.hasWhat()) {
-						rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "agent", 0, entity.getWhat(), null);
+						rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "entity", 0, entity.getWhat(), null);
 						resourcemetadataList.addAll(rMetadataChain);
 
 						// (patient) entity.what.reference : reference
