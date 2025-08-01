@@ -35,7 +35,9 @@ package net.aegis.fhir.service.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -557,16 +559,18 @@ public enum ServicesUtil {
 		String relativeReference = "";
 
 		try {
+			String decodedUrl = URLDecoder.decode(url, "UTF-8");
+
 			int startIndex = -1;
 
-			int endIndex = url.indexOf("/_history/", 0);
+			int endIndex = decodedUrl.indexOf("/_history/", 0);
 			//System.out.println("  >> Check for /_history/ - endIndex = " + endIndex);
 			if (endIndex == -1) {
-				endIndex = url.indexOf("?", 0);
+				endIndex = decodedUrl.indexOf("?", 0);
 				//System.out.println("  >> Check for ? - endIndex = " + endIndex);
 			}
 			if (endIndex == -1) {
-				endIndex = url.length();
+				endIndex = decodedUrl.length();
 				//System.out.println("  >> Default endIndex = " + endIndex);
 			}
 			log.fine("extractRelativeReferenceFromURL - endIndex is " + endIndex);
@@ -575,9 +579,9 @@ public enum ServicesUtil {
 			// 0123456789012345
 			int slashCount = 0;
 			for (int i = endIndex - 1; i > -1; i--) {
-				log.fine("charAt(" + i + ") is " + url.charAt(i));
+				log.fine("charAt(" + i + ") is " + decodedUrl.charAt(i));
 				// if (!isDigit(url.charAt(i))) {
-				if (url.charAt(i) == '/') {
+				if (decodedUrl.charAt(i) == '/') {
 					slashCount++;
 					if (slashCount >= 2) {
 						startIndex = i + 1;
@@ -591,7 +595,12 @@ public enum ServicesUtil {
 			if (startIndex == -1) {
 				startIndex = 0;
 			}
-			relativeReference = url.substring(startIndex, endIndex);
+			relativeReference = decodedUrl.substring(startIndex, endIndex);
+		}
+		catch (UnsupportedEncodingException e) {
+			log.severe("Exception decoding URL: " + e.getMessage());
+			// Return blank on exception
+			relativeReference = "";
 		}
 		catch (Exception e) {
 			log.severe("Exception parsing resourceId in URL: " + e.getMessage());
@@ -613,16 +622,18 @@ public enum ServicesUtil {
 		String resourceId = "";
 
 		try {
+			String decodedUrl = URLDecoder.decode(url, "UTF-8");
+
 			int startIndex = -1;
 
-			int endIndex = url.indexOf("/_history/", 0);
+			int endIndex = decodedUrl.indexOf("/_history/", 0);
 			//System.out.println("  >> Check for /_history/ - endIndex = " + endIndex);
 			if (endIndex == -1) {
-				endIndex = url.indexOf("?", 0);
+				endIndex = decodedUrl.indexOf("?", 0);
 				//System.out.println("  >> Check for ? - endIndex = " + endIndex);
 			}
 			if (endIndex == -1) {
-				endIndex = url.length();
+				endIndex = decodedUrl.length();
 				//System.out.println("  >> Default endIndex = " + endIndex);
 			}
 			log.fine("extractResourceIdFromURL - endIndex is " + endIndex);
@@ -630,9 +641,9 @@ public enum ServicesUtil {
 			// /111/_history/2
 			// 0123456789012345
 			for (int i = endIndex - 1; i > -1; i--) {
-				log.fine("charAt(" + i + ") is " + url.charAt(i));
+				log.fine("charAt(" + i + ") is " + decodedUrl.charAt(i));
 				// if (!isDigit(url.charAt(i))) {
-				if (url.charAt(i) == '/') {
+				if (decodedUrl.charAt(i) == '/') {
 					startIndex = i + 1;
 					break;
 				}
@@ -643,11 +654,16 @@ public enum ServicesUtil {
 			if (startIndex == -1) {
 				startIndex = 0;
 			}
-			resourceId = url.substring(startIndex, endIndex);
+			resourceId = decodedUrl.substring(startIndex, endIndex);
 
 			if (ResourceType.isValidResourceType(resourceId)) {
 				resourceId = "";
 			}
+		}
+		catch (UnsupportedEncodingException e) {
+			log.severe("Exception decoding URL: " + e.getMessage());
+			// Return blank on exception
+			resourceId = "";
 		}
 		catch (Exception e) {
 			log.severe("Exception parsing resourceId in URL: " + e.getMessage());
@@ -670,17 +686,24 @@ public enum ServicesUtil {
 		String versionId = "";
 
 		try {
-			int endIndex = url.indexOf("?", 0);
+			String decodedUrl = URLDecoder.decode(url, "UTF-8");
+
+			int endIndex = decodedUrl.indexOf("?", 0);
 			if (endIndex == -1) {
-				endIndex = url.length();
+				endIndex = decodedUrl.length();
 			}
 
-			int startIndex = url.indexOf("/_history/", 0);
+			int startIndex = decodedUrl.indexOf("/_history/", 0);
 			if (startIndex > -1) {
 				startIndex += 10;
-				versionId = url.substring(startIndex, endIndex);
+				versionId = decodedUrl.substring(startIndex, endIndex);
 				log.fine("extractVersionIdFromURL - startIndex is " + startIndex + "; endIndex is " + endIndex + "; versionId is " + versionId);
 			}
+		}
+		catch (UnsupportedEncodingException e) {
+			log.severe("Exception decoding URL: " + e.getMessage());
+			// Return blank on exception
+			versionId = "";
 		}
 		catch (Exception e) {
 			log.severe("Exception parsing versionId in URL: " + e.getMessage());
@@ -697,16 +720,18 @@ public enum ServicesUtil {
 		Integer versionId = Integer.valueOf(0);
 
 		try {
-			int index = url.indexOf("/_history/", 0);
+			String decodedUrl = URLDecoder.decode(url, "UTF-8");
+
+			int index = decodedUrl.indexOf("/_history/", 0);
 			log.fine("extractVersionIdFromURL - index is " + index);
 
 			if (index > 0) {
 				// /111/_history/2
 				// 0123456789012345
 				StringBuffer sbVersionId = new StringBuffer("");
-				for (int i = index + 10; i < url.length(); i++) {
-					if (isDigit(url.charAt(i))) {
-						sbVersionId.append(url.charAt(i));
+				for (int i = index + 10; i < decodedUrl.length(); i++) {
+					if (isDigit(decodedUrl.charAt(i))) {
+						sbVersionId.append(decodedUrl.charAt(i));
 					}
 					else {
 						break;
@@ -721,6 +746,11 @@ public enum ServicesUtil {
 				// Return zero if not found
 				versionId = Integer.valueOf(0);
 			}
+		}
+		catch (UnsupportedEncodingException e) {
+			log.severe("Exception decoding URL: " + e.getMessage());
+			// Return -1 on exception
+			versionId = Integer.valueOf(-1);
 		}
 		catch (Exception e) {
 			log.severe("Exception parsing versionId in URL: " + e.getMessage());

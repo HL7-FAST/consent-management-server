@@ -7,14 +7,16 @@
 
 	<!-- This is the view file for the FAST Consent Initialize Client Tab -->
 
-	<p:tab title="Initialize Client" id="initializeClientTab" cache="false">
+	<p:tab title="Reset Test Data" id="initializeClientTab" cache="false">
 
 		<h:form id="initializeClientForm" prependId="false" style="width:100%;border:none;">
 			<p:panelGrid id="fileConsentPanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
 				<p:messages for="initializeClientForm" />
-				<h:outputText value="Initialize Client - Purge and Re-load Client Resources"
+				<h:outputText value="Reset Test Data - Purge and Re-load Client Resources, Purge Server Resources"
 					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
 				<h:outputText value="WARNING - This will delete all client resources and re-populate the default client test data"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;color:#8B4000" />
+				<h:outputText value="WARNING - This will also delete all server resources"
 					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;color:#8B4000" />
 			</p:panelGrid>
 

@@ -123,6 +123,9 @@ public class ClientresourceService {
 			// Build description based on expected resource type
 			newClientresource.setDescription(this.buildClientresourceDescription(resource));
 
+			// Set patient (id) based on expected resource type
+			newClientresource.setPatient(this.extractPatientId(resource));
+
 			/*
 			 * TRANSACTION BEGIN
 			 */
@@ -224,6 +227,41 @@ public class ClientresourceService {
 	 * Return the FHIR Resource instance from the repository resource.resourceContents
 	 * converted to a FHIR Resource object
 	 *
+	 * @param resourceType
+	 * @param resourceId
+	 * @return <code>org.hl7.fhir.r4.model.Resource</code>
+	 * @throws Exception
+	 */
+	public org.hl7.fhir.r4.model.Resource readFHIRResource(String resourceType, String resourceId) throws Exception {
+
+		log.fine("[START] ResourceService.readFHIRResource(" + resourceType + ", " + resourceId + ")");
+
+		Clientresource clientresource = null;
+		org.hl7.fhir.r4.model.Resource foundFHIRResource = null;
+
+		try {
+			clientresource = this.readClientResource(resourceType, resourceId);
+
+			if (clientresource != null && clientresource.getResourceContents() != null) {
+				// Convert JSON contents to FHIR Resource object
+				ByteArrayInputStream iResource = new ByteArrayInputStream(clientresource.getResourceContents());
+				JsonParser jsonP = new JsonParser();
+				foundFHIRResource = (org.hl7.fhir.r4.model.Resource)jsonP.parse(iResource);
+			}
+
+		} catch (Exception e) {
+			// Exception caught
+			e.printStackTrace();
+			throw e;
+		}
+
+		return foundFHIRResource;
+	}
+
+	/**
+	 * Return the FHIR Resource instance from the repository resource.resourceContents
+	 * converted to a FHIR Resource object
+	 *
 	 * @param id
 	 * @return <code>org.hl7.fhir.r4.model.Resource</code>
 	 * @throws Exception
@@ -280,6 +318,9 @@ public class ClientresourceService {
 
 			// Build description based on expected resource type
 			clientresource.setDescription(this.buildClientresourceDescription(resource));
+
+			// Set patient (id) based on expected resource type
+			clientresource.setPatient(this.extractPatientId(resource));
 
 			/*
 			 * TRANSACTION BEGIN
@@ -408,7 +449,7 @@ public class ClientresourceService {
 	 *
 	 * @param resourceType
 	 * @param resourceId
-	 * @return <code>List<Clientresource></code>
+	 * @return <code>Clientresource</code>
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
@@ -433,6 +474,40 @@ public class ClientresourceService {
 			if (results != null && !results.isEmpty()) {
 				result = results.get(0);
 			}
+		} catch (Exception e) {
+			// Exception caught
+			e.printStackTrace();
+			throw e;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Get the Client Resource record for a specific ResourceType and resourceId
+	 *
+	 * @param resourceType
+	 * @param resourceId
+	 * @return <code>List<Clientresource></code>
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Clientresource> findClientresourceByResourceTypePatient(String resourceType, Patient patient) throws Exception {
+
+		log.fine("[START] ClientresourceService.findClientresourceByResourceTypePatient");
+
+		Query clientresourceQuery = null;
+		List<Clientresource> result = new ArrayList<Clientresource>();
+
+		/*
+		 * Generate the Clientresource list of all records for the resourceType and given Patient's id
+		 * We expect only one so take the first one
+		 */
+		try {
+			clientresourceQuery = em.createNamedQuery("findClientresourceByResourceTypePatient").setParameter("resourceType",
+					resourceType).setParameter("patient", patient.getId());
+
+			result = (List<Clientresource>) clientresourceQuery.getResultList();
 		} catch (Exception e) {
 			// Exception caught
 			e.printStackTrace();
@@ -530,7 +605,8 @@ public class ClientresourceService {
 				break;
 			case Consent:
 				Consent consent = (Consent)resource;
-				description.append("patient: ");
+				description.append(consent.getStatus().getDisplay());
+				description.append("; patient: ");
 				description.append((consent.hasPatient() ? (consent.getPatient().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference()) : (consent.getPatient().hasIdentifier() ? consent.getPatient().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; prov: ");
 				description.append(consent.getProvision().getType().getDisplay());
@@ -636,4 +712,59 @@ public class ClientresourceService {
 
 		return description.toString();
 	}
+
+	private String extractPatientId(org.hl7.fhir.r4.model.Resource resource) {
+		String patientId = null;
+
+		if (resource != null) {
+			ResourceType type = resource.getResourceType();
+			switch (type) {
+			case Coverage:
+				Coverage coverage = (Coverage)resource;
+				if (coverage.hasBeneficiary() && coverage.getBeneficiary().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(coverage.getBeneficiary().getReference());
+				}
+				break;
+			case Condition:
+				Condition condition = (Condition)resource;
+				if (condition.hasSubject() && condition.getSubject().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(condition.getSubject().getReference());
+				}
+				break;
+			case Consent:
+				Consent consent = (Consent)resource;
+				if (consent.hasPatient() && consent.getPatient().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference());
+				}
+				break;
+			case DocumentReference:
+				DocumentReference docRef = (DocumentReference)resource;
+				if (docRef.hasSubject() && docRef.getSubject().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(docRef.getSubject().getReference());
+				}
+				break;
+			case Observation:
+				Observation observation = (Observation)resource;
+				if (observation.hasSubject() && observation.getSubject().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(observation.getSubject().getReference());
+				}
+				break;
+			case Patient:
+				Patient patient = (Patient)resource;
+				patientId = patient.getId();
+				break;
+			case RelatedPerson:
+				RelatedPerson relatedPerson = (RelatedPerson)resource;
+				if (relatedPerson.hasPatient() && relatedPerson.getPatient().hasReference()) {
+					patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(relatedPerson.getPatient().getReference());
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		return patientId;
+	}
+
 }

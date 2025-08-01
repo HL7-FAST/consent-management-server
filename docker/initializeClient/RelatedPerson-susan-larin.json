@@ -1,17 +1,17 @@
 {
   "resourceType": "RelatedPerson",
-  "id": "relatedperson-robert-miren",
+  "id": "relatedperson-susan-larin",
   "identifier": [
     {
       "system": "http://example.org/identifiers",
-      "value": "relatedperson-robert-miren"
+      "value": "relatedperson-susan-larin"
     }
   ],
   "patient": {
-    "reference": "Patient/patient-lara-miren",
+    "reference": "Patient/patient-gerald-larin",
     "identifier": {
       "system": "http://example.org/identifiers",
-      "value": "patient-lara-miren"
+      "value": "patient-gerald-larin"
     }
   },
   "relationship": [
@@ -28,23 +28,23 @@
   "name": [
     {
       "use": "official",
-      "family": "Miren",
+      "family": "Larin",
       "given": [
-        "Robert"
+        "Susan"
       ]
     }
   ],
-  "gender": "male",
-  "birthDate": "1978-01-01",
+  "gender": "female",
+  "birthDate": "1955-06-22",
   "address": [
     {
       "use": "home",
       "line": [
-        "123 Main Street"
+        "1001 South Lake Blvd"
       ],
       "city": "Metropolis",
       "state": "NY",
-      "postalCode": "10001",
+      "postalCode": "10002",
       "country": "US"
     }
   ]

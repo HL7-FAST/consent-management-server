@@ -67,6 +67,8 @@ public class Clientresource implements Serializable {
 
     private String status;
 
+    private String patient;
+
     private String lastUser;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -117,7 +119,15 @@ public class Clientresource implements Serializable {
         this.status = status;
     }
 
-    public String getLastUser() {
+    public String getPatient() {
+		return patient;
+	}
+
+	public void setPatient(String patient) {
+		this.patient = patient;
+	}
+
+	public String getLastUser() {
         return lastUser;
     }
 
@@ -162,6 +172,7 @@ public class Clientresource implements Serializable {
 		clone.setResourceType(this.getResourceType());
 		clone.setDescription(this.getDescription());
 		clone.setStatus(this.getStatus());
+		clone.setPatient(this.getPatient());
 		clone.setLastUser(this.getLastUser());
 		clone.setLastUpdate(this.getLastUpdate());
 		clone.setResourceContents(this.getResourceContents());
@@ -198,7 +209,7 @@ public class Clientresource implements Serializable {
     public String toString() {
         return "Resource [id=" + id + ", resourceId=" + resourceId + ", resourceType="
                 + resourceType + ", description=" + description + ", status=" + status
-                + ", lastUser=" + lastUser + ", lastUpdate=" + lastUpdate
+                + ", patient=" + patient + ", lastUser=" + lastUser + ", lastUpdate=" + lastUpdate
                 + ", resourceContents=" + resourceContents.toString();
     }
 
@@ -210,6 +221,7 @@ public class Clientresource implements Serializable {
     	dst.setResourceType(this.getResourceType());
     	dst.setDescription(this.getDescription());
     	dst.setStatus(this.getStatus());
+    	dst.setPatient(this.getPatient());
     	dst.setLastUser(this.getLastUser());
     	dst.setLastUpdate(this.getLastUpdate());
     	dst.setResourceContents(this.getResourceContents());

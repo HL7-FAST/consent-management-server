@@ -4,7 +4,7 @@
   "identifier": [
     {
       "system": "http://example.org/identifiers",
-      "value": "relatedperson-fred-mire"
+      "value": "relatedperson-fred-miren"
     }
   ],
   "patient": {
@@ -19,8 +19,8 @@
       "coding": [
         {
           "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
-          "code": "BRO",
-          "display": "Brother-in-law"
+          "code": "BROINLAW",
+          "display": "brother-in-law"
         }
       ]
     }

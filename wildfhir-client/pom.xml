@@ -201,14 +201,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Import the JSF API, the API is included in Wildfly -->
-        <dependency>
-            <groupId>org.jboss.spec.javax.faces</groupId>
-            <artifactId>jboss-jsf-api_2.2_spec</artifactId>
-            <version>2.2.14</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Application Specific Dependencies -->
         <dependency>
             <groupId>joda-time</groupId>

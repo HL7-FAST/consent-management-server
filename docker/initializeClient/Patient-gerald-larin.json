@@ -1,0 +1,33 @@
+{
+  "resourceType": "Patient",
+  "id": "patient-gerald-larin",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "patient-gerald-larin"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Larin",
+      "given": [
+        "Gerald"
+      ]
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1954-10-12",
+  "address": [
+    {
+      "use": "home",
+      "line": [
+        "1001 South Lake Blvd"
+      ],
+      "city": "Metropolis",
+      "state": "NY",
+      "postalCode": "10002",
+      "country": "US"
+    }
+  ]
+}

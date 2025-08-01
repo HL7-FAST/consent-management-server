@@ -45,12 +45,17 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
 
+import org.hl7.fhir.r4.model.Patient;
+
+import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.LabelKeyValueBean;
+import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.service.ClientresourceService;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ServerdirectoryService;
+import net.aegis.fhir.service.client.ConformanceResourceRESTClient;
 import net.aegis.fhir.service.client.ResourceOperationRESTClient;
 import net.aegis.fhir.service.client.ResourceRESTClient;
 import net.aegis.fhir.service.subscription.SubscriptionServiceR5;
@@ -84,6 +89,34 @@ public class ApplicationContext implements Serializable {
 
 	private ResourceOperationRESTClient resourceOperationClient;
 
+	private ConformanceResourceRESTClient conformanceResourceRESTClient;
+
+	private String resourceId;
+	private String resourceVersion;
+
+	// Conditional options passed as HTTP Headers
+	private String ifMatch;
+	private String ifModifiedSince;
+	private String ifNoneExist;
+	private String ifNoneMatch;
+	private String prefer;
+	private String updateQuery;
+
+	// Conditional options passed as URL parameters
+	private String _count;
+	private String _format;
+	private String _since;
+	private String _summary;
+
+	private List<String> summaryTypes;
+
+	private List<String> summarySearchTypes;
+
+	// Paging parameters
+	private List<LabelKeyValueBean> pageReference;
+
+	private String returnedFormatType;
+
 	private Serverdirectory selectedServer;
 
 	// stores details of new server to be created
@@ -96,7 +129,7 @@ public class ApplicationContext implements Serializable {
 	private String selectedServerURL;
 
 	// a lot of the contextual variables are shared across views and
-	// UI components are generated made visible based on the view.
+	// UI components are generally made visible based on the view.
 	// This ensures that only components for the current view are enabled
 	private String currentView;
 
@@ -105,6 +138,14 @@ public class ApplicationContext implements Serializable {
 	private String resource2String;
 
 	private String responseString;
+
+	private String selectedResourceType;
+
+	// List of resource type specific criteria
+	private List<LabelKeyValueBean> resourceCriteria;
+
+	// result lists
+	private List<ResourceResponseWrapper> resourceResults;
 
 	Map<String, String> criteriaMap;
 
@@ -117,9 +158,17 @@ public class ApplicationContext implements Serializable {
 
 	private List<String> formatTypes;
 
+	private String selectedHttpOperation;
+
+	private String selectedFhirInteraction;
+
+	private List<String> fhirInteractions;
+
 	// Consent operations
 	private List<Clientresource> clientConsents;
 	private String selectedConsentId;
+	private List<Clientresource> clientPatientConsents;
+	private String selectedPatientConsentId;
 	private List<Clientresource> clientPatients;
 	private String selectedPatientId;
 	private List<Clientresource> clientRelatedPersons;
@@ -140,14 +189,31 @@ public class ApplicationContext implements Serializable {
 		log.fine("[START] - ApplicationContext.init()");
 		this.resourceRESTClient = new ResourceRESTClient(codeService);
 		this.resourceOperationClient = new ResourceOperationRESTClient(codeService);
+		this.conformanceResourceRESTClient = new ConformanceResourceRESTClient(codeService);
 		this.newServer = new Serverdirectory();
 		this.currentView = "";
+		this.selectedHttpOperation = "GET";
 		this.resourceString = null;
 		this.resource2String = null;
 		this.responseString = null;
+		this.resourceCriteria = null;
 		this.criteriaMap = new HashMap<String, String>();
+		this.resourceId = "";
+		this.resourceVersion = "";
+		this.ifModifiedSince = "";
+		this.ifNoneExist = "";
+		this.ifNoneMatch = "";
+		this.prefer = "";
+		this.updateQuery = "";
+		this._count = "";
+		this._format = "";
+		this._since = "";
+		this._summary = "";
+		this.pageReference = null;
+		this.resourceResults = null;
 		this.datePicker = null;
 		this.selectedConsentId = null;
+		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
 		this.selectedRelatedPersonId = null;
 		this.selectedOrganizationId = null;
@@ -157,7 +223,8 @@ public class ApplicationContext implements Serializable {
 		try {
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
-			this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
+			//this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
+			this.clientRelatedPersons = new ArrayList<Clientresource>();
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
 		}
 		catch (Exception e) {
@@ -172,9 +239,24 @@ public class ApplicationContext implements Serializable {
 		this.resourceString = null;
 		this.resource2String = null;
 		this.responseString = null;
+		this.resourceCriteria = null;
 		this.criteriaMap = new HashMap<String, String>();
+		this.resourceId = "";
+		this.resourceVersion = "";
+		this.ifModifiedSince = "";
+		this.ifNoneExist = "";
+		this.ifNoneMatch = "";
+		this.prefer = "";
+		this.updateQuery = "";
+		this._count = "";
+		this._format = "";
+		this._since = "";
+		this._summary = "";
+		this.pageReference = null;
+		this.resourceResults = null;
 		this.datePicker = null;
 		this.selectedConsentId = null;
+		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
 		this.selectedRelatedPersonId = null;
 		this.selectedOrganizationId = null;
@@ -184,12 +266,43 @@ public class ApplicationContext implements Serializable {
 		try {
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
-			this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
+			//this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public List<String> getSummaryTypes() {
+		if (summaryTypes == null) {
+			summaryTypes = new ArrayList<String>();
+			summaryTypes.add("true");
+			summaryTypes.add("false");
+			summaryTypes.add("text");
+			summaryTypes.add("data");
+		}
+		return summaryTypes;
+	}
+
+	public List<String> getSummarySearchTypes() {
+		if (summarySearchTypes == null) {
+			summarySearchTypes = new ArrayList<String>();
+			summarySearchTypes.add("true");
+			summarySearchTypes.add("false");
+			summarySearchTypes.add("text");
+			summarySearchTypes.add("data");
+			summarySearchTypes.add("count");
+		}
+		return summarySearchTypes;
+	}
+
+	public List<String> getResourceTypes() {
+		return ResourceType.getResourceTypes();
+	}
+
+	public List<String> getSupportedResourceTypes() {
+		return ResourceType.getSupportedResourceTypes();
 	}
 
 	public ClientresourceService getClientresourceService() {
@@ -198,6 +311,14 @@ public class ApplicationContext implements Serializable {
 
 	public void setClientresourceService(ClientresourceService clientresourceService) {
 		this.clientresourceService = clientresourceService;
+	}
+
+	public ConformanceResourceRESTClient getConformanceResourceRESTClient() {
+		return conformanceResourceRESTClient;
+	}
+
+	public void setConformanceResourceRESTClient(ConformanceResourceRESTClient conformanceResourceRESTClient) {
+		this.conformanceResourceRESTClient = conformanceResourceRESTClient;
 	}
 
 	public CodeService getCodeService() {
@@ -238,6 +359,121 @@ public class ApplicationContext implements Serializable {
 
 	public void setResourceOperationClient(ResourceOperationRESTClient resourceOperationClient) {
 		this.resourceOperationClient = resourceOperationClient;
+	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String resourceId) {
+		this.resourceId = resourceId;
+	}
+
+	public String getResourceVersion() {
+		return resourceVersion;
+	}
+
+	public void setResourceVersion(String resourceVersion) {
+		this.resourceVersion = resourceVersion;
+	}
+
+	public String getIfMatch() {
+		return ifMatch;
+	}
+
+	public void setIfMatch(String ifMatch) {
+		this.ifMatch = ifMatch;
+	}
+
+	public String getIfModifiedSince() {
+		return ifModifiedSince;
+	}
+
+	public void setIfModifiedSince(String ifModifiedSince) {
+		this.ifModifiedSince = ifModifiedSince;
+	}
+
+	public String getIfNoneExist() {
+		return ifNoneExist;
+	}
+
+	public void setIfNoneExist(String ifNoneExist) {
+		this.ifNoneExist = ifNoneExist;
+	}
+
+	public String getIfNoneMatch() {
+		return ifNoneMatch;
+	}
+
+	public void setIfNoneMatch(String ifNoneMatch) {
+		this.ifNoneMatch = ifNoneMatch;
+	}
+
+	public String getPrefer() {
+		return prefer;
+	}
+
+	public void setPrefer(String prefer) {
+		this.prefer = prefer;
+	}
+
+	public String getUpdateQuery() {
+		return updateQuery;
+	}
+
+	public void setUpdateQuery(String updateQuery) {
+		this.updateQuery = updateQuery;
+	}
+
+	public String get_count() {
+		return _count;
+	}
+
+	public void set_count(String _count) {
+		this._count = _count;
+	}
+
+	public String get_format() {
+		return _format;
+	}
+
+	public void set_format(String _format) {
+		this._format = _format;
+	}
+
+	public String get_since() {
+		return _since;
+	}
+
+	public void set_since(String _since) {
+		this._since = _since;
+	}
+
+	public String get_summary() {
+		return _summary;
+	}
+
+	public void set_summary(String _summary) {
+		this._summary = _summary;
+	}
+
+	public List<LabelKeyValueBean> getPageReference() {
+		if (pageReference == null) {
+			pageReference = new ArrayList<LabelKeyValueBean>();
+		}
+		return pageReference;
+	}
+
+	public void setPageReference(List<LabelKeyValueBean> pageReference) {
+		this.pageReference = pageReference;
+	}
+
+	public String getReturnedFormatType() {
+		return returnedFormatType;
+	}
+
+	public void setReturnedFormatType(String returnedFormatType) {
+		this.returnedFormatType = returnedFormatType;
 	}
 
 	public Serverdirectory getSelectedServer() {
@@ -310,6 +546,30 @@ public class ApplicationContext implements Serializable {
 		this.responseString = responseString;
 	}
 
+	public String getSelectedResourceType() {
+		return selectedResourceType;
+	}
+
+	public void setSelectedResourceType(String selectedResourceType) {
+		this.selectedResourceType = selectedResourceType;
+	}
+
+	public List<LabelKeyValueBean> getResourceCriteria() {
+		return resourceCriteria;
+	}
+
+	public void setResourceCriteria(List<LabelKeyValueBean> resourceCriteria) {
+		this.resourceCriteria = resourceCriteria;
+	}
+
+	public List<ResourceResponseWrapper> getResourceResults() {
+		return resourceResults;
+	}
+
+	public void setResourceResults(List<ResourceResponseWrapper> resourceResults) {
+		this.resourceResults = resourceResults;
+	}
+
 	public Map<String, String> getCriteriaMap() {
 		return criteriaMap;
 	}
@@ -357,6 +617,38 @@ public class ApplicationContext implements Serializable {
 		return formatTypes;
 	}
 
+	public String getSelectedHttpOperation() {
+		return selectedHttpOperation;
+	}
+
+	public void setSelectedHttpOperation(String selectedHttpOperation) {
+		this.selectedHttpOperation = selectedHttpOperation;
+	}
+
+	public String getSelectedFhirInteraction() {
+		return selectedFhirInteraction;
+	}
+
+	public void setSelectedFhirInteraction(String selectedFhirInteraction) {
+		this.selectedFhirInteraction = selectedFhirInteraction;
+	}
+
+	public List<String> getFhirInteractions() {
+		if (fhirInteractions == null) {
+			fhirInteractions = new ArrayList<String>();
+			fhirInteractions.add("read");
+			fhirInteractions.add("search");
+			fhirInteractions.add("vread");
+			fhirInteractions.add("history");
+			fhirInteractions.add("operation");
+		}
+		return fhirInteractions;
+	}
+
+	public void setFhirInteractions(List<String> fhirInteractions) {
+		this.fhirInteractions = fhirInteractions;
+	}
+
 	public List<Clientresource> getClientConsents() {
 		return clientConsents;
 	}
@@ -371,6 +663,26 @@ public class ApplicationContext implements Serializable {
 
 	public void setSelectedConsentId(String selectedConsentId) {
 		this.selectedConsentId = selectedConsentId;
+	}
+
+	public List<Clientresource> getClientPatientConsents() {
+		return clientPatientConsents;
+	}
+
+	public void setClientPatientConsents(List<Clientresource> clientPatientConsents) {
+		this.clientPatientConsents = clientPatientConsents;
+	}
+
+	public void setClientPatientConsents(Patient patient) throws Exception {
+		this.clientPatientConsents = clientresourceService.findClientresourceByResourceTypePatient("Consent", patient);
+	}
+
+	public String getSelectedPatientConsentId() {
+		return selectedPatientConsentId;
+	}
+
+	public void setSelectedPatientConsentId(String selectedPatientConsentId) {
+		this.selectedPatientConsentId = selectedPatientConsentId;
 	}
 
 	public List<Clientresource> getClientPatients() {
@@ -395,6 +707,10 @@ public class ApplicationContext implements Serializable {
 
 	public void setClientRelatedPersons(List<Clientresource> clientRelatedPersons) {
 		this.clientRelatedPersons = clientRelatedPersons;
+	}
+
+	public void setClientRelatedPersons(Patient patient) throws Exception {
+		this.clientRelatedPersons = clientresourceService.findClientresourceByResourceTypePatient("RelatedPerson", patient);
 	}
 
 	public String getSelectedRelatedPersonId() {

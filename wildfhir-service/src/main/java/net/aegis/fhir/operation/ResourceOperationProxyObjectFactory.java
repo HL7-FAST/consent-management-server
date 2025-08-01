@@ -82,6 +82,11 @@ public class ResourceOperationProxyObjectFactory {
 		else if (operationName.equals("versions")) {
 			proxy = new GlobalVersions();
 		}
+		else if (resourceType.equals(ResourceType.AuditEvent.name())) {
+			if (operationName.equals("record-disclosure")) {
+				proxy = new FASTConsentRecordDisclosure();
+			}
+		}
 		else if (resourceType.equals(ResourceType.Composition.name())) {
 			if (operationName.equals("document")) {
 				proxy = new CompositionDocument();
@@ -90,9 +95,6 @@ public class ResourceOperationProxyObjectFactory {
 		else if (resourceType.equals(ResourceType.Consent.name())) {
 			if (operationName.equals("fileConsent")) {
 				proxy = new FASTConsentFileConsent();
-			}
-			else if (operationName.equals("recordDisclosure")) {
-				proxy = new FASTConsentRecordDisclosure();
 			}
 			else if (operationName.equals("revokeConsent")) {
 				proxy = new FASTConsentRevokeConsent();

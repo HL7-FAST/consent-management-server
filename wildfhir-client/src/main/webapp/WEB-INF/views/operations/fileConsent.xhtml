@@ -61,10 +61,11 @@
 							<p:selectOneMenu required="true" label="Select Patient/Grantor" value="#{context.selectedPatientId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Patient/Grantor --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientPatients}" var="pat" itemLabel="#{pat.description.trim()}         " itemValue="#{pat.id}" />
+								<p:ajax update="fileConsentRelatedPersonDropdown" listener="#{controller.handleFileConsentPatientChange}" />
 							</p:selectOneMenu>
 
 							<h:outputText value="Select RelatedPerson *" />
-							<p:selectOneMenu required="true" label="Select RelatedPerson/Grantee" value="#{context.selectedRelatedPersonId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
+							<p:selectOneMenu id="fileConsentRelatedPersonDropdown" required="true" label="Select RelatedPerson/Grantee" value="#{context.selectedRelatedPersonId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select RelatedPerson/Grantee --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientRelatedPersons}" var="rel" itemLabel="#{rel.description.trim()}         " itemValue="#{rel.id}" />
 							</p:selectOneMenu>
