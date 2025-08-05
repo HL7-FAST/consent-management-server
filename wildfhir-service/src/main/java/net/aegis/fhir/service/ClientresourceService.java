@@ -693,6 +693,9 @@ public class ClientresourceService {
 			case RelatedPerson:
 				RelatedPerson relatedPerson = (RelatedPerson)resource;
 				description.append((relatedPerson.hasName() ? (relatedPerson.getNameFirstRep().hasFamily() ? relatedPerson.getNameFirstRep().getFamily() + ", " + (relatedPerson.getNameFirstRep().hasGiven() ? relatedPerson.getNameFirstRep().getGivenAsSingleString() : "?") : "?") : "??"));
+				description.append(" ");
+				description.append((relatedPerson.hasRelationship() ? (relatedPerson.getRelationshipFirstRep().hasCoding() ? (relatedPerson.getRelationshipFirstRep().getCodingFirstRep().hasDisplay() ? 
+						relatedPerson.getRelationshipFirstRep().getCodingFirstRep().getDisplay() : relatedPerson.getRelationshipFirstRep().getCodingFirstRep().getCode()) : "") : ""));
 				description.append(" g: ");
 				description.append((relatedPerson.hasGender() ? relatedPerson.getGender().getDisplay() : "?"));
 				description.append("; b: ");

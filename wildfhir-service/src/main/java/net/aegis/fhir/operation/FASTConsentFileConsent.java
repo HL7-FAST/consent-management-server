@@ -65,6 +65,7 @@ import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
 import net.aegis.fhir.service.audit.AuditEventActionEnum;
 import net.aegis.fhir.service.audit.AuditEventService;
+import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import net.aegis.fhir.service.provenance.ProvenanceActivityTypeEnum;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
@@ -219,6 +220,11 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 				// Remove existing Resource.id
 				documentReference.setIdElement(null);
 
+				if (!documentReference.hasText()) {
+					// Use RI NarrativeGenerator
+					FHIRNarrativeGeneratorClient.instance().generate(documentReference);
+				}
+
 				// Convert documentReference to XML for WildFHIR resource create
 				oResource = new ByteArrayOutputStream();
 				xmlP.compose(oResource, documentReference, true);
@@ -259,6 +265,11 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 
 				// Remove existing Resource.id
 				questionnaireResponse.setIdElement(null);
+
+				if (!questionnaireResponse.hasText()) {
+					// Use RI NarrativeGenerator
+					FHIRNarrativeGeneratorClient.instance().generate(questionnaireResponse);
+				}
 
 				// Convert questionnaireResponse to XML for WildFHIR resource create
 				oResource = new ByteArrayOutputStream();
@@ -311,6 +322,9 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 				if (consent.hasIdentifier()) {
 					consentIdentifier = consent.getIdentifierFirstRep();
 				}
+
+				// Use RI NarrativeGenerator
+				FHIRNarrativeGeneratorClient.instance().generate(consent);
 
 				// Convert consent to XML for WildFHIR resource create
 				oResource = new ByteArrayOutputStream();
