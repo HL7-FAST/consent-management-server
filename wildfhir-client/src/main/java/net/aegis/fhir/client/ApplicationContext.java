@@ -45,11 +45,13 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
 
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
 
 import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.LabelKeyValueBean;
+import net.aegis.fhir.model.OperationOutcomeWrapper;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.service.ClientresourceService;
@@ -164,6 +166,8 @@ public class ApplicationContext implements Serializable {
 
 	private List<String> fhirInteractions;
 
+	private OperationOutcomeWrapper validateOperationOutcome;
+
 	// Consent operations
 	private List<Clientresource> clientConsents;
 	private String selectedConsentId;
@@ -212,6 +216,7 @@ public class ApplicationContext implements Serializable {
 		this.pageReference = null;
 		this.resourceResults = null;
 		this.datePicker = null;
+		this.validateOperationOutcome = null;
 		this.selectedConsentId = null;
 		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
@@ -255,6 +260,7 @@ public class ApplicationContext implements Serializable {
 		this.pageReference = null;
 		this.resourceResults = null;
 		this.datePicker = null;
+		this.validateOperationOutcome = null;
 		this.selectedConsentId = null;
 		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
@@ -647,6 +653,18 @@ public class ApplicationContext implements Serializable {
 
 	public void setFhirInteractions(List<String> fhirInteractions) {
 		this.fhirInteractions = fhirInteractions;
+	}
+
+	public OperationOutcomeWrapper getValidateOperationOutcome() {
+		return validateOperationOutcome;
+	}
+
+	public void setValidateOperationOutcome(OperationOutcomeWrapper validateOperationOutcome) {
+		this.validateOperationOutcome = validateOperationOutcome;
+	}
+
+	public void setValidateOperationOutcome(OperationOutcome validateOperationOutcome) {
+		this.validateOperationOutcome = new OperationOutcomeWrapper(validateOperationOutcome);
 	}
 
 	public List<Clientresource> getClientConsents() {

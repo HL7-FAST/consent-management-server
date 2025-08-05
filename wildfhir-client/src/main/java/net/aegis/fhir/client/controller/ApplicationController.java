@@ -33,6 +33,7 @@
 package net.aegis.fhir.client.controller;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -82,6 +83,7 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Patient;
@@ -89,6 +91,7 @@ import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
 import org.hl7.fhir.r4.model.Consent.ConsentState;
 import org.hl7.fhir.r4.model.Consent.ProvisionComponent;
@@ -108,6 +111,7 @@ import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.service.util.ServicesUtil;
+import net.aegis.fhir.service.util.StringUtils;
 import net.aegis.fhir.service.util.UTCDateUtil;
 import net.aegis.fhir.service.util.UUIDUtil;
 
@@ -232,6 +236,244 @@ public class ApplicationController implements Serializable {
 		}
 
 		log.fine("[END] ApplicationController.fhirRead()");
+	}
+
+	/**
+	 * Performs a FHIR history read for specified patient record in List of patient results, Updates messages for the UI
+	 * form whose id is supplied
+	 *
+	 * @param event
+	 */
+	public void fhirHistory(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirHistory()");
+		log.info("BasePath for FHIR history: " + context.getSelectedServerURL());
+
+		String formatType = context.getSelectedFormatType();
+
+		String _format = context.get_format();
+		String _count = context.get_count();
+		String _since = context.get_since();
+
+		if (!StringUtils.isNullOrEmpty(_since)) {
+			try {
+				utcDateUtil.parseXMLDate(_since);
+				log.info("fhirHistory _since = " + _since);
+			}
+			catch (Exception e) {
+				log.severe("Exception parsing _since parameter to UTC Date! " + e.getMessage());
+				FacesContext.getCurrentInstance().addMessage("tabView:homeTabView:historyForm",
+						new FacesMessage(FacesMessage.SEVERITY_ERROR, "_since parameter is not a UTC Date! Example '2015-12-09T15:53:18Z'.", "_since parameter is not a UTC Date! Example '2015-12-09T15:53:18Z'."));
+				return;
+			}
+		}
+
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		try {
+			if (formatType.equals("XML")) {
+				response = context.getResourceRESTClient().history(context.getResourceId(), context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_XML_CONTENT, _format, _count, _since, null);
+			}
+			else {
+				response = context.getResourceRESTClient().history(context.getResourceId(), context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_JSON_CONTENT, _format, _count, _since, null);
+			}
+		}
+		catch (NumberFormatException e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Number format error getting resource history! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error getting resource history! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+
+		if (response != null) {
+
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				try {
+					wrapper = new ResourceResponseWrapper(response);
+					context.getResourceResults().add(wrapper);
+
+					// Check for Bundle Links
+					BundleWrapper historyBundleWrapper = wrapper.getBundle();
+					Bundle historyBundle = historyBundleWrapper.getBundle();
+
+					if (historyBundle.hasLink()) {
+						context.getPageReference().clear();
+
+						for (BundleLinkComponent bundleLink : historyBundle.getLink()) {
+
+							if (bundleLink.hasRelation()) {
+
+								if (bundleLink.getRelation().equals("first")) {
+									LabelKeyValueBean firstPage = new LabelKeyValueBean("First", "first", bundleLink.getUrl());
+									context.getPageReference().add(firstPage);
+								}
+
+								if (bundleLink.getRelation().equals("next")) {
+									LabelKeyValueBean nextPage = new LabelKeyValueBean("Next", "next", bundleLink.getUrl());
+									context.getPageReference().add(nextPage);
+								}
+
+								if (bundleLink.getRelation().equals("previous")) {
+									LabelKeyValueBean prevPage = new LabelKeyValueBean("Prev", "previous", bundleLink.getUrl());
+									context.getPageReference().add(prevPage);
+								}
+
+								if (bundleLink.getRelation().equals("last")) {
+									LabelKeyValueBean lastPage = new LabelKeyValueBean("Last", "last", bundleLink.getUrl());
+									context.getPageReference().add(lastPage);
+								}
+							}
+						}
+					}
+
+					FacesContext.getCurrentInstance().addMessage(
+							"tabView:interactionsTabView:historyForm",
+							new FacesMessage(FacesMessage.SEVERITY_INFO, "History for Resource with ID: " + context.getResourceId() + " successfully returned.", ""));
+				}
+				catch (Exception e) {
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "Resource parsing failed! Please check the client logs.", ""));
+					e.printStackTrace();
+				}
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+						new FacesMessage(FacesMessage.SEVERITY_WARN, "Response code: " + Integer.toString(response.getStatus()) + " from server not ok.", ""));
+			}
+		}
+
+		log.fine("[END] ApplicationController.fhirHistory()");
+	}
+
+	/**
+	 * Performs a FHIR history read for a specific page from a previous history result Bundle.
+	 *
+	 * @param historyPageUrl
+	 */
+	public void fhirHistoryPage(String historyPageUrl) {
+		log.fine("[START] ApplicationController.fhirHistoryPage()");
+		log.info("BasePath for FHIR delete: " + context.getSelectedServerURL());
+
+		String formatType = context.getSelectedFormatType();
+
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		try {
+			if (formatType.equals("XML")) {
+				response = context.getResourceRESTClient().historyPage(historyPageUrl, Constants.FHIR_XML_CONTENT, null);
+			}
+			else {
+				response = context.getResourceRESTClient().historyPage(historyPageUrl, Constants.FHIR_JSON_CONTENT, null);
+			}
+		}
+		catch (NumberFormatException e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Number format error getting resource history! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error getting resource history! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+
+		if (response != null) {
+
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+				try {
+					wrapper = new ResourceResponseWrapper(response);
+					context.getResourceResults().add(wrapper);
+
+					// Check for Bundle Links
+					BundleWrapper historyBundleWrapper = wrapper.getBundle();
+					Bundle historyBundle = historyBundleWrapper.getBundle();
+
+					if (historyBundle.hasLink()) {
+						context.getPageReference().clear();
+
+						for (BundleLinkComponent bundleLink : historyBundle.getLink()) {
+
+							if (bundleLink.hasRelation()) {
+
+								if (bundleLink.getRelation().equals("first")) {
+									LabelKeyValueBean firstPage = new LabelKeyValueBean("First", "first", bundleLink.getUrl());
+									context.getPageReference().add(firstPage);
+								}
+
+								if (bundleLink.getRelation().equals("next")) {
+									LabelKeyValueBean nextPage = new LabelKeyValueBean("Next", "next", bundleLink.getUrl());
+									context.getPageReference().add(nextPage);
+								}
+
+								if (bundleLink.getRelation().equals("previous")) {
+									LabelKeyValueBean prevPage = new LabelKeyValueBean("Prev", "previous", bundleLink.getUrl());
+									context.getPageReference().add(prevPage);
+								}
+
+								if (bundleLink.getRelation().equals("last")) {
+									LabelKeyValueBean lastPage = new LabelKeyValueBean("Last", "last", bundleLink.getUrl());
+									context.getPageReference().add(lastPage);
+								}
+							}
+						}
+					}
+
+					FacesContext.getCurrentInstance().addMessage(
+							"tabView:homeTabView:historyForm",
+							new FacesMessage(FacesMessage.SEVERITY_INFO, "History for Resource with ID: " + context.getResourceId() + " successfully returned.", ""));
+				}
+				catch (Exception e) {
+					FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "Resource parsing failed! Please check the client logs.", ""));
+					e.printStackTrace();
+				}
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:interactionsTabView:historyForm",
+						new FacesMessage(FacesMessage.SEVERITY_WARN, "Response code: " + Integer.toString(response.getStatus()) + " from server not ok.", ""));
+			}
+		}
+
+		log.fine("[END] ApplicationController.fhirHistoryPage()");
 	}
 
 	/**
@@ -468,6 +710,88 @@ public class ApplicationController implements Serializable {
 	}
 
 	/**
+	 * Read resource for subsequent operations of update or validate
+	 *
+	 * @param event
+	 */
+	public void searchResourceForOperation(ActionEvent event) {
+		log.fine("[START] ApplicationController.searchResourceForOperation()");
+		context.setCurrentView("update");
+
+		String formatType = context.getSelectedFormatType();
+
+		// fetch resource record
+		fhirRead(event);
+		String operation = (String) event.getComponent().getAttributes().get("operation");
+
+		if (context.getResourceResults() != null && context.getResourceResults().size() > 0) {
+
+			String resourceString = null;
+
+			if (formatType.equals("XML")) {
+				resourceString = context.getResourceResults().get(0).getResourceXML();
+			}
+			else {
+				resourceString = context.getResourceResults().get(0).getResourceJSON();
+			}
+
+			if (operation.equals("validate")) {
+				Parameters input = new Parameters();
+	    		ParametersParameterComponent parameter = new ParametersParameterComponent();
+	    		parameter.setName("profile");
+	    		StringType profile = new StringType("http://hl7.org/fhir/StructureDefinition/" + context.getSelectedResourceType());
+	    		parameter.setValue(profile);
+	    		input.addParameter(parameter);
+	    		parameter = new ParametersParameterComponent();
+	    		parameter.setName("resource");
+	    		parameter.setResource(context.getResourceResults().get(0).getResource());
+	    		input.addParameter(parameter);
+
+				ByteArrayOutputStream oOp = new ByteArrayOutputStream();
+
+				if (formatType.equals("XML")) {
+					XmlParser xmlParser = new XmlParser();
+					try {
+						xmlParser.setOutputStyle(OutputStyle.PRETTY);
+						xmlParser.compose(oOp, input, true);
+
+						resourceString = oOp.toString();
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					JsonParser jsonParser = new JsonParser();
+					try {
+						jsonParser.setOutputStyle(OutputStyle.PRETTY);
+						jsonParser.compose(oOp, input);
+
+						resourceString = oOp.toString();
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+			context.setResourceString(resourceString);
+
+			context.setResourceResults(new ArrayList<ResourceResponseWrapper>());
+
+		}
+		else {
+			log.info("No Resource found matching ID: " + context.getResourceId());
+			String form = "tabView:interactionsTabView:" + operation + "Form";
+			FacesContext.getCurrentInstance().addMessage(form, new FacesMessage(FacesMessage.SEVERITY_WARN, "No Resource found matching ID: " + context.getResourceId(), ""));
+			context.setResourceString(null);
+		}
+
+		log.info("resource id: " + context.getResourceId());
+		log.fine("[END] ApplicationController.searchResourceForUpdate()");
+	}
+
+	/**
 	 * Display resource specific search criteria based on the selected resource type
 	 *
 	 * @param event
@@ -487,6 +811,164 @@ public class ApplicationController implements Serializable {
 		context.setResourceResults(null);
 
 		log.fine("[END] ApplicationController.showSearchCriteria()");
+	}
+
+	/**
+	 * Execute the $validate operation
+	 *
+	 * @param event
+	 */
+	public void fhirValidate(ActionEvent event) {
+		log.fine("[START] ApplicationController.fhirValidate()");
+		log.info("BasePath for FHIR validate: " + context.getSelectedServerURL());
+
+		String formatType = context.getSelectedFormatType();
+		String resourceString = context.getResourceString();
+
+		ByteArrayInputStream iResource = null;
+		Resource resource = null;
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		String validateExceptionOutcomeString = null;
+
+		try {
+			if (resourceString.isEmpty()) {
+				throw new Exception("No content provided for $validate operation.");
+			}
+
+			if (formatType.equals("XML")) {
+				// Convert XML contents to Resource
+				XmlParser xmlP = new XmlParser();
+				int firstValid = resourceString.indexOf("<");
+				if (firstValid > 0) {
+					resourceString = resourceString.substring(firstValid);
+				}
+				iResource = new ByteArrayInputStream(resourceString.getBytes());
+				resource = xmlP.parse(iResource);
+			}
+			else {
+				// Convert JSON contents to Resource
+				JsonParser jsonP = new JsonParser();
+				int firstValid = resourceString.indexOf("{");
+				if (firstValid > 0) {
+					resourceString = resourceString.substring(firstValid);
+				}
+				iResource = new ByteArrayInputStream(resourceString.getBytes());
+				resource = jsonP.parse(iResource);
+			}
+
+			if (resource instanceof Parameters) {
+				Parameters parameters = (Parameters)resource;
+
+				if (formatType.equals("XML")) {
+					response = context.getResourceOperationClient().resourceOperation(parameters, null, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "validate", null, null);
+				}
+				else {
+					response = context.getResourceOperationClient().resourceOperation(parameters, null, context.getSelectedServerURL(), context.getSelectedResourceType(), Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "validate", null, null);
+				}
+			}
+			else {
+				validateExceptionOutcomeString = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.FATAL, OperationOutcome.IssueType.EXCEPTION, "Validate operation requires input contained in a Parameters resource type.", null, null, formatType.toLowerCase());
+				FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "Validate operation requires input contained in a Parameters resource type.", "Validate operation requires input contained in a Parameters resource type."));
+			}
+		}
+		catch (NumberFormatException e) {
+			validateExceptionOutcomeString = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.FATAL, OperationOutcome.IssueType.EXCEPTION, e.getMessage(), null, null, formatType.toLowerCase());
+			FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Number format error validating resource request! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			validateExceptionOutcomeString = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.FATAL, OperationOutcome.IssueType.EXCEPTION, e.getMessage(), null, null, formatType.toLowerCase());
+			FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error validating resource request! Please check the client logs.", "Error reading resource! Please check the client logs."));
+			e.printStackTrace();
+		}
+
+		if (response != null) {
+			String contentType = response.getHeaderString("Content-Type");
+			if (contentType != null) {
+				if (contentType.toUpperCase().contains("XML")) {
+					context.setReturnedFormatType("XML");
+				}
+				else if (contentType.toUpperCase().contains("JSON")) {
+					context.setReturnedFormatType("JSON");
+				}
+				else {
+					context.setReturnedFormatType(formatType);
+				}
+			}
+			else {
+				context.setReturnedFormatType(formatType);
+			}
+
+			try {
+				wrapper = new ResourceResponseWrapper(response);
+
+				Resource responseResource = wrapper.getResource();
+				if (responseResource instanceof OperationOutcome) {
+					context.setValidateOperationOutcome((OperationOutcome) responseResource);
+				}
+
+				if (formatType.equals("XML")) {
+					context.setResponseString(wrapper.getResourceXML());
+				}
+				else {
+					context.setResponseString(wrapper.getResourceJSON());
+				}
+
+				FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Resource validate complete.", "Resource validate complete."));
+			}
+			catch (Exception e) {
+				FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm",
+						new FacesMessage(FacesMessage.SEVERITY_ERROR, "Resource parsing failed! Please check the client logs.", "Resource parsing failed! Please check the client logs."));
+				e.printStackTrace();
+			}
+		}
+		else if (validateExceptionOutcomeString != null) {
+			context.setReturnedFormatType(formatType);
+			context.setResponseString(validateExceptionOutcomeString);
+
+			// Exception caught parsing input parameters; generate an OperationOutcome for the display
+			try {
+				if (formatType.equals("XML")) {
+					// Convert XML contents to Resource
+					XmlParser xmlP = new XmlParser();
+					int firstValid = validateExceptionOutcomeString.indexOf("<");
+					if (firstValid > 0) {
+						validateExceptionOutcomeString = validateExceptionOutcomeString.substring(firstValid);
+					}
+					iResource = new ByteArrayInputStream(validateExceptionOutcomeString.getBytes());
+					resource = xmlP.parse(iResource);
+				}
+				else {
+					// Convert JSON contents to Resource
+					JsonParser jsonP = new JsonParser();
+					int firstValid = validateExceptionOutcomeString.indexOf("{");
+					if (firstValid > 0) {
+						validateExceptionOutcomeString = validateExceptionOutcomeString.substring(firstValid);
+					}
+					iResource = new ByteArrayInputStream(validateExceptionOutcomeString.getBytes());
+					resource = jsonP.parse(iResource);
+				}
+
+				if (resource instanceof OperationOutcome) {
+					context.setValidateOperationOutcome((OperationOutcome) resource);
+				}
+
+				FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Resource validate operation errors found.", "Resource validate operation errors found."));
+			}
+			catch (Exception e) {
+				FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm",
+						new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error reporting validate operations errors! Please check the client logs.", "Error reporting validate operations errors! Please check the client logs."));
+				e.printStackTrace();
+			}
+		}
+		else {
+			FacesContext.getCurrentInstance().addMessage("tabView:interacionsTabView:validateForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "Validate operation did not report any results.", "Validate operation did not report any results."));
+		}
+
+		log.fine("[END] ApplicationController.fhirValidate()");
 	}
 
 	/**

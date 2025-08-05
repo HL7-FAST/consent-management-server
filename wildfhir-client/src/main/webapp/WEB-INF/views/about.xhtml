@@ -38,10 +38,32 @@
 			This is the FAST Consent IG Reference Implementation Test Client web application.
 			The interfaces provide a means to:
 			<ul>
-			<li><b>FAST Consent Ops</b> - Send valid FAST Consent IG operation requests using a small predefined set of test data (Patient, RelatedPerson)</li>
-			<li><b>FHIR Interactions</b> - Send valid FHIR read and search interactions to retrieve data on a Consent Management Server</li>
-			<li><b>Subscriptions</b> - Create, manage and review Subscriptions against a Consent Management Server</li>
-			<li><b>Admin</b> - Administer defined Consent Management Servers and their (FHIR) base url value</li>
+			<li><b>FAST Consent Ops</b> - Send valid FAST Consent IG operation requests using a small predefined set of test data (Patient, RelatedPerson)
+				<ul>
+				<li><b>Patient: Lara Miren</b>; RelatedPersons: Robert Miren spouse, Fred Miren brother-in-law</li>
+				<li><b>Patient: Gerald Larin</b>; RelatedPersons: Susan Larin spouse, Samuel Larin son</li>
+				</ul>
+			</li>
+			<li><b>FHIR Interactions</b> - Send valid FHIR read, history and search interactions to retrieve data on a Consent Management Server; additional interactions:
+				<ul>
+				<li><b>metadata</b> - return a Consent Management Server CapabilityStatement</li>
+				<li><b>$validate</b> - validate FAST Consent based resources for conformance (<i>validation is supported by the underlying HL7 FHIR Core Library and pre-loaded FAST Consent IG and dependent IG validation packages</i>)</li>
+				</ul>
+			</li>
+			<li><b>Subscriptions</b> - Create, manage and review Subscriptions against a Consent Management Server
+				<ul>
+				<li><b>Create (TBD)</b> - define/create a new Subscription for a selected Consent on a Consent Management Server</li>
+				<li><b>Update (TBD)</b> - update an existing Subscription for a selected Consent on a Consent Management Server</li>
+				<li><b>Activity (TBD)</b> - list Subscription activity for this client</li>
+				<li><b>Manual</b> - manually execute the Subscription Service for this RI</li>
+				</ul>
+			</li>
+			<li><b>Admin</b> - Administer defined Consent Management Servers and their (FHIR) base url value
+				<ul>
+				<li><b>Servers</b> - manage the list of known Consent Management Servers</li>
+				<li><span style="color:darkred"><b>Reset Test Data</b> - purge and re-load the predefined client resources; also, purge all server resources</span></li>
+				</ul>
+			</li>
 			</ul>
 			</span></p>
 		</p:panelGrid>
