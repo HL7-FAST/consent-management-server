@@ -66,6 +66,7 @@ import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
 import net.aegis.fhir.service.audit.AuditEventService;
+import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
 
@@ -275,6 +276,9 @@ public class FASTConsentRecordDisclosure extends ResourceOperationProxy {
 				}
 
 				if (ok == true) {
+					// Use RI NarrativeGenerator
+					FHIRNarrativeGeneratorClient.instance().generate(auditEvent);
+
 					// Convert AuditEvent to XML for WildFHIR resource create
 					oResource = new ByteArrayOutputStream();
 					xmlP.compose(oResource, auditEvent, true);
