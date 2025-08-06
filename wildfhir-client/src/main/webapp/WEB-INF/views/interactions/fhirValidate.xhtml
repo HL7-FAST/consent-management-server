@@ -37,6 +37,7 @@
 					styleClass="borderlessGridPanel">
 					<p:commandButton value="read" icon="ui-icon-folder-open" style="text-align: right;"
 						actionListener="#{controller.searchResourceForOperation}"
+						oncomplete="PF('validateResourceTabView').select(0)"
 						update=":tabView:interactionsTabView:validateForm,:tabView:interactionsTabView:validateForm2">
 						<f:attribute name="operation" value="validate" />
 					</p:commandButton>
