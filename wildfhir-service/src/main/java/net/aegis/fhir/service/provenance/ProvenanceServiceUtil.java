@@ -39,16 +39,20 @@ import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Provenance;
 import org.hl7.fhir.r4.formats.XmlParser;
 
 import net.aegis.fhir.model.Resource;
+import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 
 /**
  * @author Venkat.Keesara
  *
  */
 public enum ProvenanceServiceUtil {
+
 	INSTANCE;
+
 	private ProvenanceServiceUtil() {
 	}
 
@@ -59,11 +63,16 @@ public enum ProvenanceServiceUtil {
 		org.hl7.fhir.r4.model.Resource fhirModel = proxy.generateProvenance(context, headers, payload, resourceType, locationPath, resourceId, identifier, operation);
 
 		if (fhirModel != null) {
+			Provenance provenance = (Provenance) fhirModel;
+
+			// Use RI NarrativeGenerator
+			FHIRNarrativeGeneratorClient.instance().generate(provenance);
+
 			XmlParser xmlP = new XmlParser();
 			// Compose FHIR resource back to byte array
 			ByteArrayOutputStream oResource = new ByteArrayOutputStream();
 			xmlP.setOutputStyle(OutputStyle.PRETTY);
-			xmlP.compose(oResource, fhirModel, true);
+			xmlP.compose(oResource, provenance, true);
 			resourceDomain.setResourceContents(oResource.toByteArray());
 			resourceDomain.setResourceType("Provenance");
 		}

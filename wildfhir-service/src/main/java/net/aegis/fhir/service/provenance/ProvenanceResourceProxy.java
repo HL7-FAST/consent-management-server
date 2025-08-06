@@ -106,8 +106,9 @@ public abstract class ProvenanceResourceProxy {
 			// Signature
 			List<Signature> signatureList = new ArrayList<Signature>();
 			Signature signature = new Signature();
+			signature.addType(getSignatureType());
 			signature.setWhen(currentDate);
-			signature.setWho(what);
+			signature.setWho(getWho(appId));
 			signatureList.add(signature);
 			fhirResource.setSignature(signatureList);
 
@@ -149,6 +150,26 @@ public abstract class ProvenanceResourceProxy {
 		agent.setWho(who);
 
 		return agent;
+	}
+
+	private Coding getSignatureType() {
+		// Hard code to Author for now
+		Coding type = new Coding();
+		type.setSystem(SignatureTypeEnum.AUTHOR.getSystem());
+		type.setCode(SignatureTypeEnum.AUTHOR.getCode());
+		type.setDisplay(SignatureTypeEnum.AUTHOR.getDisplay());
+		return type;
+	}
+
+	private Reference getWho(String appId) {
+		Reference ref = new Reference();
+		ref.setReference("Organization/" + appId);
+
+		Identifier identifier = new Identifier();
+		identifier.setValue(appId);
+		ref.setIdentifier(identifier);
+
+		return ref;
 	}
 
 }

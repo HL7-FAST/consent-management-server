@@ -39,9 +39,11 @@ import javax.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.formats.XmlParser;
+import org.hl7.fhir.r4.model.AuditEvent;
 import org.hl7.fhir.r4.model.Identifier;
 
 import net.aegis.fhir.model.Resource;
+import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 
 /**
  * @author Venkat.Keesara
@@ -61,11 +63,16 @@ public enum AuditEventServiceUtil {
 		org.hl7.fhir.r4.model.Resource fhirModel = proxy.generateAuditEvent(context, headers, payload, resourceType, response, resourceId, identifier, operation);
 
 		if (fhirModel != null) {
+			AuditEvent audit = (AuditEvent) fhirModel;
+
+			// Use RI NarrativeGenerator
+			FHIRNarrativeGeneratorClient.instance().generate(audit);
+
 			XmlParser xmlP = new XmlParser();
 			// Compose FHIR resource back to byte array
 			ByteArrayOutputStream oResource = new ByteArrayOutputStream();
 			xmlP.setOutputStyle(OutputStyle.PRETTY);
-			xmlP.compose(oResource, fhirModel, true);
+			xmlP.compose(oResource, audit, true);
 			resourceDomain.setResourceContents(oResource.toByteArray());
 			resourceDomain.setResourceType("AuditEvent");
 		}

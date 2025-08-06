@@ -1384,7 +1384,7 @@ public enum ServicesUtil {
 				(elapsedHours > 0 ? elapsedHours + " hr" : "") + (elapsedHours > 1 ? "s" : "") +
 				(elapsedMinutes > 0 ? " " + elapsedMinutes + " min" : "") + (elapsedMinutes > 1 ? "s" : "") +
 				(elapsedSeconds > 0 ? " " + elapsedSeconds + " sec" : "") + (elapsedSeconds > 1 ? "s" : "") +
-				(elapsedMillis > 0 ? " " + elapsedMillis + " millis " : "");
+				elapsedMillis + " millis ";
 	}
 
 	/**
