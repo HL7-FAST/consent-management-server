@@ -167,6 +167,27 @@ CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.clientresource (id ASC);
 CREATE INDEX idx_resource_resourceType ON wildfhirr4.clientresource (resourceType ASC, resourceId ASC);
 
 
+-- -----------------------------------------------------
+-- Table wildfhirr4.subscriptionactivity
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS wildfhirr4.subscriptionactivity (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  subscriptionId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  recorded DATETIME NOT NULL,
+  type VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  status VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  description VARCHAR(1000) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+  PRIMARY KEY (id))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Stores record of subscription activity';
+
+CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.subscriptionactivity (id ASC);
+
+CREATE INDEX idx_resourceId_status ON wildfhirr4.subscriptionactivity (subscriptionId ASC, status ASC);
+
+
 -- grant privileges to wildfhiruser
 GRANT ALL ON wildfhirr4.* to wildfhiruser;
 

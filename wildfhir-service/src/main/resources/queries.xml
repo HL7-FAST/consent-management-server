@@ -38,6 +38,14 @@
         ]]></query>
     </named-query>
 
+    <named-query name="findSubscriptionactivityById">
+        <query><![CDATA[
+                select s
+                from Subscriptionactivity s
+                where s.subscriptionId = :subscriptionId
+        ]]></query>
+    </named-query>
+
     <named-query name="findResourceById">
         <query><![CDATA[
                 select r

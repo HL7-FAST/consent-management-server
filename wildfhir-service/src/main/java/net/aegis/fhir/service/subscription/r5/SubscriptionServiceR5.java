@@ -30,7 +30,7 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.service.subscription;
+package net.aegis.fhir.service.subscription.r5;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;

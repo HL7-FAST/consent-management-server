@@ -54,13 +54,15 @@ import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.OperationOutcomeWrapper;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
+import net.aegis.fhir.model.Subscriptionactivity;
 import net.aegis.fhir.service.ClientresourceService;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ServerdirectoryService;
+import net.aegis.fhir.service.SubscriptionactivityService;
 import net.aegis.fhir.service.client.ConformanceResourceRESTClient;
 import net.aegis.fhir.service.client.ResourceOperationRESTClient;
 import net.aegis.fhir.service.client.ResourceRESTClient;
-import net.aegis.fhir.service.subscription.SubscriptionServiceR5;
+import net.aegis.fhir.service.subscription.r5.SubscriptionServiceR5;
 
 /**
  * <p>
@@ -84,6 +86,8 @@ public class ApplicationContext implements Serializable {
 	private @Inject CodeService codeService;
 
 	private @Inject ServerdirectoryService serverDirectoryService;
+
+	private @Inject SubscriptionactivityService subscriptionactivityService;
 
 	private @Inject SubscriptionServiceR5 subscriptionServiceR5;
 
@@ -167,6 +171,9 @@ public class ApplicationContext implements Serializable {
 	private List<String> fhirInteractions;
 
 	private OperationOutcomeWrapper validateOperationOutcome;
+
+	// Subscription Activity
+	private List<Subscriptionactivity> subscriptionactivity;
 
 	// Consent operations
 	private List<Clientresource> clientConsents;
@@ -341,6 +348,14 @@ public class ApplicationContext implements Serializable {
 
 	public void setServerDirectoryService(ServerdirectoryService serverDirectoryService) {
 		this.serverDirectoryService = serverDirectoryService;
+	}
+
+	public SubscriptionactivityService getSubscriptionactivityService() {
+		return subscriptionactivityService;
+	}
+
+	public void setSubscriptionactivityService(SubscriptionactivityService subscriptionactivityService) {
+		this.subscriptionactivityService = subscriptionactivityService;
 	}
 
 	public SubscriptionServiceR5 getSubscriptionServiceR5() {
@@ -665,6 +680,24 @@ public class ApplicationContext implements Serializable {
 
 	public void setValidateOperationOutcome(OperationOutcome validateOperationOutcome) {
 		this.validateOperationOutcome = new OperationOutcomeWrapper(validateOperationOutcome);
+	}
+
+	public List<Subscriptionactivity> getSubscriptionactivity() {
+		return subscriptionactivity;
+	}
+
+	public List<Subscriptionactivity> getSubscriptionactivity(String subscriptionId) {
+		try {
+			subscriptionactivity = subscriptionactivityService.findSubscriptionactivityById(subscriptionId);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return subscriptionactivity;
+	}
+
+	public void setSubscriptionactivity(List<Subscriptionactivity> subscriptionactivity) {
+		this.subscriptionactivity = subscriptionactivity;
 	}
 
 	public List<Clientresource> getClientConsents() {
