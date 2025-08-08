@@ -76,7 +76,7 @@ import org.hl7.fhir.r4.model.StringType;
  * @author richard.ettema
  *
  */
-@Path("/fhirpath/evaluate")
+@Path("/fhirpath-evaluate")
 @ApplicationScoped
 @Encoded
 public class FHIRPathEvaluatorRESTService {
