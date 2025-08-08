@@ -984,6 +984,11 @@
 				<documentation value="Alternative User identity"/>
 			</searchParam>
 			<searchParam>
+				<name value="consent"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-auditevent-consent"/>
+				<type value="reference"/>
+			</searchParam>
+			<searchParam>
 				<name value="date"/>
 				<definition value="http://hl7.org/fhir/SearchParameter/AuditEvent-date"/>
 				<type value="date"/>
@@ -1055,6 +1060,10 @@
 				<type value="token"/>
 				<documentation value="Type/identifier of event"/>
 			</searchParam>
+			<operation>
+				<name value="recordDisclosure"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure"/>
+			</operation>
 		</resource>
 		<resource>
 			<type value="Basic"/>
@@ -4021,6 +4030,11 @@
 				<documentation value="Who is agreeing to the policy and rules"/>
 			</searchParam>
 			<searchParam>
+				<name value="controller"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-controller"/>
+				<type value="reference"/>
+			</searchParam>
+			<searchParam>
 				<name value="data"/>
 				<definition value="http://hl7.org/fhir/SearchParameter/Consent-data"/>
 				<type value="reference"/>
@@ -4033,16 +4047,36 @@
 				<documentation value="When this Consent was created or indexed"/>
 			</searchParam>
 			<searchParam>
+				<name value="grantee"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-grantee"/>
+				<type value="reference"/>
+			</searchParam>
+			<searchParam>
 				<name value="identifier"/>
 				<definition value="http://hl7.org/fhir/SearchParameter/clinical-identifier"/>
 				<type value="token"/>
 				<documentation value="Identifier for this record (external references)"/>
 			</searchParam>
 			<searchParam>
+				<name value="manager"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager"/>
+				<type value="reference"/>
+			</searchParam>
+			<searchParam>
+				<name value="organizationId"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-organizationId"/>
+				<type value="token"/>
+			</searchParam>
+			<searchParam>
 				<name value="organization"/>
 				<definition value="http://hl7.org/fhir/SearchParameter/Consent-organization"/>
 				<type value="reference"/>
 				<documentation value="Custodian of the consent"/>
+			</searchParam>
+			<searchParam>
+				<name value="patientId"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-patientId"/>
+				<type value="token"/>
 			</searchParam>
 			<searchParam>
 				<name value="patient"/>
@@ -4091,16 +4125,12 @@
 				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent"/>
 			</operation>
 			<operation>
-				<name value="recordDisclosure"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure"/>
+				<name value="updateConsent"/>
+				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent"/>
 			</operation>
 			<operation>
 				<name value="revokeConsent"/>
 				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent"/>
-			</operation>
-			<operation>
-				<name value="updateConsent"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent"/>
 			</operation>
 		</resource>
 		<resource>
@@ -18045,7 +18075,6 @@
 			<type value="Subscription"/>
 			<profile value="http://hl7.org/fhir/StructureDefinition/Subscription"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription"/>
-			<supportedProfile value="http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription"/>
 			<interaction>
 				<code value="read"/>
 				<documentation value="Implemented per the specification"/>
@@ -18133,176 +18162,6 @@
 				<name value="status"/>
 				<definition value="http://hl7.org/fhir/uv/subscriptions-backport/OperationDefinition/backport-subscription-status"/>
 			</operation>
-		</resource>
-		<resource>
-			<type value="SubscriptionStatus"/>
-			<profile value="http://hl7.org/fhir/StructureDefinition/SubscriptionStatus"/>
-			<interaction>
-				<code value="read"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="vread"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="update"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="delete"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="history-instance"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="history-type"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="create"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="search-type"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<conditionalCreate value="true"/>
-			<conditionalRead value="full-support"/>
-			<conditionalUpdate value="true"/>
-			<conditionalDelete value="multiple"/>
-			<referencePolicy value="literal"/>
-			<referencePolicy value="logical"/>
-			<searchParam>
-				<name value="status"/>
-				<type value="token"/>
-				<documentation value="requested | active | error | off | entered-in-error"/>
-			</searchParam>
-			<searchParam>
-				<name value="topic"/>
-				<type value="uri"/>
-				<documentation value="The reference to the SubscriptionTopic for the Subscription this status applies"/>
-			</searchParam>
-			<searchParam>
-				<name value="subscription"/>
-				<type value="reference"/>
-				<documentation value="The reference to the Subscription this status applies"/>
-			</searchParam>
-			<searchParam>
-				<name value="type"/>
-				<type value="token"/>
-				<documentation value="handshake | heartbeat | event-notification | query-status | query-event"/>
-			</searchParam>
-		</resource>
-		<resource>
-			<type value="SubscriptionTopic"/>
-			<profile value="http://hl7.org/fhir/StructureDefinition/SubscriptionTopic"/>
-			<interaction>
-				<code value="read"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="vread"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="update"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="delete"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="history-instance"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="history-type"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="create"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<interaction>
-				<code value="search-type"/>
-				<documentation value="Implemented per the specification (or Insert other doco here)"/>
-			</interaction>
-			<conditionalCreate value="true"/>
-			<conditionalRead value="full-support"/>
-			<conditionalUpdate value="true"/>
-			<conditionalDelete value="multiple"/>
-			<referencePolicy value="literal"/>
-			<referencePolicy value="logical"/>
-			<searchParam>
-				<name value="date"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-date"/>
-				<type value="date"/>
-				<documentation value="Date status first applied"/>
-			</searchParam>
-			<searchParam>
-				<name value="effective"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/SubscriptionTopic-effective"/>
-				<type value="date"/>
-				<documentation value="Effective period"/>
-			</searchParam>
-			<searchParam>
-				<name value="identifier"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-identifier"/>
-				<type value="token"/>
-				<documentation value="Business Identifier for SubscriptionTopic"/>
-			</searchParam>
-			<searchParam>
-				<name value="resource"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/SubscriptionTopic-resource"/>
-				<type value="uri"/>
-				<documentation value="Allowed resource for this definition"/>
-			</searchParam>
-			<searchParam>
-				<name value="derived-or-self"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/SubscriptionTopic-derived-or-self"/>
-				<type value="uri"/>
-				<documentation value="A server defined search that matches either the url or derivedFrom"/>
-			</searchParam>
-			<searchParam>
-				<name value="event"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/SubscriptionTopic-event"/>
-				<type value="token"/>
-				<documentation value="Event trigger"/>
-			</searchParam>
-			<searchParam>
-				<name value="title"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-title"/>
-				<type value="string"/>
-				<documentation value="Name for this SubscriptionTopic (Human friendly)"/>
-			</searchParam>
-			<searchParam>
-				<name value="version"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-version"/>
-				<type value="token"/>
-				<documentation value="Business version of the SubscriptionTopic"/>
-			</searchParam>
-			<searchParam>
-				<name value="url"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-url"/>
-				<type value="uri"/>
-				<documentation value="Logical canonical URL to reference this SubscriptionTopic (globally unique)"/>
-			</searchParam>
-			<searchParam>
-				<name value="status"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/CanonicalResource-status"/>
-				<type value="token"/>
-				<documentation value="draft | active | retired | unknown"/>
-			</searchParam>
-			<searchParam>
-				<name value="trigger-description"/>
-				<definition value="http://hl7.org/fhir/SearchParameter/SubscriptionTopic-trigger-description"/>
-				<type value="string"/>
-				<documentation value="Text representation of the trigger"/>
-			</searchParam>
 		</resource>
 		<resource>
 			<type value="Substance"/>
@@ -18943,7 +18802,6 @@
 		<resource>
 			<type value="Task"/>
 			<profile value="http://hl7.org/fhir/StructureDefinition/Task"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentTask"/>
 			<interaction>
 				<code value="read"/>
 				<documentation value="Implemented per the specification"/>
