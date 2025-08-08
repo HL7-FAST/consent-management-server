@@ -369,7 +369,7 @@ public enum ServicesUtil {
 						producesType = "text/xml";
 					}
 					else {
-						// If json or xml in contentType, return current STU3 valid mime type
+						// If json or xml in contentType, return current R3+ valid mime type
 						if (contentType.indexOf("json") >= 0) {
 							producesType = "application/fhir+json";
 						}
