@@ -1102,7 +1102,7 @@ public class ApplicationController implements Serializable {
 			Parameters p = new Parameters();
 			p.setId(UUIDUtil.getUUID());
 			Meta meta = new Meta();
-			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters");
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FileConsentParameters");
 			p.setMeta(meta);
 
 			// consent parameter
@@ -1672,7 +1672,7 @@ public class ApplicationController implements Serializable {
 			Parameters p = new Parameters();
 			p.setId(UUIDUtil.getUUID());
 			Meta meta = new Meta();
-			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters");
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/RevokeConsentParameters");
 			p.setMeta(meta);
 
 			// consent parameter
@@ -1869,7 +1869,7 @@ public class ApplicationController implements Serializable {
 			Parameters p = new Parameters();
 			p.setId(UUIDUtil.getUUID());
 			Meta meta = new Meta();
-			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters");
+			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosureParameters");
 			p.setMeta(meta);
 
 			// disclosure parameter

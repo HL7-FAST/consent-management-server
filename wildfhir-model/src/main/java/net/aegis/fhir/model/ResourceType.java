@@ -1945,9 +1945,7 @@ public class ResourceType {
 		resourceCriteria.add(new LabelKeyValueBean("When this Consent was created or indexed", "date", "", "DATE", "http://hl7.org/fhir/SearchParameter/clinical-date"));
 		resourceCriteria.add(new LabelKeyValueBean("Identifier for this record (external references)", "identifier", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/clinical-identifier"));
 		resourceCriteria.add(new LabelKeyValueBean("Custodian of the consent", "organization", "", "REFERENCE", "http://hl7.org/fhir/SearchParameter/Consent-organization", "Organization"));
-		resourceCriteria.add(new LabelKeyValueBean("Custodian identifier of the consent", "organizationId", "", "TOKEN"));
 		resourceCriteria.add(new LabelKeyValueBean("Who the consent applies to", "patient", "", "REFERENCE", "http://hl7.org/fhir/SearchParameter/clinical-patient", "Patient"));
-		resourceCriteria.add(new LabelKeyValueBean("Identifier of who the consent applies to", "patientId", "", "TOKEN"));
 		resourceCriteria.add(new LabelKeyValueBean("Timeframe for this rule", "period", "", "PERIOD", "http://hl7.org/fhir/SearchParameter/Consent-period"));
 		resourceCriteria.add(new LabelKeyValueBean("Context of activities covered by this rule", "purpose", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-purpose"));
 		resourceCriteria.add(new LabelKeyValueBean("Which of the four areas this resource covers (extensible)", "scope", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-scope"));
