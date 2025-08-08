@@ -66,7 +66,7 @@
       "id" : "fast-auditevent-consent",
       "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-auditevent-consent",
       "version" : "0.1.0",
-      "type" : "token"
+      "type" : "reference"
     },
     {
       "filename" : "SearchParameter-fast-consent-controller.json",
@@ -74,7 +74,15 @@
       "id" : "fast-consent-controller",
       "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-controller",
       "version" : "0.1.0",
-      "type" : "token"
+      "type" : "reference"
+    },
+    {
+      "filename" : "SearchParameter-fast-consent-grantee.json",
+      "resourceType" : "SearchParameter",
+      "id" : "fast-consent-grantee",
+      "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-grantee",
+      "version" : "0.1.0",
+      "type" : "reference"
     },
     {
       "filename" : "SearchParameter-fast-consent-manager.json",
@@ -82,7 +90,7 @@
       "id" : "fast-consent-manager",
       "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager",
       "version" : "0.1.0",
-      "type" : "token"
+      "type" : "reference"
     },
     {
       "filename" : "SearchParameter-fast-consent-organizationId.json",
@@ -171,16 +179,6 @@
       "derivation" : "constraint"
     },
     {
-      "filename" : "StructureDefinition-FASTConsentTask.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTConsentTask",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentTask",
-      "version" : "0.1.0",
-      "kind" : "resource",
-      "type" : "Task",
-      "derivation" : "constraint"
-    },
-    {
       "filename" : "StructureDefinition-FASTDocumentReference.json",
       "resourceType" : "StructureDefinition",
       "id" : "FASTDocumentReference",
@@ -211,10 +209,30 @@
       "derivation" : "constraint"
     },
     {
-      "filename" : "StructureDefinition-RecordDisclosuretParameters.json",
+      "filename" : "StructureDefinition-FileConsentParameters.json",
       "resourceType" : "StructureDefinition",
-      "id" : "RecordDisclosuretParameters",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters",
+      "id" : "FileConsentParameters",
+      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FileConsentParameters",
+      "version" : "0.1.0",
+      "kind" : "resource",
+      "type" : "Parameters",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RecordDisclosureParameters.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RecordDisclosureParameters",
+      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosureParameters",
+      "version" : "0.1.0",
+      "kind" : "resource",
+      "type" : "Parameters",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RevokeConsentParameters.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RevokeConsentParameters",
+      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/RevokeConsentParameters",
       "version" : "0.1.0",
       "kind" : "resource",
       "type" : "Parameters",
@@ -225,26 +243,6 @@
       "resourceType" : "StructureDefinition",
       "id" : "UpdateConsentParameters",
       "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/UpdateConsentParameters",
-      "version" : "0.1.0",
-      "kind" : "resource",
-      "type" : "Parameters",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-fileConsentParameters.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "fileConsentParameters",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters",
-      "version" : "0.1.0",
-      "kind" : "resource",
-      "type" : "Parameters",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-revokeConsentParameters.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "revokeConsentParameters",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters",
       "version" : "0.1.0",
       "kind" : "resource",
       "type" : "Parameters",
