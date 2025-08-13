@@ -1,6 +1,7 @@
 {
   "name" : "hl7.fhir.us.consent-management",
   "tools-version" : 3,
+  "version" : "0.1.0",
   "type" : "IG",
   "date" : "20250807142132",
   "license" : "CC0-1.0",
@@ -30,7 +31,5 @@
     "lib" : "package",
     "example" : "example"
   },
-  "jurisdiction" : "urn:iso:std:iso:3166#US",
-  "original-version" : "0.1.0",
-  "version" : "dev"
+  "jurisdiction" : "urn:iso:std:iso:3166#US"
 }
