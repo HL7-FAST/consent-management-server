@@ -99,7 +99,7 @@ public class FHIRPathEvaluatorRESTClient implements Serializable {
 		try {
 
 			// Build Operation web target reference
-			StringBuilder sbOperation = new StringBuilder(buildURL(baseUrl, "fhirpath-evaluate"));
+			StringBuilder sbOperation = new StringBuilder(buildURL(baseUrl, "$fhirpath-evaluate"));
 
 			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
 			//ResteasyClient client = new ResteasyClientBuilder().build();

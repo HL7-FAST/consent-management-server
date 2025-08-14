@@ -776,6 +776,7 @@ public class ResourceType {
 		globalOperations.add(new LabelKeyValueBean("capability-reload", "external", "", "write")); // WildFHIR global operation; does not match existing FHIR global operation
 		globalOperations.add(new LabelKeyValueBean("code-configuration", "external", "", "write")); // WildFHIR global operation; does not match existing FHIR global operation
 		globalOperations.add(new LabelKeyValueBean("convert", "global", "http://hl7.org/fhir/OperationDefinition/Resource-convert", "read"));
+		globalOperations.add(new LabelKeyValueBean("fhirpath-evaluate", "external", "", "read")); // WildFHIR global operation; does not match existing FHIR global operation
 		globalOperations.add(new LabelKeyValueBean("load-examples", "external", "", "write")); // WildFHIR global operation; does not match existing FHIR global operation
 		globalOperations.add(new LabelKeyValueBean("meta", "mixed", "http://hl7.org/fhir/OperationDefinition/Resource-meta", "read"));
 		globalOperations.add(new LabelKeyValueBean("meta-add", "mixed", "http://hl7.org/fhir/OperationDefinition/Resource-meta-add", "write"));
