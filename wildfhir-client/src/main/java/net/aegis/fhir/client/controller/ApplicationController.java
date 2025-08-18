@@ -2562,8 +2562,91 @@ public class ApplicationController implements Serializable {
 		try {
 			log.info("BasePath for FHIR update (Subscription): " + context.getSelectedServerURL());
 
-			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",
-					new FacesMessage(FacesMessage.SEVERITY_WARN, "(TBD) Subscription successfully updated.", null));
+			Response resourceResponse = null;
+			ResourceResponseWrapper wrapper = null;
+
+			String formatType = context.getSelectedFormatType();
+
+			String clientSubscriptionId = context.getSelectedSubscriptionId();
+			String subscriptionStatus = context.getSelectedSubscriptionStatus();
+			Date endDate = context.getEndDate();
+			String subscriptionReason = context.getSubscriptionReason();
+			String subscriptionCriteria = context.getSubscriptionCriteria();
+			String subscriptionEndpoint = context.getSubscriptionEndpoint();
+			String selectedSubscriptionPayloadType = context.getSelectedSubscriptionPayloadType();
+			String selectedSubscriptionContentType = context.getSelectedSubscriptionContentType();
+
+			Subscription subscription = (Subscription) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientSubscriptionId));
+
+			subscription.setStatus(SubscriptionStatus.fromCode(subscriptionStatus));
+			subscription.setEnd(endDate);
+			subscription.setReason(subscriptionReason);
+
+			Extension extension = subscription.getCriteriaElement().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria");
+			StringType criteria = (StringType)extension.getValue();
+			criteria.setValue(subscriptionCriteria);
+
+			SubscriptionChannelComponent channel = subscription.getChannel();
+			channel.setEndpoint(subscriptionEndpoint);
+			channel.setPayload(selectedSubscriptionPayloadType);
+			extension = channel.getPayloadElement().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-payload-content");
+			CodeType codeType = (CodeType)extension.getValue();
+			codeType.setValue(selectedSubscriptionContentType);
+
+			// Send Subscription update to target server
+			JsonParser jsonParser = new JsonParser();
+			jsonParser.setOutputStyle(OutputStyle.PRETTY);
+			XmlParser xmlParser = new XmlParser();
+			xmlParser.setOutputStyle(OutputStyle.PRETTY);
+			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
+			if (formatType.equals("JSON")) {
+				jsonParser.compose(oOp, subscription);
+
+				context.setResourceString(oOp.toString());
+
+				resourceResponse = context.getResourceRESTClient().update(subscription.getId(), subscription, context.getSelectedServerURL(), "Subscription", Constants.FHIR_JSON_CONTENT, null, null, null, null, null);
+			}
+			else {
+				xmlParser.compose(oOp, subscription, true);
+
+				context.setResourceString(oOp.toString());
+
+				resourceResponse = context.getResourceRESTClient().update(subscription.getId(), subscription, context.getSelectedServerURL(), "Subscription", Constants.FHIR_XML_CONTENT, null, null, null, null, null);
+			}
+
+			if (resourceResponse != null) {
+				wrapper = new ResourceResponseWrapper(resourceResponse);
+
+				if (formatType.equals("JSON")) {
+					context.setResponseString(wrapper.getResourceJSON());
+				}
+				else {
+					context.setResponseString(wrapper.getResourceXML());
+				}
+
+				if (wrapper.getResponseStatus() < 400) {
+					FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",
+							new FacesMessage(FacesMessage.SEVERITY_INFO, "Subscription successfully updated.", null));
+
+					// Save updated Consent and generated DocumentReference to client resources
+					Clientresource clientresource = context.getClientresourceService().read(Integer.valueOf(clientSubscriptionId));
+					oOp = new ByteArrayOutputStream();
+					jsonParser.compose(oOp, subscription);
+					clientresource.setResourceContents(oOp.toByteArray());
+					context.getClientresourceService().update(clientresource, subscription);
+				}
+				else {
+					FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",
+							new FacesMessage(FacesMessage.SEVERITY_ERROR, "Subscription update response failure [" + wrapper.getResponseStatus() + "].", null));
+				}
+			}
+			else {
+				context.setResponseString("ERROR: Response is empty!");
+				FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Subscription update! Response is empty.", null));
+			}
+
+
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",

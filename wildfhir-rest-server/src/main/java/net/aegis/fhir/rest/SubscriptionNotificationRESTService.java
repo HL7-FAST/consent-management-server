@@ -93,11 +93,11 @@ public class SubscriptionNotificationRESTService {
 	@POST
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/fhir+xml", "application/fhir+json", "application/xml+fhir", "application/json+fhir", "text/xml", "text/json" })
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/fhir+xml", "application/fhir+json", "application/xml+fhir", "application/json+fhir", "text/xml", "text/json" })
-	public Response notificationR5BackportPost(@Context HttpServletRequest request, @Context HttpHeaders headers, @Context UriInfo ui, InputStream evalutateInputStream) {
+	public Response notificationR5BackportPost(@Context HttpServletRequest request, @Context HttpHeaders headers, @Context UriInfo ui, InputStream notifyInputStream) {
 
 		log.info("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
-		debugRequest(request, headers, null);
+		debugRequest(request, headers, notifyInputStream);
 
 		Response.ResponseBuilder builder = null;
 		String producesType = null;
@@ -152,7 +152,7 @@ public class SubscriptionNotificationRESTService {
 	 * @param validateInputStream
 	 * @return payload
 	 */
-	private String debugRequest(HttpServletRequest request, HttpHeaders headers, InputStream evalutateInputStream) {
+	private String debugRequest(HttpServletRequest request, HttpHeaders headers, InputStream notifyInputStream) {
 
 		StringBuilder debugString = new StringBuilder();
 		String payload = null;
@@ -197,11 +197,11 @@ public class SubscriptionNotificationRESTService {
 		debugString.append("Request URL: " + context.getRequestUri().toString() + "\n");
 
 		debugString.append("----- PAYLOAD -----\n");
-		if (evalutateInputStream != null) {
+		if (notifyInputStream != null) {
 			try {
 				StringWriter writer = new StringWriter();
 				String encoding = "UTF-8";
-				IOUtils.copy(evalutateInputStream, writer, encoding);
+				IOUtils.copy(notifyInputStream, writer, encoding);
 				payload = writer.toString();
 
 				debugString.append(payload);
@@ -218,7 +218,7 @@ public class SubscriptionNotificationRESTService {
 		}
 
 		// log level FINE used for debug
-		log.fine(debugString.toString());
+		log.info(debugString.toString());
 
 		return payload;
 	}
