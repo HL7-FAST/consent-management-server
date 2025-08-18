@@ -1216,7 +1216,7 @@ public class ResourceRESTClient implements Serializable {
 	 */
 	public Response post(String baseUrl, String params, String payload, String contentType, List<String> headers) throws Exception {
 
-		log.fine("[START] ResourceRESTClient.post() - baseUrl: " + baseUrl + "; params: " + params + "; payload: [snipped]; contentType: " + contentType);
+		log.info("[START] ResourceRESTClient.post() - baseUrl: " + baseUrl + "; params: " + (params != null ? params : "null") + "; payload: [snipped]; contentType: " + contentType);
 
 		Response resourceResponse = null;
 
