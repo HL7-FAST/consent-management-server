@@ -76,6 +76,7 @@ import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Subscription;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.google.gson.JsonSyntaxException;
@@ -1022,6 +1023,17 @@ public class RESTResourceOps {
 													resourceContainer.getResource().getResourceType() + " resource updated with resource id " + resourceContainer.getResource().getResourceId() + ".", null, null);
 
 											resourceContainer.getResource().setResourceContents(outcome.getBytes());
+										}
+
+										/*
+										 * Subscription Framework - check for Subscription resource type successfully updated
+										 * if yes and SF enabled, create new SubscriptionStatus
+										 */
+										if (codeService.isSupported("subscriptionServiceEnabled")) {
+											if (resourceType.equals("Subscription") && resourceContainer.getResponseStatus().equals(Response.Status.OK)) {
+												// Create new SubscriptionStatus for Subscription
+												this.updateSubscriptionStatus(resource, resourceContainer.getResource().getResourceId());
+											}
 										}
 
 										builder = buildResource(locationPath, producesType, resourceContainer, Ops.UPDATE, responseFhirVersion);
@@ -2103,9 +2115,83 @@ public class RESTResourceOps {
 
 		subscriptionStatus.setStatus(SubscriptionStatusCodes.ACTIVE);
 
-		subscriptionStatus.setType(SubscriptionNotificationType.EVENTNOTIFICATION);
+		subscriptionStatus.setType(SubscriptionNotificationType.QUERYSTATUS);
 
 		subscriptionStatus.setEventsSinceSubscriptionStart(0);
+
+		SubscriptionStatusNotificationEventComponent ssne = new SubscriptionStatusNotificationEventComponent();
+
+		ssne.setEventNumber(0);
+		ssne.setTimestamp(new Date());
+		ssne.setFocus(reference);
+
+		subscriptionStatus.addNotificationEvent(ssne);
+
+		Parameters pSubscriptionStatus = (Parameters) ServicesUtil.INSTANCE.convertR5SubscriptionStatusToR4Parameters(subscriptionStatus);
+
+		// Convert the Resource to XML byte[]
+		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
+		XmlParser xmlParser = new XmlParser();
+		xmlParser.setOutputStyle(OutputStyle.PRETTY);
+		xmlParser.compose(oResource, pSubscriptionStatus, true);
+		byte[] bResource = oResource.toByteArray();
+
+		// Initialize a Resource to be created
+		net.aegis.fhir.model.Resource aegisResource = new net.aegis.fhir.model.Resource();
+		aegisResource.setResourceType("SubscriptionStatus");
+		aegisResource.setResourceContents(bResource);
+
+		resourceService.create(aegisResource, null, codeService.getCodeValue("baseUrl"));
+	}
+
+	private void updateSubscriptionStatus(org.hl7.fhir.r4.model.Resource resource, String resourceId) throws Exception {
+
+		// Count number of notification SubscriptionStatus for this Subscription
+		// Define query parameters with subscription and type = 'event-notification'
+		MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+		queryParams.add("subscription", "Subscription/" + resourceId);
+		queryParams.add("type", "event-notification");
+
+		List<String[]> validParams = new ArrayList<String[]>();
+		List<String[]> invalidParams = new ArrayList<String[]>();
+
+		List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, null, "SubscriptionStatus", false, null, null, null, validParams, invalidParams);
+
+		long numEvents = resources.size() + 1;
+
+		// Create new SubscriptionStatus
+		org.hl7.fhir.r5.model.SubscriptionStatus subscriptionStatus = new org.hl7.fhir.r5.model.SubscriptionStatus();
+
+		org.hl7.fhir.r5.model.Reference reference = new org.hl7.fhir.r5.model.Reference();
+		reference.setReference("Subscription/" + resourceId);
+		subscriptionStatus.setSubscription(reference);
+
+		subscriptionStatus.setTopic(((Subscription) resource).getCriteria());
+
+		SubscriptionStatus subStatus = ((Subscription) resource).getStatus();
+		SubscriptionStatusCodes subStatusStatus = SubscriptionStatusCodes.ACTIVE;
+		switch (subStatus) {
+		case ACTIVE:
+			subStatusStatus = SubscriptionStatusCodes.ACTIVE;
+			break;
+		case ERROR:
+			subStatusStatus = SubscriptionStatusCodes.ERROR;
+			break;
+		case OFF:
+			subStatusStatus = SubscriptionStatusCodes.OFF;
+			break;
+		case REQUESTED:
+			subStatusStatus = SubscriptionStatusCodes.REQUESTED;
+			break;
+		default:
+			subStatusStatus = SubscriptionStatusCodes.ENTEREDINERROR;
+			break;
+		}
+		subscriptionStatus.setStatus(subStatusStatus);
+
+		subscriptionStatus.setType(SubscriptionNotificationType.QUERYSTATUS);
+
+		subscriptionStatus.setEventsSinceSubscriptionStart(numEvents);
 
 		SubscriptionStatusNotificationEventComponent ssne = new SubscriptionStatusNotificationEventComponent();
 

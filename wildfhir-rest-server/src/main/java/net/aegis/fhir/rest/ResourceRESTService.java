@@ -834,7 +834,7 @@ public class ResourceRESTService {
 				if (!first) {
 					sbRequestUrl.append("&");
 				}
-				log.info("header(" + key + ") is " + queryParams.get(key).toString());
+				log.info(key + " is " + queryParams.get(key).toString());
 				sbRequestUrl.append(key).append("=").append(queryParams.get(key).toString());
 			}
 		}

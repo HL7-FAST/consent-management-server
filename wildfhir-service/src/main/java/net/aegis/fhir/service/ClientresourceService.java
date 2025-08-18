@@ -67,6 +67,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.Subscription;
 
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.service.util.ServicesUtil;
@@ -702,6 +703,15 @@ public class ClientresourceService {
 				description.append((relatedPerson.hasBirthDate() ? utcDateUtil.formatDate(relatedPerson.getBirthDate(), UTCDateUtil.DATE_ONLY_FORMAT_UTC) : "?"));
 				description.append(" (");
 				description.append((relatedPerson.hasIdentifier() ? relatedPerson.getIdentifierFirstRep().getValue() : (relatedPerson.hasId() ? relatedPerson.getId() : "?")));
+				description.append(")");
+				break;
+			case Subscription:
+				Subscription subscription = (Subscription)resource;
+				description.append(subscription.getStatus().toCode());
+				description.append(": ");
+				description.append(subscription.getReason());
+				description.append(" (");
+				description.append(subscription.getId());
 				description.append(")");
 				break;
 			default:

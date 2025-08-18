@@ -1433,19 +1433,6 @@ public class ResourceService {
 			resourceMeta.setLastUpdated(updatedTime);
 			resourceObject.setMeta(resourceMeta);
 
-			/*
-			 * Subscription Framework - check for Subscription resource type and status of 'requested'
-			 * if found and SF enabled, change status to 'active'
-			 */
-			if (codeService.isSupported("subscriptionServiceEnabled")) {
-				if (resourceObject.getResourceType().equals(ResourceType.Subscription)) {
-					Subscription subscription = (Subscription)resourceObject;
-					if (subscription.getStatus().equals(SubscriptionStatus.REQUESTED)) {
-						subscription.setStatus(SubscriptionStatus.ACTIVE);
-					}
-				}
-			}
-
 			byte[] resourceBytes = xmlP.composeBytes(resourceObject);
 
 			newResource.setResourceContents(resourceBytes);

@@ -1,0 +1,98 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the FAST Consent Create Subscription Tab -->
+
+	<p:tab title="Create" id="createSubscriptionTab" cache="false">
+
+		<h:form id="createSubscriptionForm" prependId="false" style="width:100%;border:none;">
+			<p:panelGrid id="createSubscriptionPanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+				<p:messages id="createSubscriptionMessages" />
+				<h:outputText value="File Consent"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+				<h:outputText value="This interface is used to define and send an active Subscription create request to a consent administration service."
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+				<h:outputText value="The Subscription criteria must conform with the FAST Consent SubscriptionTopic allowed search parameters."
+					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+			</p:panelGrid>
+
+			<hr></hr>
+
+			<p:panelGrid id="createSubscriptionPanel2" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+				<h:outputText value="Format Type (Default JSON): * " />
+				<p:selectOneMenu required="false" label="Select Format Type" value="#{context.selectedFormatType}" maxlength="10" style="width:80px;text-align:left;padding-right:30px;">
+					<f:selectItems value="#{context.formatTypes}" var="formatType" itemLabel="#{formatType}         " itemValue="#{formatType}" />
+				</p:selectOneMenu>
+
+				<h:outputText value="Select Consent Mgmt Server: * " />
+				<p:selectOneMenu required="true" label="Select Consent Mgmt Server" value="#{context.selectedServerURL}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+					<f:selectItem itemValue="#{null}" itemLabel="-- Select Consent Mgmt Server --         " noSelectionOption="true" />
+					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
+				</p:selectOneMenu>
+			</p:panelGrid>
+
+			<p:panel id="createSubscriptionResultsPanel" visible="true"
+				widgetVar="createSubscriptionResultsPanel" toggleable="true" closable="true"
+				toggleSpeed="500" closeSpeed="500">
+
+				<p:toolbar>
+					<f:facet name="right">
+						<p:commandButton value="Send Request" icon="ui-icon-document"
+							actionListener="#{controller.processCreateSubscription}"
+							oncomplete="PF('createSubscriptionTabView').select(2)"
+							update=":tabView:subscriptionsTabView:createSubscriptionForm">
+						</p:commandButton>
+					</f:facet>
+				</p:toolbar>
+
+				<p:tabView id="createSubscriptionTabView" widgetVar="createSubscriptionTabView">
+					<p:tab title="Subscription" id="createSubscriptionTab0">
+						<p:panelGrid id="createSubscriptionTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+							<h:outputText value="The Subscription resource will be constructed from the selections. The default topic is the FASTConsentSubscriptionTopic. The default channel type is 'rest-hook'."
+								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+						</p:panelGrid>
+
+						<p:panelGrid id="createSubscriptionTabPanel1" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+							<h:outputText value="End Date (Optional)" />
+							<p:datePicker id="createSubscriptionEndDate" value="#{context.endDate}" showButtonBar="true" />
+
+							<h:outputText value="Reason (description) * " />
+							<h:inputText value="#{context.subscriptionReason}" maxlength="500" required="true" requiredMessage="Please enter the reason why this subscription was created" size="50" />
+
+							<h:outputText value="Criteria (search params) * " />
+							<h:inputText value="#{context.subscriptionCriteria}" maxlength="500" required="true" requiredMessage="Please enter the filtering criteria (search parameters) to apply" size="50" />
+
+							<h:outputText value="Endpoint * " />
+							<h:inputText value="#{context.subscriptionEndpoint}" maxlength="500" required="true" requiredMessage="Please enter the rest-hook channel url endpoint" size="50" />
+
+							<h:outputText value="Select Payload (mime-type) *" />
+							<p:selectOneMenu id="createSubscriptionPayloadTypeDropdown" required="true" label="Select Payload (mime-type)" value="#{context.selectedSubscriptionPayloadType}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+								<f:selectItems value="#{context.listSubscriptionPayloadTypes}" var="pay" itemLabel="#{pay.label.trim()}         " itemValue="#{pay.key}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="Select Payload Content *" />
+							<p:selectOneMenu id="createSubscriptionContentTypeDropdown" required="true" label="Select Payload Content" value="#{context.selectedSubscriptionContentType}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
+								<f:selectItems value="#{context.listSubscriptionContentTypes}" var="con" itemLabel="#{con.label.trim()}         " itemValue="#{con.key}" />
+							</p:selectOneMenu>
+						</p:panelGrid>
+					</p:tab>
+
+					<p:tab title="Request" id="createSubscriptionTab1">
+						<h:inputTextarea value="#{context.resourceString}" cols="80" rows="24" />
+					</p:tab>
+
+					<p:tab title="Results" id="createSubscriptionResultsTab">
+						<h:outputText id="lblcreateSubscriptionResults" escape="true"
+							value="#{context.responseString}"
+							styleClass="whiteSpaceClass" />
+					</p:tab>
+				</p:tabView>
+			</p:panel>
+		</h:form>
+	</p:tab>
+
+</ui:composition>

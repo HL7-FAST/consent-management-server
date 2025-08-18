@@ -162,8 +162,8 @@ public class ResourcemetadataSubscriptionStatus extends ResourcemetadataProxy {
 							}
 						}
 
-						// status : token(code)
-						else if (parameter.getName().equals("status")) {
+						// type : token(code)
+						else if (parameter.getName().equals("type")) {
 
 							if (parameter.hasValue() && parameter.getValue() instanceof CodeType) {
 								CodeType type = (CodeType)parameter.getValue();
