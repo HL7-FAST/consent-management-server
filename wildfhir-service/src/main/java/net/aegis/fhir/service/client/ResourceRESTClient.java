@@ -339,6 +339,112 @@ public class ResourceRESTClient implements Serializable {
 	}
 
 	/**
+	 * WARNING - Only use for SubscriptionStatus or SubscriptionTopic
+	 *
+	 * @param resourceId
+	 * @param resource
+	 * @param baseUrl
+	 * @param resourceType
+	 * @param contentType
+	 * @param ifMatch
+	 * @param prefer
+	 * @param _format
+	 * @param headers
+	 * @return {@link Response}
+	 * @throws Exception
+	 */
+	public Response updateR5(String resourceId, org.hl7.fhir.r5.model.Resource resource, String baseUrl, String resourceType, String contentType, String updateQuery, String ifMatch, String prefer, String _format, List<String> headers) throws Exception {
+
+		log.fine("[START] ResourceRESTClient.updateR5() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; updateQuery: " + updateQuery + "; ifMatch: " + ifMatch + "; prefer: " + prefer + "; _format: " + _format);
+
+		Response resourceResponse = null;
+
+		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
+		String sResource = null;
+
+		try {
+
+			// Resource update
+			StringBuilder sbUpdateUrl = new StringBuilder(buildURL(baseUrl, resourceType));
+			sbUpdateUrl.append("/").append(resourceId);
+			if (!StringUtils.isEmpty(_format)) {
+				sbUpdateUrl.append("?_format=").append(_format);
+			}
+
+			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			ResteasyWebTarget webTarget = client.target(sbUpdateUrl.toString());
+
+			// Conditional Update parameters
+			if (updateQuery != null && !updateQuery.isEmpty()) {
+				// Convert updateQuery into queryParams map
+				List<NameValuePair> params = URLEncodedUtils.parse(updateQuery, Charset.defaultCharset());
+				MultivaluedMap<String, Object> queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapObject(params);
+				webTarget = webTarget.queryParams(queryParams);
+			}
+
+			Builder targetBuilder = webTarget.request();
+
+			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
+				targetBuilder = targetBuilder.header(HttpHeaders.CONTENT_TYPE, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion)
+						.header(HttpHeaders.ACCEPT, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion);
+			}
+			else {
+				targetBuilder = targetBuilder.header(HttpHeaders.CONTENT_TYPE, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion)
+						.header(HttpHeaders.ACCEPT, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion);
+			}
+
+			// Conditional Update parameters
+			if (ifMatch != null && !ifMatch.isEmpty()) {
+				targetBuilder = targetBuilder.header(HttpHeaders.IF_MATCH, ifMatch);
+			}
+			if (prefer != null && !prefer.isEmpty()) {
+				targetBuilder = targetBuilder.header("Prefer", prefer);
+			}
+
+			// Add any additional headers
+			targetBuilder = addHeaders(targetBuilder, headers);
+
+			log.info("Resource update request uri: " + webTarget.getUri());
+
+			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
+
+				org.hl7.fhir.r5.formats.JsonParser jsonParser = new org.hl7.fhir.r5.formats.JsonParser();
+				jsonParser.setOutputStyle(org.hl7.fhir.r5.formats.IParser.OutputStyle.PRETTY);
+				jsonParser.compose(oResource, resource);
+				sResource = oResource.toString();
+
+				resourceResponse = targetBuilder.put(Entity.entity(sResource, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion));
+
+			}
+			else {
+
+				org.hl7.fhir.r5.formats.XmlParser xmlParser = new org.hl7.fhir.r5.formats.XmlParser();
+				xmlParser.setOutputStyle(org.hl7.fhir.r5.formats.IParser.OutputStyle.PRETTY);
+				xmlParser.compose(oResource, resource, true);
+				sResource = oResource.toString();
+
+				resourceResponse = targetBuilder.put(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
+			}
+
+			log.info("Resource object sent: " + sResource);
+
+			if (resourceResponse.hasEntity()) {
+				resourceResponse.bufferEntity();
+			}
+
+			debugResponse(resourceResponse);
+
+		}
+		catch (Exception e) {
+			// Exception caught
+			e.printStackTrace();
+			throw e;
+		}
+
+		return resourceResponse;
+	}
+
+	/**
 	 *
 	 * @param resourceId
 	 * @param patchString
@@ -689,6 +795,99 @@ public class ResourceRESTClient implements Serializable {
 
 				XmlParser xmlParser = new XmlParser();
 				xmlParser.setOutputStyle(OutputStyle.PRETTY);
+				xmlParser.compose(oResource, resource, true);
+				sResource = oResource.toString();
+
+				resourceResponse = targetBuilder.post(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
+			}
+
+			log.info("Resource object sent: " + sResource);
+
+			if (resourceResponse.hasEntity()) {
+				resourceResponse.bufferEntity();
+			}
+
+			debugResponse(resourceResponse);
+
+		}
+		catch (Exception e) {
+			// Exception caught
+			e.printStackTrace();
+			throw e;
+		}
+
+		return resourceResponse;
+	}
+
+	/**
+	 * WARNING - Only use for SubscriptionStatus or SubscriptionTopic
+	 *
+	 * @param resource
+	 * @param baseUrl
+	 * @param resourceType
+	 * @param contentType
+	 * @param prefer
+	 * @param _format
+	 * @param headers
+	 * @return {@link Response}
+	 * @throws Exception
+	 */
+	public Response createR5(org.hl7.fhir.r5.model.Resource resource, String baseUrl, String resourceType, String contentType, String ifNoneExist, String prefer, String _format, List<String> headers) throws Exception {
+
+		log.fine("[START] ResourceRESTClient.createR5() - baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; ifNoneExist: " + ifNoneExist + "; prefer: " + prefer + "; _format: " + _format);
+
+		Response resourceResponse = null;
+
+		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
+		String sResource = null;
+
+		try {
+
+			// Response create
+			StringBuilder sbCreateUrl = new StringBuilder(buildURL(baseUrl, resourceType));
+			if (!StringUtils.isEmpty(_format)) {
+				sbCreateUrl.append("?_format=").append(_format);
+			}
+
+			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			ResteasyWebTarget webTarget = client.target(sbCreateUrl.toString());
+			Builder targetBuilder = webTarget.request();
+
+			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
+				targetBuilder = targetBuilder.header(HttpHeaders.CONTENT_TYPE, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion)
+						.header(HttpHeaders.ACCEPT, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion);
+			}
+			else {
+				targetBuilder = targetBuilder.header(HttpHeaders.CONTENT_TYPE, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion)
+						.header(HttpHeaders.ACCEPT, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion);
+			}
+
+			// Conditional Create parameters
+			if (ifNoneExist != null && !ifNoneExist.isEmpty()) {
+				targetBuilder = targetBuilder.header("If-None-Exist", ifNoneExist);
+			}
+			if (prefer != null && !prefer.isEmpty()) {
+				targetBuilder = targetBuilder.header("Prefer", prefer);
+			}
+
+			// Add any additional headers
+			targetBuilder = addHeaders(targetBuilder, headers);
+
+			log.info("Resource update request uri: " + webTarget.getUri());
+
+			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
+
+				org.hl7.fhir.r5.formats.JsonParser jsonParser = new org.hl7.fhir.r5.formats.JsonParser();
+				jsonParser.setOutputStyle(org.hl7.fhir.r5.formats.IParser.OutputStyle.PRETTY);
+				jsonParser.compose(oResource, resource);
+				sResource = oResource.toString();
+
+				resourceResponse = targetBuilder.post(Entity.entity(sResource, "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion));
+			}
+			else {
+
+				org.hl7.fhir.r5.formats.XmlParser xmlParser = new org.hl7.fhir.r5.formats.XmlParser();
+				xmlParser.setOutputStyle(org.hl7.fhir.r5.formats.IParser.OutputStyle.PRETTY);
 				xmlParser.compose(oResource, resource, true);
 				sResource = oResource.toString();
 

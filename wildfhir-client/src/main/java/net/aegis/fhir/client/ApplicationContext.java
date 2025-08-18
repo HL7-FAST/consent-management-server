@@ -175,6 +175,21 @@ public class ApplicationContext implements Serializable {
 	// Subscription Activity
 	private List<Subscriptionactivity> subscriptionactivity;
 
+	private List<Clientresource> clientSubscriptions;
+	private String selectedSubscriptionId;
+
+	private List<LabelKeyValueBean> listSubscriptionStatuses;
+	private String selectedSubscriptionStatus;
+
+	private String subscriptionReason;
+	private String subscriptionCriteria;
+	private String subscriptionEndpoint;
+
+	private List<LabelKeyValueBean> listSubscriptionPayloadTypes;
+	private String selectedSubscriptionPayloadType;
+	private List<LabelKeyValueBean> listSubscriptionContentTypes;
+	private String selectedSubscriptionContentType;
+
 	// Consent operations
 	private List<Clientresource> clientConsents;
 	private String selectedConsentId;
@@ -224,6 +239,13 @@ public class ApplicationContext implements Serializable {
 		this.resourceResults = null;
 		this.datePicker = null;
 		this.validateOperationOutcome = null;
+		this.selectedSubscriptionId = null;
+		this.selectedSubscriptionStatus = null;
+		this.subscriptionReason = null;
+		this.subscriptionCriteria = null;
+		this.subscriptionEndpoint = null;
+		this.selectedSubscriptionPayloadType = null;
+		this.selectedSubscriptionContentType = null;
 		this.selectedConsentId = null;
 		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
@@ -233,9 +255,9 @@ public class ApplicationContext implements Serializable {
 		this.endDate = null;
 		this.startDate = null;
 		try {
+			this.clientSubscriptions = clientresourceService.findClientresourceByResourceType("Subscription");
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
-			//this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
 			this.clientRelatedPersons = new ArrayList<Clientresource>();
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
 		}
@@ -268,6 +290,13 @@ public class ApplicationContext implements Serializable {
 		this.resourceResults = null;
 		this.datePicker = null;
 		this.validateOperationOutcome = null;
+		this.selectedSubscriptionId = null;
+		this.selectedSubscriptionStatus = null;
+		this.subscriptionReason = null;
+		this.subscriptionCriteria = null;
+		this.subscriptionEndpoint = null;
+		this.selectedSubscriptionPayloadType = null;
+		this.selectedSubscriptionContentType = null;
 		this.selectedConsentId = null;
 		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
@@ -277,9 +306,9 @@ public class ApplicationContext implements Serializable {
 		this.endDate = null;
 		this.startDate = null;
 		try {
+			this.clientSubscriptions = clientresourceService.findClientresourceByResourceType("Subscription");
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
-			//this.clientRelatedPersons = clientresourceService.findClientresourceByResourceType("RelatedPerson");
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
 		}
 		catch (Exception e) {
@@ -698,6 +727,121 @@ public class ApplicationContext implements Serializable {
 
 	public void setSubscriptionactivity(List<Subscriptionactivity> subscriptionactivity) {
 		this.subscriptionactivity = subscriptionactivity;
+	}
+
+	public List<Clientresource> getClientSubscriptions() {
+		return clientSubscriptions;
+	}
+
+	public void setClientSubscriptions(List<Clientresource> clientSubscriptions) {
+		this.clientSubscriptions = clientSubscriptions;
+	}
+
+	public String getSelectedSubscriptionId() {
+		return selectedSubscriptionId;
+	}
+
+	public void setSelectedSubscriptionId(String selectedSubscriptionId) {
+		this.selectedSubscriptionId = selectedSubscriptionId;
+	}
+
+	public List<LabelKeyValueBean> getListSubscriptionStatuses() {
+		if (listSubscriptionStatuses == null) {
+			listSubscriptionStatuses = new ArrayList<LabelKeyValueBean>();
+			LabelKeyValueBean lkvb = new LabelKeyValueBean("Active", "active", "active");
+			listSubscriptionStatuses.add(lkvb);
+			lkvb = new LabelKeyValueBean("Error", "error", "error");
+			listSubscriptionStatuses.add(lkvb);
+			lkvb = new LabelKeyValueBean("Requested", "requested", "requested");
+			listSubscriptionStatuses.add(lkvb);
+			lkvb = new LabelKeyValueBean("Off", "off", "off");
+			listSubscriptionStatuses.add(lkvb);
+		}
+		return listSubscriptionStatuses;
+	}
+
+	public void setListSubscriptionStatuses(List<LabelKeyValueBean> listSubscriptionStatuses) {
+		this.listSubscriptionStatuses = listSubscriptionStatuses;
+	}
+
+	public String getSelectedSubscriptionStatus() {
+		return selectedSubscriptionStatus;
+	}
+
+	public void setSelectedSubscriptionStatus(String selectedSubscriptionStatus) {
+		this.selectedSubscriptionStatus = selectedSubscriptionStatus;
+	}
+
+	public String getSubscriptionReason() {
+		return subscriptionReason;
+	}
+
+	public void setSubscriptionReason(String subscriptionReason) {
+		this.subscriptionReason = subscriptionReason;
+	}
+
+	public String getSubscriptionCriteria() {
+		return subscriptionCriteria;
+	}
+
+	public void setSubscriptionCriteria(String subscriptionCriteria) {
+		this.subscriptionCriteria = subscriptionCriteria;
+	}
+
+	public String getSubscriptionEndpoint() {
+		return subscriptionEndpoint;
+	}
+
+	public void setSubscriptionEndpoint(String subscriptionEndpoint) {
+		this.subscriptionEndpoint = subscriptionEndpoint;
+	}
+
+	public List<LabelKeyValueBean> getListSubscriptionPayloadTypes() {
+		if (listSubscriptionPayloadTypes == null) {
+			listSubscriptionPayloadTypes = new ArrayList<LabelKeyValueBean>();
+			LabelKeyValueBean lkvb = new LabelKeyValueBean("FHIR JSON (application/fhir+json)", "application/fhir+json", "application/fhir+json");
+			listSubscriptionPayloadTypes.add(lkvb);
+			lkvb = new LabelKeyValueBean("FHIR XML (application/fhir+xml)", "application/fhir+xml", "application/fhir+xml");
+			listSubscriptionPayloadTypes.add(lkvb);
+		}
+		return listSubscriptionPayloadTypes;
+	}
+
+	public void setListSubscriptionPayloadTypes(List<LabelKeyValueBean> listSubscriptionPayloadTypes) {
+		this.listSubscriptionPayloadTypes = listSubscriptionPayloadTypes;
+	}
+
+	public String getSelectedSubscriptionPayloadType() {
+		return selectedSubscriptionPayloadType;
+	}
+
+	public void setSelectedSubscriptionPayloadType(String selectedSubscriptionPayloadType) {
+		this.selectedSubscriptionPayloadType = selectedSubscriptionPayloadType;
+	}
+
+	public List<LabelKeyValueBean> getListSubscriptionContentTypes() {
+		if (listSubscriptionContentTypes == null) {
+			listSubscriptionContentTypes = new ArrayList<LabelKeyValueBean>();
+			LabelKeyValueBean lkvb = new LabelKeyValueBean("Full Resource", "full-resource", "full-resource");
+			listSubscriptionContentTypes.add(lkvb);
+			lkvb = new LabelKeyValueBean("Id Only", "id-only", "id-only");
+			listSubscriptionContentTypes.add(lkvb);
+			lkvb = new LabelKeyValueBean("Empty", "empty", "empty");
+			listSubscriptionContentTypes.add(lkvb);
+		}
+		return listSubscriptionContentTypes;
+	}
+
+	public void setListSubscriptionContentTypes(List<LabelKeyValueBean> listSubscriptionContentTypes) {
+		this.listSubscriptionContentTypes = listSubscriptionContentTypes;
+	}
+
+	public String getSelectedSubscriptionContentType() {
+		return selectedSubscriptionContentType;
+	}
+
+	public void setSelectedSubscriptionContentType(String selectedSubscriptionContentType) {
+		this.selectedSubscriptionContentType = selectedSubscriptionContentType;
 	}
 
 	public List<Clientresource> getClientConsents() {

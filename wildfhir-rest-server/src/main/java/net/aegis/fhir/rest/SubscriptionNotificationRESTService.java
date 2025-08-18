@@ -95,7 +95,7 @@ public class SubscriptionNotificationRESTService {
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/fhir+xml", "application/fhir+json", "application/xml+fhir", "application/json+fhir", "text/xml", "text/json" })
 	public Response notificationR5BackportPost(@Context HttpServletRequest request, @Context HttpHeaders headers, @Context UriInfo ui, InputStream evalutateInputStream) {
 
-		log.fine("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
+		log.info("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
 		debugRequest(request, headers, null);
 
@@ -136,7 +136,7 @@ public class SubscriptionNotificationRESTService {
 			builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 		}
 
-		log.fine("[END] SubscriptionNotificationRESTService.notificationR5BackportPost()");
+		log.info("[END] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
 		return builder.build();
 	}
