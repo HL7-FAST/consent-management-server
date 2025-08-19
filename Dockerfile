@@ -80,6 +80,10 @@ ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7
 RUN mkdir -p /home/jboss/initializeClient
 ADD ./docker/initializeClient /home/jboss/initializeClient
 
+# Server resources
+RUN mkdir -p /home/jboss/initializeServer
+ADD ./docker/initializeServer /home/jboss/initializeServer
+
 EXPOSE 3306 8080 8443 9990
 
 USER root
