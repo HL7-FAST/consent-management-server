@@ -41,13 +41,13 @@
 				<p:dataTable rowIndexVar="index" var="res"
 					value="#{context.listLabelKeyValue}"
 					rendered="#{context.listLabelKeyValue.size() > 0}">
-					<p:column headerText="Subscription" width="35%">
+					<p:column headerText="Subscription" width="15%">
 						<h:outputText value="#{res.label}" />
 					</p:column>
-					<p:column headerText="Channel" width="10%">
+					<p:column headerText="Channel" width="25%">
 						<h:outputText value="#{res.key}" />
 					</p:column>
-					<p:column headerText="Criteria" width="30%"
+					<p:column headerText="Criteria" width="25%"
 						styleClass="preformatted">
 						<h:outputText value="#{res.value}" />
 					</p:column>
@@ -57,6 +57,18 @@
 					</p:column>
 					<p:column headerText="Status" width="10%">
 						<h:outputText value="#{res.path}" />
+					</p:column>
+					<p:column headerText="Payload" width="10%">
+						<p:commandButton value="View"
+							onclick="PF('searchResInfoDialg#{res.label}').show()"
+							type="button" />
+						<p:dialog id="searchResInfoDialg#{res.label}"
+							header="Payload"
+							widgetVar="searchResInfoDialg#{res.label}" modal="true"
+							width="450" height="400">
+							<h:outputText value="#{res.refType}"
+								styleClass="whiteSpaceClass" />
+						</p:dialog>
 					</p:column>
 				</p:dataTable>
 			</p:panel>

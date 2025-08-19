@@ -120,13 +120,14 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 			 */
 
 			// Convert search parameter string into queryParams map
-			List<NameValuePair> params = URLEncodedUtils.parse("subscription=Subscription/" + subscription.getId(), Charset.defaultCharset());
+			String paramsString = "subscription=Subscription/" + subscription.getId() + "type=event-notification&&_sort=-_lastUpdated&_count=1";
+			List<NameValuePair> params = URLEncodedUtils.parse(paramsString, Charset.defaultCharset());
 			MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 
 			// Search for all SubscriptionStatus with subscription = current Subscription; return as searchset Bundle
 			ResourceContainer rc = resourceService.search(queryParams, null, null, null, "SubscriptionStatus", "INTERNAL", null, null, null, false);
 
-			// Check for matched Subscription resources
+			// Check for matched SubscriptionStatus resources
 			if (rc != null && rc.getBundle() != null && !rc.getBundle().getEntry().isEmpty()) {
 
 				// Should only be one SubscriptionStatus so take the first entry
@@ -187,14 +188,9 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 				aegisResource.setResourceType("SubscriptionStatus");
 				aegisResource.setResourceContents(bResource);
 
-				// Create or update SubscriptionStatus
-				ResourceContainer rcStatus = null;
-				if (subscriptionStatus.hasId()) {
-					rcStatus = resourceService.update(subscriptionStatus.getId(), aegisResource, baseUrl);
-				}
-				else {
-					rcStatus = resourceService.create(aegisResource, null, baseUrl);
-				}
+				// Create new SubscriptionStatus
+				ResourceContainer rcStatus = resourceService.create(aegisResource, null, baseUrl);
+
 				aegisResource = rcStatus.getResource();
 
 				// Add R4 Parameters (SubscriptionStatus) to subscription notification bundle
@@ -275,8 +271,6 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 
 		long eventNumber = 1;
 		if (existingStatus != null) {
-			subscriptionStatus.setId(existingStatus.getId());
-
 			eventNumber = existingStatus.getEventsSinceSubscriptionStart() + 1;
 		}
 
@@ -294,7 +288,7 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 
 		SubscriptionStatusNotificationEventComponent ssne = new SubscriptionStatusNotificationEventComponent();
 
-		ssne.setEventNumber(1);
+		ssne.setEventNumber(eventNumber);
 		ssne.setTimestamp(new Date());
 
 		if (!payloadContent.equals("empty")) {
@@ -311,6 +305,8 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 				else {
 					ssne.addAdditionalContext(consentReference);
 				}
+
+				iEntry++;
 			}
 		}
 

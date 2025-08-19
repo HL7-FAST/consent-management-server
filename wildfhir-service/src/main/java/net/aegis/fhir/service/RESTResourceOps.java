@@ -2157,7 +2157,7 @@ public class RESTResourceOps {
 
 		List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, null, "SubscriptionStatus", false, null, null, null, validParams, invalidParams);
 
-		long numEvents = resources.size() + 1;
+		long numEvents = resources.size();
 
 		// Create new SubscriptionStatus
 		org.hl7.fhir.r5.model.SubscriptionStatus subscriptionStatus = new org.hl7.fhir.r5.model.SubscriptionStatus();

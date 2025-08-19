@@ -46,6 +46,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.Bundle;
@@ -156,7 +157,9 @@ public class SubscriptionServiceR5 {
 
 				ByteArrayOutputStream oResource = null;
 				XmlParser xmlParser = new XmlParser();
+				xmlParser.setOutputStyle(OutputStyle.PRETTY);
 				JsonParser jsonParse = new JsonParser();
+				jsonParse.setOutputStyle(OutputStyle.PRETTY);
 				String payload = null;
 
 				// For each Subscription entry
@@ -169,7 +172,8 @@ public class SubscriptionServiceR5 {
 					log.info("Processing Subscription [" + subscription.getId() + "] with criteria [" + subscription.getCriteria() + "] for channel type [" + subscription.getChannel().getType().name() + "]");
 
 					// Initialize result bean
-					result = new LabelKeyValueBean(subscription.getId(), subscription.getChannel().getType().name(), subscription.getCriteria(), "", "processing");
+					result = new LabelKeyValueBean(subscription.getId(), subscription.getChannel().getType().name() + "; " + subscription.getChannel().getEndpoint(),
+							subscription.getCriteria(), "", "processing", "");
 
 					/*
 					 * Use Factory Pattern for execution of SubscriptionTopic operation
@@ -236,6 +240,8 @@ public class SubscriptionServiceR5 {
 									headers.add(header.asStringValue());
 								}
 								response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload, subscription.getChannel().getPayload(), headers);
+
+								result.setRefType(payload);
 							}
 
 							// Update Subscription status based on current result and post response
