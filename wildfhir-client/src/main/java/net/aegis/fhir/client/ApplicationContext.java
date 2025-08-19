@@ -224,6 +224,7 @@ public class ApplicationContext implements Serializable {
 		this.responseString = null;
 		this.resourceCriteria = null;
 		this.criteriaMap = new HashMap<String, String>();
+		this.listLabelKeyValue = new ArrayList<LabelKeyValueBean>();
 		this.resourceId = "";
 		this.resourceVersion = "";
 		this.ifModifiedSince = "";
@@ -275,6 +276,7 @@ public class ApplicationContext implements Serializable {
 		this.responseString = null;
 		this.resourceCriteria = null;
 		this.criteriaMap = new HashMap<String, String>();
+		this.listLabelKeyValue = new ArrayList<LabelKeyValueBean>();
 		this.resourceId = "";
 		this.resourceVersion = "";
 		this.ifModifiedSince = "";
