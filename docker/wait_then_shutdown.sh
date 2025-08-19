@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 while [ ! -f /tmp/server_can_shutdown.txt ]
 do
   sleep 2
