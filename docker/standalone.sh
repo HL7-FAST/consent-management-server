@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Use --debug to activate debug mode with an optional argument to specify the port.
 # Usage : standalone.sh --debug
