@@ -99,6 +99,10 @@ ADD ./hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.u
 RUN mkdir -p /home/jboss/initializeClient
 ADD ./initializeClient /home/jboss/initializeClient
 
+# Server resources
+RUN mkdir -p /home/jboss/initializeServer
+ADD ./initializeServer /home/jboss/initializeServer
+
 # Expose the ports we're interested in
 EXPOSE 3306 8080 8443 9990
 
