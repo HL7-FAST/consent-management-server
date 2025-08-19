@@ -1,2 +1,2 @@
-#!/usr/bin/env bash
+#!/bin/sh
 touch /tmp/server_can_shutdown.txt
