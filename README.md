@@ -6,6 +6,8 @@ This is the [FAST Consent Management Reference Implementation](https://github.co
 
 The live deployment of this RI application is hosted in the [HL7 FHIR Foundry](https://foundry.hl7.org), where you will also be able to download curated configurations to run yourself.
 
+| Name | Link |
+| ---- | ---- |
 | RI Server Base URL | https://consent-management-server.fast.hl7.org/r4 |
 | RI Client URL | https://consent-management-server.fast.hl7.org/r4-client |
 
