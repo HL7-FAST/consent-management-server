@@ -49,14 +49,14 @@ steps:
       password:
         from_secret: docker_password
       target: hlseven/fast-consent-management-server:latest
-      template: hlseven/fast-consent-management-server:master-OS-ARCH
+      template: hlseven/fast-consent-management-server:main-OS-ARCH
       platforms:
         - linux/amd64
         - linux/arm64
-      exclude: [master]
+      exclude: [main]
 trigger:
   branch:
     include:
-      - master
+      - main
   status:
     - success
