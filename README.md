@@ -1,5 +1,7 @@
 # FAST Consent Management Reference Implementation
 
+[![Build Status](https://ci.hl7.org/api/badges/HL7-FAST/consent-management-server/status.svg)](https://ci.hl7.org/HL7-FAST/consent-management-server)
+
 This is the [FAST Consent Management Reference Implementation](https://github.com/HL7/fhir-consent-management) of the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management).  It is built on the [WildFHIR Community Edition](https://github.com/AEGISnetInc/WildFHIR) project and more detailed configuration information can be found in that repository.
 
 ## Foundry
