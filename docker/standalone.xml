@@ -122,6 +122,9 @@
             <logger category="sun.rmi">
                 <level name="WARN"/>
             </logger>
+            <logger category="net.aegis">
+                <level name="WARN"/>
+            </logger>
             <root-logger>
                 <level name="INFO"/>
                 <handlers>
