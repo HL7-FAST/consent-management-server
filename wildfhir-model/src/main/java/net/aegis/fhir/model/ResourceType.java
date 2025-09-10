@@ -825,7 +825,7 @@ public class ResourceType {
 
 		operationList = new ArrayList<LabelKeyValueBean>();
 		operationList.addAll(baseOperationList);
-		operationList.add(new LabelKeyValueBean("record-disclosure", "consent", "http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure", "write"));
+		operationList.add(new LabelKeyValueBean("recordDisclosure", "auditevent", "http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure", "write"));
 		resourceOperations.put("AuditEvent", operationList);
 
 		operationList = new ArrayList<LabelKeyValueBean>();
