@@ -19,6 +19,8 @@
 	</contact>
 	<description value="Capabilities required for a server system supporting the FAST Consent Administrative Server as defined in the [HL7 FHIR At Scale Taskforce (FAST) Scalable Consent Management Implementation Guide](https://build.fhir.org/ig/HL7/fhir-consent-management/index.html)."/>
 	<kind value="instance"/>
+	<instantiates value="http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities"/>
+	<instantiates value="http://hl7.org/fhir/uv/subscriptions-backport/CapabilityStatement/backport-subscription-server-r4"/>
 	<software>
 		<name value="WildFHIR Community Edition"/>
 		<version value="0.5.2"/>
@@ -18075,6 +18077,7 @@
 			<type value="Subscription"/>
 			<profile value="http://hl7.org/fhir/StructureDefinition/Subscription"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription"/>
+			<supportedProfile value="http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription"/>
 			<interaction>
 				<code value="read"/>
 				<documentation value="Implemented per the specification"/>
