@@ -1,5 +1,20 @@
 # syntax=docker/dockerfile:1
 
+#########################################################
+# STAGE 1: Create Java 11 JDK to be copied to final image
+#########################################################
+FROM openjdk:11 AS jdk-builder
+
+# Build small JDK image
+RUN $JAVA_HOME/bin/jlink \
+         --verbose \
+         --add-modules ALL-MODULE-PATH \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /optimized-jdk-11
+
 ##############################
 # HL7 FAST Consent RI Server #
 ##############################
@@ -43,15 +58,15 @@ RUN /entrypoint.sh mysqld & /tmp/wait_then_shutdown.sh
 # WildFHIR CE MySQL Wildfly Application Server #
 ################################################
 
-# Install Java 11 package
 USER root
 
-RUN microdnf -y update && \
-    microdnf -y install java-11-openjdk-devel wget && \
-    microdnf clean all
+# copy JDK from the build image
+ENV JAVA_HOME=/opt/jdk/jdk-11
+COPY --from=jdk-builder /optimized-jdk-11 $JAVA_HOME
 
-# Add jboss user account
-RUN useradd -ms /bin/bash jboss
+RUN microdnf -y update && \
+    microdnf clean all && \
+    useradd -ms /bin/bash jboss
 
 # Set the WILDFLY_VERSION env variable
 ENV WILDFLY_VERSION=20.0.1.Final
@@ -60,15 +75,15 @@ ENV JBOSS_HOME=/opt/jboss/wildfly
 
 # Add the WildFly distribution to /opt, and make jboss the owner of the extracted tar content
 # Make sure the distribution is available from a well-known place
-RUN cd /opt && mkdir jboss \
-    && cd $HOME \
-    && curl -O https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz \
-    && sha1sum wildfly-$WILDFLY_VERSION.tar.gz | grep $WILDFLY_SHA1 \
-    && tar xf wildfly-$WILDFLY_VERSION.tar.gz \
-    && mv $HOME/wildfly-$WILDFLY_VERSION $JBOSS_HOME \
-    && rm wildfly-$WILDFLY_VERSION.tar.gz \
-    && chown -R jboss:0 ${JBOSS_HOME} \
-    && chmod -R g+rw ${JBOSS_HOME}
+RUN cd /opt && mkdir jboss && \
+    cd $HOME && \
+    curl -O https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz && \
+    sha1sum wildfly-$WILDFLY_VERSION.tar.gz | grep $WILDFLY_SHA1 && \
+    tar xf wildfly-$WILDFLY_VERSION.tar.gz && \
+    mv $HOME/wildfly-$WILDFLY_VERSION $JBOSS_HOME && \
+    rm wildfly-$WILDFLY_VERSION.tar.gz && \
+    chown -R jboss:0 ${JBOSS_HOME} && \
+    chmod -R g+rw ${JBOSS_HOME}
 
 # Ensure signals are forwarded to the JVM process correctly for graceful shutdown
 ENV LAUNCH_JBOSS_IN_BACKGROUND=true
@@ -91,22 +106,19 @@ COPY ./standalone.xml $JBOSS_HOME/standalone/configuration
 COPY ./wildfhir-rest-server.war $JBOSS_HOME/standalone/deployments
 COPY ./wildfhir-client.war $JBOSS_HOME/standalone/deployments
 
-# FHIR Package
-RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
-ADD ./hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
+# FAST Consent Package, Client resources, Server resources
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0 && \
+    mkdir -p /home/jboss/initializeClient && \
+    mkdir -p /home/jboss/initializeServer
 
-# Client resources
-RUN mkdir -p /home/jboss/initializeClient
 ADD ./initializeClient /home/jboss/initializeClient
-
-# Server resources
-RUN mkdir -p /home/jboss/initializeServer
 ADD ./initializeServer /home/jboss/initializeServer
 
 # Expose the ports we're interested in
 EXPOSE 3306 8080 8443 9990
 
 USER root
+ADD ./hl7.fhir.us.consent-management#0.1.0 /root/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 
 # Start script
 COPY start.sh /opt/start.sh

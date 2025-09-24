@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Start MySQL
-su - mysql -c "mysqld" &
+# /usr/bin/su - mysql -c "mysqld" &
+mysqld &
 
 # Wait for MySQL to start
 sleep 15
@@ -155,4 +156,5 @@ else
 fi
 
 # Start WildFly
-su - jboss -c "/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0"
+# /usr/bin/su - jboss -c "/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0"
+/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0

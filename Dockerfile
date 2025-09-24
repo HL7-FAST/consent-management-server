@@ -1,7 +1,22 @@
 # syntax=docker/dockerfile:1
 
 #####################################
-# STAGE 1: Build WAR with Maven
+# STAGE 1: Create Java 11 JDK to be copied to final image
+#####################################
+FROM openjdk:11 AS jdk-builder
+
+# Build small JDK image
+RUN $JAVA_HOME/bin/jlink \
+         --verbose \
+         --add-modules ALL-MODULE-PATH \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /optimized-jdk-11
+
+#####################################
+# STAGE 2: Build WAR with Maven
 #####################################
 FROM maven:3.9.9-eclipse-temurin-24 AS build
 
@@ -13,7 +28,7 @@ COPY . .
 RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=0.1.0-SNAPSHOT -DskipTests
 
 #####################################
-# STAGE 2: Final Image with MySQL + Wildfly
+# STAGE 3: Final Image with MySQL + Wildfly
 #####################################
 FROM mysql:8.0
 
@@ -38,11 +53,14 @@ RUN /entrypoint.sh mysqld & /tmp/wait_then_shutdown.sh
 
 # --- Wildfly + Java ---
 USER root
-RUN microdnf -y update && \
-    microdnf -y install java-11-openjdk-devel wget && \
-    microdnf clean all
 
-RUN useradd -ms /bin/bash jboss
+# copy JDK from the build image
+ENV JAVA_HOME=/opt/jdk/jdk-11
+COPY --from=jdk-builder /optimized-jdk-11 $JAVA_HOME
+
+RUN microdnf -y update && \
+    microdnf clean all && \
+    useradd -ms /bin/bash jboss
 
 ENV WILDFLY_VERSION=20.0.1.Final
 ENV WILDFLY_SHA1=95366b4a0c8f2e6e74e3e4000a98371046c83eeb
@@ -72,21 +90,18 @@ COPY ./docker/standalone.xml ${JBOSS_HOME}/standalone/configuration
 COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JBOSS_HOME}/standalone/deployments/
 COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/standalone/deployments/
 
-# FHIR Package
-RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
-ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
+# FAST Consent Package, Client resources, Server resources
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0 && \
+    mkdir -p /home/jboss/initializeClient && \
+    mkdir -p /home/jboss/initializeServer
 
-# Client resources
-RUN mkdir -p /home/jboss/initializeClient
 ADD ./docker/initializeClient /home/jboss/initializeClient
-
-# Server resources
-RUN mkdir -p /home/jboss/initializeServer
 ADD ./docker/initializeServer /home/jboss/initializeServer
 
 EXPOSE 3306 8080 8443 9990
 
 USER root
+ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /root/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 COPY ./docker/start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
