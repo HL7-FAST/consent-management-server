@@ -77,8 +77,8 @@ RUN cd /opt && mkdir jboss && \
     chown -R jboss:0 ${JBOSS_HOME} && \
     chmod -R g+rw ${JBOSS_HOME}
 
-USER jboss
-RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
+# USER jboss
+# RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
 
 ADD ./docker/mysql ${JBOSS_HOME}/modules/system/layers/base/com/mysql
 COPY ./docker/standalone.conf ${JBOSS_HOME}/bin
