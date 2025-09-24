@@ -65,6 +65,9 @@ ENV JAVA_HOME=/opt/jdk/jdk-11
 COPY --from=jdk-builder /optimized-jdk-11 $JAVA_HOME
 
 RUN microdnf -y update && \
+    microdnf -y install dnf && \
+    dnf -y install shadow-utils && \
+    dnf clean all && \
     microdnf clean all && \
     useradd -ms /bin/bash jboss
 
@@ -111,6 +114,7 @@ RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0 && 
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
+ADD ./hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 ADD ./initializeClient /home/jboss/initializeClient
 ADD ./initializeServer /home/jboss/initializeServer
 
@@ -118,7 +122,6 @@ ADD ./initializeServer /home/jboss/initializeServer
 EXPOSE 3306 8080 8443 9990
 
 USER root
-ADD ./hl7.fhir.us.consent-management#0.1.0 /root/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 
 # Start script
 COPY start.sh /opt/start.sh

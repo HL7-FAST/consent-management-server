@@ -59,6 +59,9 @@ ENV JAVA_HOME=/opt/jdk/jdk-11
 COPY --from=jdk-builder /optimized-jdk-11 $JAVA_HOME
 
 RUN microdnf -y update && \
+    microdnf -y install dnf && \
+    dnf -y install shadow-utils && \
+    dnf clean all && \
     microdnf clean all && \
     useradd -ms /bin/bash jboss
 
@@ -77,8 +80,8 @@ RUN cd /opt && mkdir jboss && \
     chown -R jboss:0 ${JBOSS_HOME} && \
     chmod -R g+rw ${JBOSS_HOME}
 
-# USER jboss
-# RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
+USER jboss
+RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
 
 ADD ./docker/mysql ${JBOSS_HOME}/modules/system/layers/base/com/mysql
 COPY ./docker/standalone.conf ${JBOSS_HOME}/bin
@@ -95,13 +98,13 @@ RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0 && 
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
+ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 ADD ./docker/initializeClient /home/jboss/initializeClient
 ADD ./docker/initializeServer /home/jboss/initializeServer
 
 EXPOSE 3306 8080 8443 9990
 
 USER root
-ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /root/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
 COPY ./docker/start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
