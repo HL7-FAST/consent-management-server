@@ -81,13 +81,15 @@ RUN cd /opt && mkdir jboss && \
     chmod -R g+rw ${JBOSS_HOME}
 
 USER jboss
-RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
 
 ADD ./docker/mysql ${JBOSS_HOME}/modules/system/layers/base/com/mysql
+COPY ./docker/add-user.sh $JBOSS_HOME/bin
 COPY ./docker/standalone.conf ${JBOSS_HOME}/bin
 COPY ./docker/standalone.sh ${JBOSS_HOME}/bin
 # RUN chmod +x ${JBOSS_HOME}/bin/standalone.sh
 COPY ./docker/standalone.xml ${JBOSS_HOME}/standalone/configuration
+
+RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
 
 # ✅ COPY WAR FROM MAVEN BUILD STAGE
 COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JBOSS_HOME}/standalone/deployments/
