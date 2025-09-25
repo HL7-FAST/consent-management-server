@@ -84,6 +84,7 @@ USER jboss
 
 ADD ./docker/mysql ${JBOSS_HOME}/modules/system/layers/base/com/mysql
 COPY ./docker/add-user.sh $JBOSS_HOME/bin
+RUN chmod +x ${JBOSS_HOME}/bin/add-user.sh
 COPY ./docker/standalone.conf ${JBOSS_HOME}/bin
 COPY ./docker/standalone.sh ${JBOSS_HOME}/bin
 # RUN chmod +x ${JBOSS_HOME}/bin/standalone.sh
