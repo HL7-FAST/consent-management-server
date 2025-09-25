@@ -1,0 +1,29 @@
+.attach*
+*.out
+/bin
+/target
+target/
+.idea/
+.metadata/
+RemoteSystemsTempFiles/
+Servers/
+*.iml
+*.log
+*.log*
+nohup.out
+.DS_Store
+*.orig
+tmp.txt
+*.hprof
+tmp.txt
+.java-version
+
+
+# Maven #
+**/target/
+
+
+# Package Files #
+*.jar
+*.ear
+*.class
