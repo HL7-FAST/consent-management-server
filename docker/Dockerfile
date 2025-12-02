@@ -3,7 +3,7 @@
 #########################################################
 # STAGE 1: Create Java 11 JDK to be copied to final image
 #########################################################
-FROM openjdk:11 AS jdk-builder
+FROM eclipse-temurin:11 AS jdk-builder
 
 # Build small JDK image
 RUN $JAVA_HOME/bin/jlink \
