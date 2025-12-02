@@ -125,14 +125,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 							rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "actor", 0, actor.getReference(), null);
 							resourcemetadataList.addAll(rMetadataChain);
 
-							// FAST Consent IG
-							// organizationId
-							if ((actor.getReference().hasReference() && actor.getReference().getReference().indexOf("Organization") >= 0)
-									|| (actor.getReference().hasType() && actor.getReference().getType().equals("Organization"))) {
-								if (actor.getReference().hasIdentifier()) {
-									rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", actor.getReference().getIdentifier().getValue(), actor.getReference().getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(actor.getReference().getIdentifier()));
-									resourcemetadataList.add(rMetadata);
-								}
+							// FAST Consent IG - organizationId
+							// Consent.actor.reference may refer to other resource types but without the reference or reference.type we cannot
+							// insure the type is Organization. For now we simply take the identifier value if present.
+							if (actor.getReference().hasIdentifier()) {
+								rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", actor.getReference().getIdentifier().getValue(), actor.getReference().getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(actor.getReference().getIdentifier()));
+								resourcemetadataList.add(rMetadata);
 							}
 						}
 					}
@@ -286,13 +284,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 							rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "grantee", 0, consentRef, null);
 							resourcemetadataList.addAll(rMetadataChain);
 
-							// organizationId
-							if ((consentRef.hasReference() && consentRef.getReference().indexOf("Organization") >= 0)
-									|| (consentRef.hasType() && consentRef.getType().equals("Organization"))) {
-								if (consentRef.hasIdentifier()) {
-									rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
-									resourcemetadataList.add(rMetadata);
-								}
+							// FAST Consent IG - organizationId
+							// Consent.grantee.reference may refer to other resource types but without the reference or reference.type we cannot
+							// insure the type is Organization. For now we simply take the identifier value if present.
+							if (consentRef.hasIdentifier()) {
+								rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
+								resourcemetadataList.add(rMetadata);
 							}
 						}
 					}
@@ -302,13 +299,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 							rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "manager", 0, consentRef, null);
 							resourcemetadataList.addAll(rMetadataChain);
 
-							// organizationId
-							if ((consentRef.hasReference() && consentRef.getReference().indexOf("Organization") >= 0)
-									|| (consentRef.hasType() && consentRef.getType().equals("Organization"))) {
-								if (consentRef.hasIdentifier()) {
-									rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
-									resourcemetadataList.add(rMetadata);
-								}
+							// FAST Consent IG - organizationId
+							// Consent.manager.reference may refer to other resource types but without the reference or reference.type we cannot
+							// insure the type is Organization. For now we simply take the identifier value if present.
+							if (consentRef.hasIdentifier()) {
+								rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
+								resourcemetadataList.add(rMetadata);
 							}
 						}
 					}
@@ -318,13 +314,12 @@ public class ResourcemetadataConsent extends ResourcemetadataProxy {
 							rMetadataChain = this.generateChainedResourcemetadataAny(resource, chainedResource, baseUrl, resourceService, chainedParameter, "controller", 0, consentRef, null);
 							resourcemetadataList.addAll(rMetadataChain);
 
-							// organizationId
-							if ((consentRef.hasReference() && consentRef.getReference().indexOf("Organization") >= 0)
-									|| (consentRef.hasType() && consentRef.getType().equals("Organization"))) {
-								if (consentRef.hasIdentifier()) {
-									rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
-									resourcemetadataList.add(rMetadata);
-								}
+							// FAST Consent IG - organizationId
+							// Consent.controller.reference may refer to other resource types but without the reference or reference.type we cannot
+							// insure the type is Organization. For now we simply take the identifier value if present.
+							if (consentRef.hasIdentifier()) {
+								rMetadata = generateResourcemetadata(resource, chainedResource, chainedParameter+"organizationId", consentRef.getIdentifier().getValue(), consentRef.getIdentifier().getSystem(), null, ServicesUtil.INSTANCE.getTextValue(consentRef.getIdentifier()));
+								resourcemetadataList.add(rMetadata);
 							}
 						}
 					}
