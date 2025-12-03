@@ -97,11 +97,11 @@ COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JB
 COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/standalone/deployments/
 
 # FAST Consent Package, Client resources, Server resources
-RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0 && \
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot && \
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
-ADD ./docker/hl7.fhir.us.consent-management#1.0.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0
+ADD ./docker/hl7.fhir.us.consent-management#1.0.0-ballot /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot
 ADD ./docker/initializeClient /home/jboss/initializeClient
 ADD ./docker/initializeServer /home/jboss/initializeServer
 
