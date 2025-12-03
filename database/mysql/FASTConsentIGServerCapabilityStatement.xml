@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CapabilityStatement xmlns="http://hl7.org/fhir">
+<CapabilityStatement
+	xmlns="http://hl7.org/fhir">
 	<id value="ConsentAdministrativeServerCapabilities"/>
 	<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-wg">
 		<valueCode value="cbcc"/>
@@ -19,7 +20,7 @@
 		</valueCode>
 	</extension>
 	<url value="http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities"/>
-	<version value="0.1.0"/>
+	<version value="1.0.0-ballot"/>
 	<name value="ConsentAdministrativeServer"/>
 	<title value="Consent Administrative Server Capabilities"/>
 	<status value="active"/>
@@ -30,7 +31,7 @@
 		<name value="HL7 International / Community Based Collaborative Care"/>
 		<telecom>
 			<system value="url"/>
-			<value value="http://www.hl7.org/Special/committees/cbcc"/>
+			<value value="http://www.hl7.org/Special/committees/homehealth"/>
 		</telecom>
 	</contact>
 	<description value="Capabilities required for a server system receiving consents."/>
@@ -125,10 +126,6 @@
 				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent"/>
 			</operation>
 			<operation>
-				<name value="updateConsent"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent"/>
-			</operation>
-			<operation>
 				<name value="revokeConsent"/>
 				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent"/>
 			</operation>
@@ -190,7 +187,6 @@
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/UpdateConsentParameters"/>
 		</resource>
 		<resource>
 			<type value="QuestionnaireResponse"/>

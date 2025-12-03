@@ -25,7 +25,7 @@ WORKDIR /app
 COPY . .
 
 # Build with Maven (assigning version and build values, skipping tests)
-RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=0.1.0-SNAPSHOT -DskipTests
+RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=1.0.0-SNAPSHOT -DskipTests
 
 #####################################
 # STAGE 3: Final Image with MySQL + Wildfly
@@ -97,11 +97,11 @@ COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JB
 COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/standalone/deployments/
 
 # FAST Consent Package, Client resources, Server resources
-RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0 && \
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0 && \
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
-ADD ./docker/hl7.fhir.us.consent-management#0.1.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#0.1.0
+ADD ./docker/hl7.fhir.us.consent-management#1.0.0 /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0
 ADD ./docker/initializeClient /home/jboss/initializeClient
 ADD ./docker/initializeServer /home/jboss/initializeServer
 

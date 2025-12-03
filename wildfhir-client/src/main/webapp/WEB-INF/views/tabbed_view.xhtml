@@ -12,7 +12,7 @@
 	<p:tabView id="tabView" widgetVar="tabView" cache="false">
 
 		<p:ajax event="tabChange" listener="#{controller.onTabChange}"
-			update=":tabView:adminTabView:initializeClientForm,:tabView:adminTabView:serversForm,:tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:updateConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm,:tabView:subscriptionsTabView:subscriptionClientForm" />
+			update=":tabView:adminTabView:initializeClientForm,:tabView:adminTabView:serversForm,:tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm,:tabView:subscriptionsTabView:subscriptionClientForm" />
 
 		<ui:include src="/WEB-INF/views/about.xhtml" />
 		<ui:include src="/WEB-INF/views/operations_view.xhtml" />

@@ -917,7 +917,6 @@ public class ResourceType {
 		operationList.addAll(baseOperationList);
 		operationList.add(new LabelKeyValueBean("fileConsent", "consent", "http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent", "write"));
 		operationList.add(new LabelKeyValueBean("revokeConsent", "consent", "http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent", "write"));
-		operationList.add(new LabelKeyValueBean("updateConsent", "consent", "http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent", "write"));
 		resourceOperations.put("Consent", operationList);
 
 		operationList = new ArrayList<LabelKeyValueBean>();

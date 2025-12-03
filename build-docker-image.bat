@@ -25,6 +25,6 @@ IF NOT EXIST "%path_to_server_war%%wildfhirce_server_war%" (
 )
 
 :docker_build
-docker build -t hlseven/fast-consent-management-server:0.1.0 .
+docker build -t hlseven/fast-consent-management-server:1.0.0 .
 
 :end
