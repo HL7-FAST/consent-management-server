@@ -29,7 +29,7 @@ before_script:
   - sudo chown -R travis:travis "$HOME/.m2/repository";
 
 script:
-  - mvn clean process-resources "-DbuildNumber=$TRAVIS_BUILD_NUMBER" "-DbuildVersion=0.1.0-SNAPSHOT" "-Dmaven.test.skip=true" install
+  - mvn clean process-resources "-DbuildNumber=$TRAVIS_BUILD_NUMBER" "-DbuildVersion=1.0.0-SNAPSHOT" "-Dmaven.test.skip=true" install
 
 
 

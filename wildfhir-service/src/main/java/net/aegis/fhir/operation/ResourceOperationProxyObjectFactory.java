@@ -102,9 +102,6 @@ public class ResourceOperationProxyObjectFactory {
 			else if (operationName.equals("revokeConsent")) {
 				proxy = new FASTConsentRevokeConsent();
 			}
-			else if (operationName.equals("updateConsent")) {
-				proxy = new FASTConsentUpdateConsent();
-			}
 		}
 		else if (resourceType.equals(ResourceType.Observation.name())) {
 			if (operationName.equals("lastn")) {

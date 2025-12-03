@@ -20,10 +20,9 @@
 		<p:tabView id="operationsTabView" widgetVar="operationsTabView" cache="false">
 
 			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
-				update=":tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:updateConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm" />
+				update=":tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm" />
 
 			<ui:include src="/WEB-INF/views/operations/fileConsent.xhtml" />
-			<ui:include src="/WEB-INF/views/operations/updateConsent.xhtml" />
 			<ui:include src="/WEB-INF/views/operations/revokeConsent.xhtml" />
 			<ui:include src="/WEB-INF/views/operations/recordDisclosure.xhtml" />
 

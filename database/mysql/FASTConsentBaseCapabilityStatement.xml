@@ -3,12 +3,12 @@
 <CapabilityStatement xmlns="http://hl7.org/fhir">
 	<id value="0"/>
 	<url value="http://localhost:8080/r4/metadata"/>
-	<version value="0.1.0-FASTConsent"/>
+	<version value="1.0.0-FASTConsent"/>
 	<name value="FASTConsentAdministrativeServerRI"/>
 	<title value="FAST Consent Administrative Server RI Capabilities"/>
 	<status value="active"/>
 	<experimental value="false"/>
-	<date value="2025-04-30T19:00:00Z"/>
+	<date value="2025-12-02T18:00:00Z"/>
 	<publisher value="HL7 International / Community Based Collaborative Care"/>
 	<contact>
 		<name value="HL7 International / Community Based Collaborative Care"/>
@@ -4125,10 +4125,6 @@
 			<operation>
 				<name value="fileConsent"/>
 				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent"/>
-			</operation>
-			<operation>
-				<name value="updateConsent"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/update-consent"/>
 			</operation>
 			<operation>
 				<name value="revokeConsent"/>
@@ -13632,7 +13628,6 @@
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/UpdateConsentParameters"/>
 		</resource>
 		<resource>
 			<type value="Patient"/>
