@@ -195,7 +195,8 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 
 				// Add R4 Parameters (SubscriptionStatus) to subscription notification bundle
 				subscriptionEntry = new BundleEntryComponent();
-				subscriptionEntry.setFullUrl("uuid:" + aegisResource.getResourceId());
+				subscriptionEntry.setFullUrl(baseUrl + "/Parameters/" + aegisResource.getResourceId());
+				pSubscriptionStatus.setId(aegisResource.getResourceId());
 				subscriptionEntry.setResource(pSubscriptionStatus);
 				// Set request and response
 				BundleEntryRequestComponent entryRequest = new BundleEntryRequestComponent();

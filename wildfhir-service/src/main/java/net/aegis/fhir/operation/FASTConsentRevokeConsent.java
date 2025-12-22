@@ -454,8 +454,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				// Update Consent
 				createUpdateResource = new net.aegis.fhir.model.Resource();
 
-				// Set Consent.status to 'rejected'
-				consent.setStatus(ConsentState.REJECTED);
+				// Set Consent.status to 'inactive' to represent a revoked status
+				consent.setStatus(ConsentState.INACTIVE);
 
 				// Set Consent.source if needed
 				if (sourceReference != null) {
