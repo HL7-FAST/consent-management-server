@@ -33,6 +33,7 @@
 package net.aegis.fhir.client;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -160,6 +161,8 @@ public class ApplicationContext implements Serializable {
 
 	private Date datePicker;
 
+	private LocalDateTime dateTimePicker;
+
 	private String selectedFormatType;
 
 	private List<String> formatTypes;
@@ -239,6 +242,7 @@ public class ApplicationContext implements Serializable {
 		this.pageReference = null;
 		this.resourceResults = null;
 		this.datePicker = null;
+		this.dateTimePicker = null;
 		this.validateOperationOutcome = null;
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
@@ -291,6 +295,7 @@ public class ApplicationContext implements Serializable {
 		this.pageReference = null;
 		this.resourceResults = null;
 		this.datePicker = null;
+		this.dateTimePicker = null;
 		this.validateOperationOutcome = null;
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
@@ -647,6 +652,14 @@ public class ApplicationContext implements Serializable {
 
 	public void setDatePicker(Date datePicker) {
 		this.datePicker = datePicker;
+	}
+
+	public LocalDateTime getDateTimePicker() {
+		return dateTimePicker;
+	}
+
+	public void setDateTimePicker(LocalDateTime dateTimePicker) {
+		this.dateTimePicker = dateTimePicker;
 	}
 
 	public String getSelectedFormatType() {

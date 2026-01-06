@@ -46,6 +46,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,7 +55,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import javax.faces.application.FacesMessage;
@@ -81,6 +82,13 @@ import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
+import org.hl7.fhir.r4.model.Consent.ConsentState;
+import org.hl7.fhir.r4.model.Consent.ProvisionComponent;
+import org.hl7.fhir.r4.model.Consent.provisionActorComponent;
+import org.hl7.fhir.r4.model.DocumentReference;
+import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
+import org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Meta;
@@ -97,13 +105,6 @@ import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
-import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
-import org.hl7.fhir.r4.model.Consent.ConsentState;
-import org.hl7.fhir.r4.model.Consent.ProvisionComponent;
-import org.hl7.fhir.r4.model.Consent.provisionActorComponent;
-import org.hl7.fhir.r4.model.DocumentReference;
-import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent;
-import org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus;
 import org.primefaces.event.TabChangeEvent;
 
 import net.aegis.fhir.client.ApplicationContext;
@@ -136,8 +137,7 @@ public class ApplicationController implements Serializable {
 
 	private static final long serialVersionUID = 5848069089082841377L;
 
-	@Inject
-	private Logger log;
+	private Logger log = Logger.getLogger("ApplicationController");
 
 	@Inject
 	UTCDateUtil utcDateUtil;
@@ -2444,23 +2444,25 @@ public class ApplicationController implements Serializable {
 	 * @param event
 	 */
 	public void processSubscriptions(ActionEvent event) {
-		log.fine("[START] ApplicationController.processSubscriptions()");
-		log.info("Subscription Criteria: ");
+		log.info("[START] ApplicationController.processSubscriptions()");
 
 		List<LabelKeyValueBean> results = null;
 
 		try {
 			if (context.getCodeService().isSupported("subscriptionServiceEnabled")) {
-				Date datePicker = context.getDatePicker();
+				LocalDateTime dateTimePicker = context.getDateTimePicker();
 
-				if (datePicker == null) {
+				if (dateTimePicker == null) {
 
 					FacesContext.getCurrentInstance().addMessage("tabView:subscriptionClientTab:subscriptionClientForm",
 							new FacesMessage(FacesMessage.SEVERITY_WARN, "Missing Criteria - please enter Since DateTime.", "Missing Criteria - please enter Since DateTime."));
 
 				}
 				else {
-					log.info("datePicker = " + utcDateUtil.formatDate(datePicker, UTCDateUtil.DATE_PARAMETER_FORMAT, TimeZone.getDefault()));
+					// Convert from LocalDateTime to Date in current time zone
+					Date datePicker = Date.from(dateTimePicker.atZone(ZoneId.of("GMT")).toInstant());
+
+					log.info("datePicker = " + utcDateUtil.formatDate(datePicker, UTCDateUtil.DATETIME_ONLY_PARAMETER_FORMAT));
 
 					results = context.getSubscriptionServiceR5().processSubscriptions(datePicker);
 
@@ -2490,7 +2492,7 @@ public class ApplicationController implements Serializable {
 			e1.printStackTrace();
 		}
 
-		log.fine("[END] ApplicationController.fhirProcessSubscriptions()");
+		log.info("[END] ApplicationController.fhirProcessSubscriptions()");
 	}
 
 	/**

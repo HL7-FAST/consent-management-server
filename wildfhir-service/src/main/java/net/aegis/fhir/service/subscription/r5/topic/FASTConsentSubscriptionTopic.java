@@ -120,7 +120,7 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 			 */
 
 			// Convert search parameter string into queryParams map
-			String paramsString = "subscription=Subscription/" + subscription.getId() + "type=event-notification&&_sort=-_lastUpdated&_count=1";
+			String paramsString = "subscription=Subscription/" + subscription.getId() + "&type=event-notification&_sort=-_lastUpdated&_count=1";
 			List<NameValuePair> params = URLEncodedUtils.parse(paramsString, Charset.defaultCharset());
 			MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 

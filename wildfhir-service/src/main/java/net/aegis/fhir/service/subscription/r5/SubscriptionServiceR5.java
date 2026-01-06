@@ -141,7 +141,7 @@ public class SubscriptionServiceR5 {
 		try {
 			// Construct _lastUpdated parameters string
 			StringBuilder sbSinceParams = new StringBuilder("_lastUpdated=ge")
-					.append(utcDateUtil.formatDate(since, UTCDateUtil.DATE_PARAMETER_FORMAT));
+					.append(utcDateUtil.formatDate(since, UTCDateUtil.DATETIME_ONLY_PARAMETER_FORMAT));
 
 			log.info("sbSinceParams [" + sbSinceParams.toString() + "]");
 
