@@ -24,7 +24,7 @@
 			<p:panelGrid id="subscriptionClientPanel2" columns="2" border="0"
 				cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 				<h:outputText value="Since DateTime: " />
-				<p:datePicker id="buttonbar" value="#{context.datePicker}" showButtonBar="true" pattern="yyyy-MM-dd" />
+				<p:datePicker id="buttonbar" value="#{context.dateTimePicker}" showButtonBar="true" showTime="true" showSeconds="true" hourFormat="24" pattern="yyyy-MM-dd HH:mm" />
 
 				<p:commandButton value="Process Subscriptions" icon="ui-icon-wrench"
 					actionListener="#{controller.processSubscriptions}"
