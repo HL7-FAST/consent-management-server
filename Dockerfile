@@ -98,10 +98,12 @@ COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/
 
 # FAST Consent Package, Client resources, Server resources
 RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot && \
+    mkdir -p /home/jboss/.fhir/packages/hl7.fhir.uv.subscriptions-backport.r4#1.1.0 && \
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
 ADD ./docker/hl7.fhir.us.consent-management#1.0.0-ballot /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot
+ADD ./docker/hl7.fhir.uv.subscriptions-backport.r4#1.1.0 /home/jboss/.fhir/packages/hl7.fhir.uv.subscriptions-backport.r4#1.1.0
 ADD ./docker/initializeClient /home/jboss/initializeClient
 ADD ./docker/initializeServer /home/jboss/initializeServer
 
