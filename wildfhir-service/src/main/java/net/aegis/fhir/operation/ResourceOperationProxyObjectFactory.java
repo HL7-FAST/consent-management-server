@@ -86,7 +86,7 @@ public class ResourceOperationProxyObjectFactory {
 			proxy = new GlobalVersions();
 		}
 		else if (resourceType.equals(ResourceType.AuditEvent.name())) {
-			if (operationName.equals("record-disclosure")) {
+			if (operationName.equals("recordDisclosure")) {
 				proxy = new FASTConsentRecordDisclosure();
 			}
 		}
