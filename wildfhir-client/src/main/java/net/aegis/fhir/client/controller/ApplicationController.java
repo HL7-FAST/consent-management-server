@@ -1380,13 +1380,13 @@ public class ApplicationController implements Serializable {
 			Patient patient = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(patientId));
 
 			if (patient != null) {
-				// Populate record-disclosure Consent list for selected Patient
+				// Populate recordDisclosure Consent list for selected Patient
 				context.setClientPatientConsents(patient);
 			}
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $record-disclosure handle Patient change! Please check the client logs. " + e.getMessage(), ""));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure handle Patient change! Please check the client logs. " + e.getMessage(), ""));
 			e.printStackTrace();
 		}
 	}
@@ -1590,7 +1590,7 @@ public class ApplicationController implements Serializable {
 		try {
 			String formatType = context.getSelectedFormatType();
 			log.info("Selected Format Type: " + formatType);
-			log.info("BasePath for $record-disclosure: " + context.getSelectedServerURL());
+			log.info("BasePath for $recordDisclosure: " + context.getSelectedServerURL());
 			Response response = null;
 			String fhirInteraction = context.getSelectedFhirInteraction();
 			Date startDate = context.getStartDate();
@@ -1758,7 +1758,7 @@ public class ApplicationController implements Serializable {
 
 			p.addParameter(param);
 
-			// Send $record-disclosure request
+			// Send $recordDisclosure request
 			JsonParser jsonParser = new JsonParser();
 			jsonParser.setOutputStyle(OutputStyle.PRETTY);
 			XmlParser xmlParser = new XmlParser();
@@ -1769,14 +1769,14 @@ public class ApplicationController implements Serializable {
 
 				context.setResourceString(oOp.toString());
 
-				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "record-disclosure", null, null);
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "recordDisclosure", null, null);
 			}
 			else {
 				xmlParser.compose(oOp, p, true);
 
 				context.setResourceString(oOp.toString());
 
-				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "record-disclosure", null, null);
+				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "recordDisclosure", null, null);
 			}
 
 			if (response != null) {
@@ -1790,12 +1790,12 @@ public class ApplicationController implements Serializable {
 				}
 
 				if (wrapper.getResponseStatus() < 400) {
-					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$record-disclosure request successfully processed.", ""));
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$recordDisclosure request successfully processed.", ""));
 
 					consent.setStatus(ConsentState.REJECTED);
 				}
 				else {
-					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$record-disclosure response failure [" + wrapper.getResponseStatus() + "].", ""));
+					FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$recordDisclosure response failure [" + wrapper.getResponseStatus() + "].", ""));
 
 					consent.setStatus(ConsentState.INACTIVE);
 				}
@@ -1803,12 +1803,12 @@ public class ApplicationController implements Serializable {
 			else {
 				context.setResponseString("ERROR: Response is empty!");
 				FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $record-disclosure! Response is empty.", ""));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Response is empty.", ""));
 			}
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:operationsTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Please check the client logs.", "Error processing $record-disclosure! Please check the client logs."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Please check the client logs.", "Error processing $recordDisclosure! Please check the client logs."));
 
 			context.setResourceString(e.getMessage());
 			
