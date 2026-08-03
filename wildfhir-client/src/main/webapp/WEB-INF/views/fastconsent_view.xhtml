@@ -1,0 +1,32 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the FAST Consent Operations Tab -->
+
+	<p:tab title="FAST Consent" id="fastconsentTab" cache="false">
+
+		<p:panelGrid id="fastconsentTabPanel1" columns="1" border="0"
+			cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+			<h:outputText value="FAST Consent Operations"
+				style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+			<h:outputText value="These interfaces use a small pre-defined test data set. See About for more info."
+				style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+		</p:panelGrid>
+
+		<p:tabView id="fastconsentTabView" widgetVar="fastconsentTabView" cache="false">
+
+			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
+				update=":tabView:fastconsentTabView:fileConsentForm,:tabView:fastconsentTabView:revokeConsentForm,:tabView:fastconsentTabView:recordDisclosureForm" />
+
+			<ui:include src="/WEB-INF/views/fastconsent/fileConsent.xhtml" />
+			<ui:include src="/WEB-INF/views/fastconsent/revokeConsent.xhtml" />
+			<ui:include src="/WEB-INF/views/fastconsent/recordDisclosure.xhtml" />
+
+		</p:tabView>
+	</p:tab>
+
+</ui:composition>

@@ -15,13 +15,13 @@ The live deployment of this RI application is hosted in the [HL7 FHIR Foundry](h
 
 ## Prerequisites
 Building and running the server locally requires either Docker or
-- Java 11+
-- Red Hat Wildfly 20.0.1.Final
+- Java 17+
+- Red Hat Wildfly 38.0.1.Final
 - MySQL Community Edition 8.0
 
 ## Using Red Hat Wildfly
 
-Please see the [WildFHIR Community Edition Wiki - Installation](https://github.com/AEGISnetInc/WildFHIR/wiki/Installation) instructions.
+Please see the [WildFHIR Community Edition Wiki - Installation](https://github.com/AEGISnetInc/WildFHIR/wiki/Installation-v0.6.0) instructions.
 
 ## Running via [Docker Hub](https://hub.docker.com/r/hlseven/fast-consent-management-server)
 

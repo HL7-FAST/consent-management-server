@@ -39,12 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -107,6 +107,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.read() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; ifModifiedSince: " + ifModifiedSince + "; ifNonMatch: " + ifNoneMatch + "; _format: " + _format + "; _summary: " + _summary);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -129,7 +130,7 @@ public class ResourceRESTClient implements Serializable {
 				}
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbReadUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -151,7 +152,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource read request uri: " + webTarget.getUri());
+			log.fine("Resource read request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -166,6 +167,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -183,22 +188,35 @@ public class ResourceRESTClient implements Serializable {
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
-	public Response vread(String resourceId, Integer versionId, String baseUrl, String resourceType, String contentType, String _format, List<String> headers) throws Exception {
+	public Response vread(String resourceId, String versionId, String baseUrl, String resourceType, String contentType, String _format, String _summary, List<String> headers) throws Exception {
 
-		log.fine("[START] ResourceRESTClient.vread() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; _format: " + _format);
+		log.fine("[START] ResourceRESTClient.vread() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; _format: " + _format + "; _summary: " + _summary);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
 
 			// Resource read - specific version
 			StringBuilder sbVreadUrl = new StringBuilder(buildURL(baseUrl, resourceType));
-			sbVreadUrl.append("/").append(resourceId).append("/_history/").append(versionId.toString());
-			if (!StringUtils.isEmpty(_format)) {
-				sbVreadUrl.append("?_format=").append(_format);
+			sbVreadUrl.append("/").append(resourceId).append("/_history/").append(versionId);
+			if (!StringUtils.isEmpty(_format) || !StringUtils.isEmpty(_summary)) {
+				int paramCount = 0;
+				sbVreadUrl.append("?");
+				if (!StringUtils.isEmpty(_format)) {
+					sbVreadUrl.append("_format=").append(_format);
+					paramCount++;
+				}
+				if (!StringUtils.isEmpty(_summary)) {
+					if (paramCount > 0) {
+						sbVreadUrl.append("&");
+					}
+					sbVreadUrl.append("_summary=").append(_summary);
+					paramCount++;
+				}
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbVreadUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -212,7 +230,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource vread request uri: " + webTarget.getUri());
+			log.fine("Resource vread request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -228,6 +246,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -251,6 +273,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.update() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; updateQuery: " + updateQuery + "; ifMatch: " + ifMatch + "; prefer: " + prefer + "; _format: " + _format);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
@@ -265,7 +288,7 @@ public class ResourceRESTClient implements Serializable {
 				sbUpdateUrl.append("?_format=").append(_format);
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbUpdateUrl.toString());
 
 			// Conditional Update parameters
@@ -298,7 +321,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource update request uri: " + webTarget.getUri());
+			log.fine("Resource update request uri: " + webTarget.getUri());
 
 			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 
@@ -320,7 +343,7 @@ public class ResourceRESTClient implements Serializable {
 				resourceResponse = targetBuilder.put(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
 			}
 
-			log.info("Resource object sent: " + sResource);
+			log.fine("Resource object sent: " + sResource);
 
 			if (resourceResponse.hasEntity()) {
 				resourceResponse.bufferEntity();
@@ -333,6 +356,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -357,6 +384,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.updateR5() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; updateQuery: " + updateQuery + "; ifMatch: " + ifMatch + "; prefer: " + prefer + "; _format: " + _format);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
@@ -371,7 +399,7 @@ public class ResourceRESTClient implements Serializable {
 				sbUpdateUrl.append("?_format=").append(_format);
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbUpdateUrl.toString());
 
 			// Conditional Update parameters
@@ -404,7 +432,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource update request uri: " + webTarget.getUri());
+			log.fine("Resource update request uri: " + webTarget.getUri());
 
 			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 
@@ -426,7 +454,7 @@ public class ResourceRESTClient implements Serializable {
 				resourceResponse = targetBuilder.put(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
 			}
 
-			log.info("Resource object sent: " + sResource);
+			log.fine("Resource object sent: " + sResource);
 
 			if (resourceResponse.hasEntity()) {
 				resourceResponse.bufferEntity();
@@ -439,6 +467,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -462,6 +494,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.patch() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; ifMatch: " + ifMatch + "; prefer: " + prefer + "; _format: " + _format);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -472,7 +505,7 @@ public class ResourceRESTClient implements Serializable {
 				sbUpdateUrl.append("?_format=").append(_format);
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbUpdateUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -504,9 +537,9 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource patch request uri: " + webTarget.getUri());
+			log.fine("Resource patch request uri: " + webTarget.getUri());
 
-			log.info("Patch object to be sent: " + patchString);
+			log.fine("Patch object to be sent: " + patchString);
 
 			if (contentType.toLowerCase().indexOf("xml-patch") >= 0) {
 				resourceResponse = targetBuilder.method("PATCH", Entity.entity(patchString, "application/xml-patch+xml; charset=utf-8"));
@@ -533,6 +566,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -552,13 +589,14 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.delete() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
 			// Response delete - latest version
 			String sDelete = buildURL(baseUrl, resourceType) + "/" + resourceId;
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sDelete);
 			Builder targetBuilder = webTarget.request();
 
@@ -572,7 +610,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource delete request uri: " + webTarget.getUri());
+			log.fine("Resource delete request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.delete();
 
@@ -587,6 +625,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -609,6 +651,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.history() - resourceId: " + resourceId + "; baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; _format: " + _format + "; _count: " + _since + "; _since: " + _count);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -640,7 +683,7 @@ public class ResourceRESTClient implements Serializable {
 				}
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbHistoryUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -654,7 +697,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource history request uri: " + webTarget.getUri());
+			log.fine("Resource history request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -669,6 +712,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -686,6 +733,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.historyPage() - historyPageUrl: " + historyPageUrl);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -693,7 +741,7 @@ public class ResourceRESTClient implements Serializable {
 			// Response history page
 			historyPageUrl = StringEscapeUtils.unescapeXml(historyPageUrl);
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(historyPageUrl);
 			Builder targetBuilder = webTarget.request();
 
@@ -707,7 +755,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource history request uri: " + webTarget.getUri());
+			log.fine("Resource history request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -722,6 +770,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -743,6 +795,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.create() - baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; ifNoneExist: " + ifNoneExist + "; prefer: " + prefer + "; _format: " + _format);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
@@ -756,7 +809,7 @@ public class ResourceRESTClient implements Serializable {
 				sbCreateUrl.append("?_format=").append(_format);
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbCreateUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -780,7 +833,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource update request uri: " + webTarget.getUri());
+			log.fine("Resource update request uri: " + webTarget.getUri());
 
 			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 
@@ -801,7 +854,7 @@ public class ResourceRESTClient implements Serializable {
 				resourceResponse = targetBuilder.post(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
 			}
 
-			log.info("Resource object sent: " + sResource);
+			log.fine("Resource object sent: " + sResource);
 
 			if (resourceResponse.hasEntity()) {
 				resourceResponse.bufferEntity();
@@ -814,6 +867,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -836,6 +893,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.createR5() - baseUrl: " + baseUrl + "; resourceType: " + resourceType + "; contentType: " + contentType + "; ifNoneExist: " + ifNoneExist + "; prefer: " + prefer + "; _format: " + _format);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		ByteArrayOutputStream oResource = new ByteArrayOutputStream();
@@ -849,7 +907,7 @@ public class ResourceRESTClient implements Serializable {
 				sbCreateUrl.append("?_format=").append(_format);
 			}
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sbCreateUrl.toString());
 			Builder targetBuilder = webTarget.request();
 
@@ -873,7 +931,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource update request uri: " + webTarget.getUri());
+			log.fine("Resource update request uri: " + webTarget.getUri());
 
 			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 
@@ -894,7 +952,7 @@ public class ResourceRESTClient implements Serializable {
 				resourceResponse = targetBuilder.post(Entity.entity(sResource, "application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion));
 			}
 
-			log.info("Resource object sent: " + sResource);
+			log.fine("Resource object sent: " + sResource);
 
 			if (resourceResponse.hasEntity()) {
 				resourceResponse.bufferEntity();
@@ -907,6 +965,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -928,6 +990,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.searchGet() - resourceType: " + resourceType + "; contentType: " + contentType + "; _format: " + _format + "; _summary: " + _summary);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -947,9 +1010,9 @@ public class ResourceRESTClient implements Serializable {
 			// Next add parameter map keys and values
 			for (String key : parameterMap.keySet()) {
 				keyValue = parameterMap.get(key);
-				log.info("parameterMap.key = " + key + "; value = " + keyValue);
+				log.fine("parameterMap.key = " + key + "; value = " + keyValue);
 				if (keyValue.startsWith(":")) {
-					log.info("Modifier found; Split on expected equals sign...");
+					log.fine("Modifier found; Split on expected equals sign...");
 					String[] splitValue = keyValue.split("=");
 					if (splitValue.length > 1) {
 						splitValue1 = StringEscapeUtils.escapeHtml4(splitValue[1]);
@@ -960,7 +1023,7 @@ public class ResourceRESTClient implements Serializable {
 					criteriaMap.add(key + splitValue[0], splitValue1);
 				}
 				else {
-					log.info("No modifier found...");
+					log.fine("No modifier found...");
 					criteriaMap.add(key, keyValue);
 				}
 			}
@@ -968,7 +1031,7 @@ public class ResourceRESTClient implements Serializable {
 			// Patient search
 			String sSearch = buildURL(baseUrl, resourceType);
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sSearch);
 
 			// set query parameters
@@ -988,7 +1051,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource Search request uri: " + webTarget.getUri());
+			log.fine("Resource Search request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -1003,6 +1066,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -1024,6 +1091,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.searchPost() - resourceType: " + resourceType + "; contentType: " + contentType + "; _format: " + _format + "; _summary: " + _summary);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -1043,9 +1111,9 @@ public class ResourceRESTClient implements Serializable {
 			// Next add parameter map keys and values
 			for (String key : parameterMap.keySet()) {
 				keyValue = parameterMap.get(key);
-				log.info("parameterMap.key = " + key + "; value = " + keyValue);
+				log.fine("parameterMap.key = " + key + "; value = " + keyValue);
 				if (keyValue.startsWith(":")) {
-					log.info("Modifier found; Split on expected equals sign...");
+					log.fine("Modifier found; Split on expected equals sign...");
 					String[] splitValue = keyValue.split("=");
 					if (splitValue.length > 1) {
 						splitValue1 = StringEscapeUtils.escapeHtml4(splitValue[1]);
@@ -1056,7 +1124,7 @@ public class ResourceRESTClient implements Serializable {
 					criteriaMap.add(key + splitValue[0], splitValue1);
 				}
 				else {
-					log.info("No modifier found...");
+					log.fine("No modifier found...");
 					criteriaMap.add(key, keyValue);
 				}
 			}
@@ -1064,7 +1132,7 @@ public class ResourceRESTClient implements Serializable {
 			// Patient search
 			String sSearch = buildURL(baseUrl, resourceType) + "/_search";
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sSearch);
 
 			// set query parameters
@@ -1086,7 +1154,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource Search request uri: " + webTarget.getUri());
+			log.fine("Resource Search request uri: " + webTarget.getUri());
 
 			if (contentType != null && contentType.toLowerCase().indexOf("json") >= 0) {
 				resourceResponse = targetBuilder.post(Entity.entity("", "application/fhir+json" + Constants.CHARSET_UTF8_EXT + fhirVersion));
@@ -1106,6 +1174,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -1123,6 +1195,7 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.searchPage() - searchPageUrl: " + searchPageUrl);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
@@ -1130,7 +1203,7 @@ public class ResourceRESTClient implements Serializable {
 			// Response history page
 			searchPageUrl = StringEscapeUtils.unescapeXml(searchPageUrl);
 
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(searchPageUrl);
 			Builder targetBuilder = webTarget.request();
 
@@ -1144,7 +1217,7 @@ public class ResourceRESTClient implements Serializable {
 			// Add any additional headers
 			targetBuilder = addHeaders(targetBuilder, headers);
 
-			log.info("Resource search request uri: " + webTarget.getUri());
+			log.fine("Resource search request uri: " + webTarget.getUri());
 
 			resourceResponse = targetBuilder.get();
 
@@ -1159,6 +1232,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -1176,11 +1253,12 @@ public class ResourceRESTClient implements Serializable {
 
 		log.fine("[START] ResourceRESTClient.get() - baseUrl: " + baseUrl + "; params: " + params);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
 			// Response post
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(buildURL(baseUrl, params));
 			Builder targetBuilder = webTarget.request();
 
@@ -1200,6 +1278,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -1216,13 +1298,14 @@ public class ResourceRESTClient implements Serializable {
 	 */
 	public Response post(String baseUrl, String params, String payload, String contentType, List<String> headers) throws Exception {
 
-		log.info("[START] ResourceRESTClient.post() - baseUrl: " + baseUrl + "; params: " + (params != null ? params : "null") + "; payload: [snipped]; contentType: " + contentType);
+		log.fine("[START] ResourceRESTClient.post() - baseUrl: " + baseUrl + "; params: " + (params != null ? params : "null") + "; payload: [snipped]; contentType: " + contentType);
 
+		ResteasyClient client = null;
 		Response resourceResponse = null;
 
 		try {
 			// Response post
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(buildURL(baseUrl, params));
 			Builder targetBuilder = webTarget.request();
 
@@ -1248,6 +1331,10 @@ public class ResourceRESTClient implements Serializable {
 			// Exception caught
 			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return resourceResponse;
@@ -1323,17 +1410,17 @@ public class ResourceRESTClient implements Serializable {
 		if (response != null) {
 			if (response.getHeaders() != null) {
 
-				log.info("----- HTTP HEADERS (RESPONSE) -----");
+				log.fine("----- HTTP HEADERS (RESPONSE) -----");
 
 				for (String key : response.getHeaders().keySet()) {
-					log.info("header(" + key + ") is " + response.getHeaders().get(key).toString());
+					log.fine("header(" + key + ") is " + response.getHeaders().get(key).toString());
 				}
 			}
 
-			log.info("----- RESPONSE STATUS -----");
-			log.info(Integer.toString(response.getStatus()));
+			log.fine("----- RESPONSE STATUS -----");
+			log.fine(Integer.toString(response.getStatus()));
 
-			log.info("----- PAYLOAD ----- [snipped; use fine logging]");
+			log.fine("----- PAYLOAD ----- [snipped; use fine logging]");
 			String entity = null;
 			if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
 				entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
@@ -1348,7 +1435,7 @@ public class ResourceRESTClient implements Serializable {
 
 		}
 		else {
-			log.info("Response is NULL.");
+			log.fine("Response is NULL.");
 		}
 	}
 

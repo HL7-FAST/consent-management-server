@@ -33,7 +33,11 @@
 package net.aegis.fhir.client;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,10 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
@@ -61,6 +65,7 @@ import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ServerdirectoryService;
 import net.aegis.fhir.service.SubscriptionactivityService;
 import net.aegis.fhir.service.client.ConformanceResourceRESTClient;
+import net.aegis.fhir.service.client.FHIRPathEvaluatorRESTClient;
 import net.aegis.fhir.service.client.ResourceOperationRESTClient;
 import net.aegis.fhir.service.client.ResourceRESTClient;
 import net.aegis.fhir.service.subscription.r5.SubscriptionServiceR5;
@@ -74,7 +79,7 @@ import net.aegis.fhir.service.subscription.r5.SubscriptionServiceR5;
  * @author richard.ettema
  *
  */
-@ManagedBean(name = "context", eager = true)
+@Named("context")
 @SessionScoped
 public class ApplicationContext implements Serializable {
 
@@ -97,6 +102,8 @@ public class ApplicationContext implements Serializable {
 	private ResourceOperationRESTClient resourceOperationClient;
 
 	private ConformanceResourceRESTClient conformanceResourceRESTClient;
+
+	private FHIRPathEvaluatorRESTClient fhirpathEvaluatorRESTClient;
 
 	private String resourceId;
 	private String resourceVersion;
@@ -140,6 +147,10 @@ public class ApplicationContext implements Serializable {
 	// This ensures that only components for the current view are enabled
 	private String currentView;
 
+	private String expressionString;
+
+	private String methodString;
+
 	private String resourceString;
 
 	private String resource2String;
@@ -159,19 +170,27 @@ public class ApplicationContext implements Serializable {
 	// LabelKeyValueBean list
 	private List<LabelKeyValueBean> listLabelKeyValue;
 
-	private Date datePicker;
-
 	private LocalDateTime dateTimePicker;
+
+	private String convertFromFormatType;
+
+	private String convertToFormatType;
 
 	private String selectedFormatType;
 
 	private List<String> formatTypes;
+
+	private String selectedPatchFormatType;
+
+	private List<String> patchFormatTypes;
 
 	private String selectedHttpOperation;
 
 	private String selectedFhirInteraction;
 
 	private List<String> fhirInteractions;
+
+	private OperationOutcomeWrapper convertFormatOperationOutcome;
 
 	private OperationOutcomeWrapper validateOperationOutcome;
 
@@ -192,6 +211,8 @@ public class ApplicationContext implements Serializable {
 	private String selectedSubscriptionPayloadType;
 	private List<LabelKeyValueBean> listSubscriptionContentTypes;
 	private String selectedSubscriptionContentType;
+
+	private Date subscriptionLastProcessed;
 
 	// Consent operations
 	private List<Clientresource> clientConsents;
@@ -219,6 +240,7 @@ public class ApplicationContext implements Serializable {
 		this.resourceRESTClient = new ResourceRESTClient(codeService);
 		this.resourceOperationClient = new ResourceOperationRESTClient(codeService);
 		this.conformanceResourceRESTClient = new ConformanceResourceRESTClient(codeService);
+		this.fhirpathEvaluatorRESTClient = new FHIRPathEvaluatorRESTClient(codeService);
 		this.newServer = new Serverdirectory();
 		this.currentView = "";
 		this.selectedHttpOperation = "GET";
@@ -241,8 +263,8 @@ public class ApplicationContext implements Serializable {
 		this._summary = "";
 		this.pageReference = null;
 		this.resourceResults = null;
-		this.datePicker = null;
 		this.dateTimePicker = null;
+		this.convertFormatOperationOutcome = null;
 		this.validateOperationOutcome = null;
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
@@ -251,6 +273,7 @@ public class ApplicationContext implements Serializable {
 		this.subscriptionEndpoint = null;
 		this.selectedSubscriptionPayloadType = null;
 		this.selectedSubscriptionContentType = null;
+		this.subscriptionLastProcessed = null;
 		this.selectedConsentId = null;
 		this.selectedPatientConsentId = null;
 		this.selectedPatientId = null;
@@ -294,8 +317,8 @@ public class ApplicationContext implements Serializable {
 		this._summary = "";
 		this.pageReference = null;
 		this.resourceResults = null;
-		this.datePicker = null;
 		this.dateTimePicker = null;
+		this.convertFormatOperationOutcome = null;
 		this.validateOperationOutcome = null;
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
@@ -354,12 +377,8 @@ public class ApplicationContext implements Serializable {
 		return ResourceType.getSupportedResourceTypes();
 	}
 
-	public ClientresourceService getClientresourceService() {
-		return clientresourceService;
-	}
-
-	public void setClientresourceService(ClientresourceService clientresourceService) {
-		this.clientresourceService = clientresourceService;
+	public List<String> getEverythingResourceTypes() {
+		return ResourceType.getEverythingResourceTypes();
 	}
 
 	public ConformanceResourceRESTClient getConformanceResourceRESTClient() {
@@ -368,6 +387,22 @@ public class ApplicationContext implements Serializable {
 
 	public void setConformanceResourceRESTClient(ConformanceResourceRESTClient conformanceResourceRESTClient) {
 		this.conformanceResourceRESTClient = conformanceResourceRESTClient;
+	}
+
+	public FHIRPathEvaluatorRESTClient getFhirpathEvaluatorRESTClient() {
+		return fhirpathEvaluatorRESTClient;
+	}
+
+	public void setFhirpathEvaluatorRESTClient(FHIRPathEvaluatorRESTClient fhirpathEvaluatorRESTClient) {
+		this.fhirpathEvaluatorRESTClient = fhirpathEvaluatorRESTClient;
+	}
+
+	public ClientresourceService getClientresourceService() {
+		return clientresourceService;
+	}
+
+	public void setClientresourceService(ClientresourceService clientresourceService) {
+		this.clientresourceService = clientresourceService;
 	}
 
 	public CodeService getCodeService() {
@@ -579,6 +614,22 @@ public class ApplicationContext implements Serializable {
 		this.currentView = currentView;
 	}
 
+	public String getExpressionString() {
+		return expressionString;
+	}
+
+	public void setExpressionString(String expressionString) {
+		this.expressionString = expressionString;
+	}
+
+	public String getMethodString() {
+		return methodString;
+	}
+
+	public void setMethodString(String methodString) {
+		this.methodString = methodString;
+	}
+
 	public String getResourceString() {
 		return resourceString;
 	}
@@ -646,20 +697,28 @@ public class ApplicationContext implements Serializable {
 		this.listLabelKeyValue = listLabelKeyValue;
 	}
 
-	public Date getDatePicker() {
-		return datePicker;
-	}
-
-	public void setDatePicker(Date datePicker) {
-		this.datePicker = datePicker;
-	}
-
 	public LocalDateTime getDateTimePicker() {
 		return dateTimePicker;
 	}
 
 	public void setDateTimePicker(LocalDateTime dateTimePicker) {
 		this.dateTimePicker = dateTimePicker;
+	}
+
+	public String getConvertFromFormatType() {
+		return convertFromFormatType;
+	}
+
+	public void setConvertFromFormatType(String convertFromFormatType) {
+		this.convertFromFormatType = convertFromFormatType;
+	}
+
+	public String getConvertToFormatType() {
+		return convertToFormatType;
+	}
+
+	public void setConvertToFormatType(String convertToFormatType) {
+		this.convertToFormatType = convertToFormatType;
 	}
 
 	public String getSelectedFormatType() {
@@ -680,6 +739,28 @@ public class ApplicationContext implements Serializable {
 			formatTypes.add("XML");
 		}
 		return formatTypes;
+	}
+
+	public String getSelectedPatchFormatType() {
+		if (selectedPatchFormatType == null) {
+			selectedPatchFormatType = "FHIR Path (JSON)";
+		}
+		return selectedPatchFormatType;
+	}
+
+	public void setSelectedPatchFormatType(String selectedPatchFormatType) {
+		this.selectedPatchFormatType = selectedPatchFormatType;
+	}
+
+	public List<String> getPatchFormatTypes() {
+		if (patchFormatTypes == null) {
+			patchFormatTypes = new ArrayList<String>();
+			patchFormatTypes.add("FHIR Path (JSON)");
+			patchFormatTypes.add("FHIR Path (XML)");
+			patchFormatTypes.add("JSON Patch");
+			patchFormatTypes.add("XML Patch");
+		}
+		return patchFormatTypes;
 	}
 
 	public String getSelectedHttpOperation() {
@@ -712,6 +793,14 @@ public class ApplicationContext implements Serializable {
 
 	public void setFhirInteractions(List<String> fhirInteractions) {
 		this.fhirInteractions = fhirInteractions;
+	}
+
+	public OperationOutcomeWrapper getConvertFormatOperationOutcome() {
+		return convertFormatOperationOutcome;
+	}
+
+	public void setConvertFormatOperationOutcome(OperationOutcome convertFormatOperationOutcome) {
+		this.convertFormatOperationOutcome = new OperationOutcomeWrapper(convertFormatOperationOutcome);
 	}
 
 	public OperationOutcomeWrapper getValidateOperationOutcome() {
@@ -859,6 +948,24 @@ public class ApplicationContext implements Serializable {
 		this.selectedSubscriptionContentType = selectedSubscriptionContentType;
 	}
 
+	public Date getSubscriptionLastProcessed() {
+		if (this.subscriptionLastProcessed == null) {
+			// Initialize to 1 year from today
+			LocalDate lastYear = LocalDate.now().minusYears(1);
+			this.subscriptionLastProcessed = Date.from(lastYear.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		return subscriptionLastProcessed;
+	}
+
+	public void setSubscriptionLastProcessed(Date subscriptionLastProcessed) {
+		this.subscriptionLastProcessed = subscriptionLastProcessed;
+	}
+
+	public String getSubscriptionLastProcessedFormatted() {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		return formatter.format(this.getSubscriptionLastProcessed());
+	}
+
 	public List<Clientresource> getClientConsents() {
 		return clientConsents;
 	}
@@ -983,4 +1090,19 @@ public class ApplicationContext implements Serializable {
 		this.startDate = startDate;
 	}
 
+	public String getFhirPackages() {
+		String packages;
+
+		try {
+			packages = System.getenv("FHIR_PACKAGES");
+			if (packages == null) {
+				packages = "not defined";
+			}
+		}
+		catch (Exception e) {
+			packages = "not found";
+		}
+
+		return packages;
+	}
 }

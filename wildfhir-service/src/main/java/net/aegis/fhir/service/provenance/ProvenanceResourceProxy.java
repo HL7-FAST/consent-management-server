@@ -38,8 +38,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.exceptions.FHIRException;
@@ -112,7 +112,7 @@ public abstract class ProvenanceResourceProxy {
 			signatureList.add(signature);
 			fhirResource.setSignature(signatureList);
 
-			log.info("prepareBasicData");
+			log.fine("prepareBasicData");
 		}
 		catch (FHIRException e) {
 			e.printStackTrace();

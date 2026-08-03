@@ -50,6 +50,7 @@ import org.hl7.fhir.r5.renderers.RendererFactory;
 import org.hl7.fhir.r5.renderers.utils.RenderingContext;
 import org.hl7.fhir.r5.renderers.utils.ResourceWrapper;
 import org.hl7.fhir.r5.utils.validation.IValidationPolicyAdvisor;
+import org.hl7.fhir.r5.utils.validation.constants.BestPracticeWarningLevel;
 import org.hl7.fhir.r5.utils.validation.constants.ReferenceValidationPolicy;
 import org.hl7.fhir.utilities.FhirPublication;
 import org.hl7.fhir.utilities.npm.FilesystemPackageCacheManager;
@@ -57,6 +58,7 @@ import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.hl7.fhir.validation.ValidationEngine;
 import org.hl7.fhir.validation.ValidationEngine.ValidationEngineBuilder;
 import org.hl7.fhir.validation.instance.advisor.BasePolicyAdvisorForFullValidation;
+import org.hl7.fhir.validation.service.model.InstanceValidatorParameters;
 
 import net.aegis.fhir.service.util.ServicesUtil;
 
@@ -93,10 +95,18 @@ public class FHIRValidatorClient {
 
 			long start = System.currentTimeMillis();
 
-			ValidationEngineBuilder builder = new ValidationEngine.ValidationEngineBuilder();
+			InstanceValidatorParameters defaultInstanceValidatorParameters = new InstanceValidatorParameters();
+			// Set validation check for valid restful resource references
+			defaultInstanceValidatorParameters.setAssumeValidRestReferences(true);
+			// Allow example paths
+			defaultInstanceValidatorParameters.setAllowExampleUrls(true);
+			// Suppress best practice warnings
+			defaultInstanceValidatorParameters.setBestPracticeLevel(BestPracticeWarningLevel.Hint);
+
+			ValidationEngineBuilder builder = new ValidationEngine.ValidationEngineBuilder().withDefaultInstanceValidatorParameters(defaultInstanceValidatorParameters);
 			engine = builder.fromSource("hl7.fhir.r4.core");
 
-			IValidationPolicyAdvisor policyAdvisor = new BasePolicyAdvisorForFullValidation(ReferenceValidationPolicy.IGNORE);
+			IValidationPolicyAdvisor policyAdvisor = new BasePolicyAdvisorForFullValidation(ReferenceValidationPolicy.IGNORE, null);
 			engine.setPolicyAdvisor(policyAdvisor);
 
 			// Check for additional packages via environment variable
@@ -104,15 +114,6 @@ public class FHIRValidatorClient {
 			if (fhirPackages != null && !fhirPackages.isEmpty()) {
 				loadPackages(fhirPackages);
 			}
-
-			// Set anyExtensionsAllowed equal to true to relax error rule on unknown extensions
-			engine.setAnyExtensionsAllowed(true);
-
-			// Set assume valid REST references
-			engine.setAssumeValidRestReferences(true);
-
-			// Set allow example paths
-			engine.setAllowExampleUrls(true);
 
 			engine.connectToTSServer("http://tx.fhir.org/r4", null, FhirPublication.R4, false);
 
@@ -213,7 +214,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.validateResource() - END");
 
-		log.info("FHIR Validator - validation of resource completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - validation of resource completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		org.hl7.fhir.r4.model.OperationOutcome r4Outcome = convertR5OOR4(rOutcome);
 
@@ -265,7 +266,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluate() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -317,7 +318,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluateToBoolean() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -369,7 +370,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluateToString() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -506,8 +507,14 @@ public class FHIRValidatorClient {
 
 		try {
 			for (org.hl7.fhir.r5.model.Base baseR5 : listBaseR5) {
-				org.hl7.fhir.r4.model.Resource resourceR4 = VersionConvertorFactory_40_50.convertResource((org.hl7.fhir.r5.model.Resource)baseR5);
-				listBaseR4.add(resourceR4);
+				if (baseR5 instanceof org.hl7.fhir.r5.model.DataType) {
+					org.hl7.fhir.r4.model.Type typeR4 = VersionConvertorFactory_40_50.convertType((org.hl7.fhir.r5.model.DataType)baseR5);
+					listBaseR4.add(typeR4);
+				}
+				else if (baseR5 instanceof org.hl7.fhir.r5.model.Resource) {
+					org.hl7.fhir.r4.model.Resource resourceR4 = VersionConvertorFactory_40_50.convertResource((org.hl7.fhir.r5.model.Resource)baseR5);
+					listBaseR4.add(resourceR4);
+				}
 			}
 		}
 		catch (Exception e) {

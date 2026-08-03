@@ -37,9 +37,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.BooleanType;
@@ -71,7 +71,7 @@ public class GlobalProcessMessage extends ResourceOperationProxy {
 	private Logger log = Logger.getLogger("GlobalProcessMessage");
 
 	/* (non-Javadoc)
-	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
+	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(jakarta.ws.rs.core.UriInfo, jakarta.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
 	 */
 	@Override
 	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
@@ -145,18 +145,18 @@ public class GlobalProcessMessage extends ResourceOperationProxy {
 
 								// Processing starts here...
 								if (async != null) {
-									log.info("GlobalProcessMessage.executeOperation() - async parameter found '" + async.asStringValue() + "'");
+									log.fine("GlobalProcessMessage.executeOperation() - async parameter found '" + async.asStringValue() + "'");
 
 									// Return response-url or source.endpoint only if async == true
 									if (async.asStringValue().equalsIgnoreCase("true" )) {
 										if (responseUrl != null) {
-											log.info("GlobalProcessMessage.executeOperation() - responseUrl parameter found '" + responseUrl.asStringValue() + "'");
+											log.fine("GlobalProcessMessage.executeOperation() - responseUrl parameter found '" + responseUrl.asStringValue() + "'");
 											returnedDirective.append(responseUrl.asStringValue());
 										}
 										else {
 											// Check MessageHeader.source.endpoint
 											if (requestMessageHeader.hasSource() && requestMessageHeader.getSource().hasEndpoint()) {
-												log.info("GlobalProcessMessage.executeOperation() - MessageHeader.source.endpoint found '" + requestMessageHeader.getSource().getEndpoint() + "'");
+												log.fine("GlobalProcessMessage.executeOperation() - MessageHeader.source.endpoint found '" + requestMessageHeader.getSource().getEndpoint() + "'");
 												returnedDirective.append(requestMessageHeader.getSource().getEndpoint());
 											}
 										}
@@ -172,7 +172,7 @@ public class GlobalProcessMessage extends ResourceOperationProxy {
 
 								// Test proxy
 								if (messageProxy != null) {
-									log.info("Calling messageProxy.processMessage()");
+									log.fine("Calling messageProxy.processMessage()");
 
 									messageResponseBundle = messageProxy.processMessage(context, resourceService, resourcemetadataService, codeService, requestBundle, async, responseUrl);
 								}
@@ -262,7 +262,7 @@ public class GlobalProcessMessage extends ResourceOperationProxy {
 
 		try {
 			if (context != null) {
-				log.info("Checking for operation parameters...");
+				log.fine("Checking for operation parameters...");
 
 				/*
 				 * Extract the individual expected parameters

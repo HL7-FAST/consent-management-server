@@ -39,10 +39,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -143,7 +143,7 @@ public class SubscriptionServiceR5 {
 			StringBuilder sbSinceParams = new StringBuilder("_lastUpdated=ge")
 					.append(utcDateUtil.formatDate(since, UTCDateUtil.DATETIME_ONLY_PARAMETER_FORMAT));
 
-			log.info("sbSinceParams [" + sbSinceParams.toString() + "]");
+			log.fine("sbSinceParams [" + sbSinceParams.toString() + "]");
 
 			// Convert search parameter string into queryParams map
 			List<NameValuePair> params = URLEncodedUtils.parse("status=active", Charset.defaultCharset());
@@ -169,7 +169,7 @@ public class SubscriptionServiceR5 {
 
 					subscription = (Subscription)subscriptionEntry.getResource();
 
-					log.info("Processing Subscription [" + subscription.getId() + "] with criteria [" + subscription.getCriteria() + "] for channel type [" + subscription.getChannel().getType().name() + "]");
+					log.fine("Processing Subscription [" + subscription.getId() + "] with criteria [" + subscription.getCriteria() + "] for channel type [" + subscription.getChannel().getType().name() + "]");
 
 					// Initialize result bean
 					result = new LabelKeyValueBean(subscription.getId(), subscription.getChannel().getType().name() + "; " + subscription.getChannel().getEndpoint(),
@@ -191,27 +191,27 @@ public class SubscriptionServiceR5 {
 						switch (subscription.getChannel().getType()) {
 						case EMAIL:
 							result.setPath("Email channel type not supported");
-							log.info("Email channel type not currently supported.");
+							log.fine("Email channel type not currently supported.");
 							break;
 						case MESSAGE:
 							result.setPath("FHIR messaging channel not supported");
-							log.info("FHIR messaging channel type not currently supported.");
+							log.fine("FHIR messaging channel type not currently supported.");
 							break;
 						case NULL:
 							result.setPath("NULL channel type not supported");
-							log.info("NULL channel type not currently supported.");
+							log.fine("NULL channel type not currently supported.");
 							break;
 						case RESTHOOK:
 							/*
 							 * If returnedDetails not empty topic processing either did not find any updated resources or failed, record outcome in result
-							 * 
+							 *
 							 * Else, post subscriptionBundle to subscription end point
 							 */
 							boolean okToPost = false;
 							Response response = null;
 							if (returnedDetails != null && returnedDetails.length() > 0) {
 								result.setType(returnedDetails.toString());
-								log.info("REST Hook " + returnedDetails.toString());
+								log.fine("REST Hook " + returnedDetails.toString());
 							}
 							else {
 								// Parse subscriptionBundle to XML or JSON String based on the Subscription payload
@@ -229,7 +229,7 @@ public class SubscriptionServiceR5 {
 								else {
 									// Unsupported mime type format
 									result.setType("Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
-									log.info("REST Hook Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
+									log.fine("REST Hook Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
 								}
 							}
 
@@ -251,15 +251,15 @@ public class SubscriptionServiceR5 {
 							break;
 						case SMS:
 							result.setPath("SMS channel type not supported");
-							log.info("SMS channel type not currently supported.");
+							log.fine("SMS channel type not currently supported.");
 							break;
 						case WEBSOCKET:
 							result.setPath("Websocket channel type not supported");
-							log.info("Websocket channel type not currently supported.");
+							log.fine("Websocket channel type not currently supported.");
 							break;
 						default:
 							result.setPath("Unknown channel type");
-							log.info("Unknown channel type!");
+							log.fine("Unknown channel type!");
 							break;
 						}
 					}
@@ -272,7 +272,7 @@ public class SubscriptionServiceR5 {
 				}
 			}
 			else {
-				log.info("SubscriptionServiceR5.processSubscriptions() - No active subscriptions found.");
+				log.fine("SubscriptionServiceR5.processSubscriptions() - No active subscriptions found.");
 				result = new LabelKeyValueBean("", "", "", "No active subscriptions found.", "complete");
 				results.add(result);
 			}
@@ -291,7 +291,7 @@ public class SubscriptionServiceR5 {
 
 	/**
 	 * Update Subscription status and result outcome (path) based on current result and post response
-	 * 
+	 *
 	 * @param subscription
 	 * @param response
 	 * @param result

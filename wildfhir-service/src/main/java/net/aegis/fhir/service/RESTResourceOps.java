@@ -45,19 +45,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
@@ -167,11 +167,11 @@ public class RESTResourceOps {
 						_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
 					}
 
-					log.info("Resource id: " + id);
+					log.fine("Resource id: " + id);
 
 					ResourceContainer resourceContainer = resourceService.read(resourceType, id, _summary);
 
-					log.info("Resource status: " + resourceContainer.getResponseStatus().name());
+					log.fine("Resource status: " + resourceContainer.getResponseStatus().name());
 
 					String locationPath = context.getRequestUri().toString();
 
@@ -207,7 +207,7 @@ public class RESTResourceOps {
 						}
 
 						if (ifModifiedSince != null || ifNoneMatch != null) {
-							log.info("Conditional Read requested - check support level");
+							log.fine("Conditional Read requested - check support level");
 
 							if (codeService.isValueSupported("conditionalRead", "not-supported")) {
 								outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "Unsupported operation - conditional read not implemented.", null, null, producesType);
@@ -356,6 +356,7 @@ public class RESTResourceOps {
 
         Response.ResponseBuilder builder = null;
         String producesType = null;
+        String _summary = null;
         String responseFhirVersion = "";
         try {
         	responseFhirVersion = codeService.getCodeValue("supportedVersions");
@@ -377,12 +378,15 @@ public class RESTResourceOps {
 				// Check for valid FHIR resource id data type compliance
 				if (StringUtils.isValidFhirId(id)) {
 
-					log.info("Resource id: " + id);
+					// Get the _summary parameter, if present
+					_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+
+					log.fine("Resource id: " + id);
 
 					Integer iVersionId = Integer.valueOf(versionId);
-					log.info("Converted version id: " + iVersionId);
+					log.fine("Converted version id: " + iVersionId);
 
-					ResourceContainer resourceContainer = resourceService.vread(resourceType, id, iVersionId);
+					ResourceContainer resourceContainer = resourceService.vread(resourceType, id, iVersionId, _summary);
 					String locationPath = context.getRequestUri().toString();
 
 					/*
@@ -492,7 +496,7 @@ public class RESTResourceOps {
 						if (ifNoneExist != null) {
 
 							if (codeService.isSupported("conditionalCreate")) {
-								log.info("Conditional Create requested and supported - start search");
+								log.fine("Conditional Create requested and supported - start search");
 
 								// Convert If-None-Exist into queryParams map
 								List<NameValuePair> params = URLEncodedUtils.parse(ifNoneExist, Charset.defaultCharset());
@@ -526,12 +530,12 @@ public class RESTResourceOps {
 
 											// Get last update date
 											Date lastUpdate = searchBundle.getEntry().get(0).getResource().getMeta().getLastUpdated();
-											log.info("Last Update Date: " + lastUpdate);
+											log.fine("Last Update Date: " + lastUpdate);
 
 											String sLastUpdate = null;
 											if (lastUpdate != null) {
 												sLastUpdate = utcDateUtil.formatUTCDateOffset(lastUpdate);
-												log.info("Last Update UTC Date: " + sLastUpdate);
+												log.fine("Last Update UTC Date: " + sLastUpdate);
 											}
 
 											// ETag to hold the resource version id String eTagVersion = "W/\"" + searchBundle.getEntry().get(0).getResource().getMeta().getVersionId() + "\"";
@@ -567,7 +571,7 @@ public class RESTResourceOps {
 
 							}
 							else {
-								log.info("Conditional Create requested and not supported - return bad request");
+								log.fine("Conditional Create requested and not supported - return bad request");
 
 								// Conditional Create is not supported; report error in OperationOutcome
 								String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.PROCESSING, "Conditional create of If-None-Exist is not supported.", ifNoneExist, null, producesType);
@@ -773,7 +777,7 @@ public class RESTResourceOps {
 					if (isConditional) {
 
 						if (codeService.isSupported("conditionalUpdate")) {
-							log.info("Conditional Update requested and supported - start search");
+							log.fine("Conditional Update requested and supported - start search");
 
 							// Execute search as defined in the request uri parameters
 							String locationPath = context.getRequestUri().toString();
@@ -825,7 +829,7 @@ public class RESTResourceOps {
 							}
 						}
 						else {
-							log.info("Conditional Update requested and not supported - return bad request");
+							log.fine("Conditional Update requested and not supported - return bad request");
 
 							// Conditional Update is not supported; report error in OperationOutcome
 							String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.PROCESSING, "Conditional update based on query parameters is not supported.",
@@ -839,7 +843,7 @@ public class RESTResourceOps {
 					}
 
 					if (okToUpdate) {
-						log.info("Resource id: " + id);
+						log.fine("Resource id: " + id);
 
 						// Check okToCreate based on conditional update
 						if (okToCreate) {
@@ -930,7 +934,7 @@ public class RESTResourceOps {
 											if (!matched) {
 												// Next check for valid weak ETag format W/"vid"
 												matchVersionId = "W/\"" + versionId + "\"";
-												log.info("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
+												log.fine("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
 												if (ifMatch.equals(matchVersionId)) {
 													matched = true;
 												}
@@ -938,7 +942,7 @@ public class RESTResourceOps {
 											if (!matched) {
 												// Next check for weak ETag format "W/"vid"" (extra quotes to allow for clients that do not send correct weak ETag format)
 												matchVersionId = "\"W/\"" + versionId + "\"\"";
-												log.info("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
+												log.fine("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
 												if (ifMatch.equals(matchVersionId)) {
 													matched = true;
 												}
@@ -1176,7 +1180,7 @@ public class RESTResourceOps {
 						if (isConditional == true) {
 
 							if (codeService.isSupported("conditionalUpdate")) {
-								log.info("Conditional Patch Update requested and supported - start search");
+								log.fine("Conditional Patch Update requested and supported - start search");
 
 								// Execute search as defined in the request uri parameters
 								String locationPath = context.getRequestUri().toString();
@@ -1222,7 +1226,7 @@ public class RESTResourceOps {
 								}
 							}
 							else {
-								log.info("Conditional Update requested and not supported - return bad request");
+								log.fine("Conditional Update requested and not supported - return bad request");
 
 								// Conditional Update is not supported; report error in OperationOutcome
 								String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.PROCESSING, "Conditional update based on query parameters is not supported.",
@@ -1235,7 +1239,7 @@ public class RESTResourceOps {
 						}
 
 						if (okToPatch) {
-							log.info("Patch Resource id: " + id);
+							log.fine("Patch Resource id: " + id);
 
 							// Check for valid FHIR resource id data type compliance
 							if (id != null && StringUtils.isValidFhirId(id)) {
@@ -1274,7 +1278,7 @@ public class RESTResourceOps {
 												if (!matched) {
 													// Next check for "vid" (extra quotes to allow for clients that do not send correct weak ETag format)
 													matchVersionId = "\"" + versionId + "\"";
-													log.info("ifMatch: " + ifMatch + "; vid to match: " + matchVersionId);
+													log.fine("ifMatch: " + ifMatch + "; vid to match: " + matchVersionId);
 													if (ifMatch.equals(matchVersionId)) {
 														matched = true;
 													}
@@ -1282,7 +1286,7 @@ public class RESTResourceOps {
 												if (!matched) {
 													// Next check for valid weak ETag format W/"vid"
 													matchVersionId = "W/\"" + versionId + "\"";
-													log.info("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
+													log.fine("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
 													if (ifMatch.equals(matchVersionId)) {
 														matched = true;
 													}
@@ -1290,7 +1294,7 @@ public class RESTResourceOps {
 												if (!matched) {
 													// Next check for weak ETag format "W/"vid"" (extra quotes to allow for clients that do not send correct weak ETag format)
 													matchVersionId = "\"W/\"" + versionId + "\"\"";
-													log.info("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
+													log.fine("ifMatch: " + ifMatch + "; Generated Weak ETag to match: " + matchVersionId);
 													if (ifMatch.equals(matchVersionId)) {
 														matched = true;
 													}
@@ -1312,11 +1316,11 @@ public class RESTResourceOps {
 
 										// Call JSON or XML patch logic based on the Content-Type
 										if (contentType == null || contentType.indexOf("xml") >= 0) {
-											log.info("Calling XML Patch based on Content-Type of " + contentType);
+											log.fine("Calling XML Patch based on Content-Type of " + contentType);
 											resourceContainer = resourceService.xmlPatch(payload, resourceContainer, context.getAbsolutePath().toString());
 										}
 										else {
-											log.info("Calling JSON Patch based on Content-Type of " + contentType);
+											log.fine("Calling JSON Patch based on Content-Type of " + contentType);
 											resourceContainer = resourceService.jsonPatch(payload, resourceContainer, context.getAbsolutePath().toString());
 										}
 
@@ -1480,10 +1484,10 @@ public class RESTResourceOps {
 				}
 
 				if (isConditional) {
-					log.info("Conditional Delete requested - start search");
+					log.fine("Conditional Delete requested - start search");
 
 					if (codeService.isValueSupported("conditionalDelete", "not-supported")) {
-						log.info("Conditional Delete not supported!");
+						log.fine("Conditional Delete not supported!");
 
 						outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED, "Unsupported operation - conditional delete not implemented.", null, null, producesType);
 
@@ -1492,7 +1496,7 @@ public class RESTResourceOps {
 						okToDelete = false;
 					}
 					else if (codeService.isValueSupported("conditionalDelete", "single") || codeService.isValueSupported("conditionalDelete", "multiple")) {
-						log.info("Conditional Delete is supported!");
+						log.fine("Conditional Delete is supported!");
 
 						// Execute search as defined in the request uri parameters
 						String locationPath = context.getRequestUri().toString();
@@ -1500,11 +1504,11 @@ public class RESTResourceOps {
 						ResourceContainer searchContainer = resourceService.search(queryParams, null, null, null, resourceType, locationPath, null, null, null, false);
 
 						if (searchContainer != null && searchContainer.getResponseStatus().equals(Status.OK) && searchContainer.getBundle() != null) {
-							log.info("Conditional Delete search successful.");
+							log.fine("Conditional Delete search successful.");
 
 							searchBundle = searchContainer.getBundle();
 							if (!searchBundle.hasEntry()) {
-								log.info("Conditional Delete search returned no matches!");
+								log.fine("Conditional Delete search returned no matches!");
 
 								// If no matches, return not found failed error criteria did not match any resources
 								outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.WARNING, OperationOutcome.IssueType.PROCESSING, "Conditional delete failed due to no match based on the query parameters.", null,
@@ -1515,7 +1519,7 @@ public class RESTResourceOps {
 								okToDelete = false;
 							}
 							else if (searchBundle.getEntry().size() == 1) {
-								log.info("Conditional Delete search returned one match.");
+								log.fine("Conditional Delete search returned one match.");
 
 								// If one match, perform delete against matched resource by setting id to matched
 								// resource id
@@ -1523,7 +1527,7 @@ public class RESTResourceOps {
 								okToDelete = true;
 							}
 							else {
-								log.info("Conditional Delete search returned multiple matches.");
+								log.fine("Conditional Delete search returned multiple matches.");
 
 								if (codeService.isValueSupported("conditionalDelete", "multiple")) {
 									multipleDelete = true;
@@ -1563,7 +1567,7 @@ public class RESTResourceOps {
 
 				if (okToDelete) {
 					if (multipleDelete) {
-						log.info("Ok to Delete - mutiple delete");
+						log.fine("Ok to Delete - mutiple delete");
 
 						// All the searchBundle entries must be deleted successfully. If not, report an error in OperationOutcome
 
@@ -1590,7 +1594,7 @@ public class RESTResourceOps {
 						}
 					}
 					else {
-						log.info("Ok to Delete - single delete; Resource id: " + id);
+						log.fine("Ok to Delete - single delete; Resource id: " + id);
 
 						// Check for valid FHIR resource id data type compliance
 						if (id != null && StringUtils.isValidFhirId(id)) {
@@ -1712,7 +1716,7 @@ public class RESTResourceOps {
 							if (countString != null) {
 								try {
 									countInteger = Integer.valueOf(countString);
-									log.info("history count = " + countString);
+									log.fine("history count = " + countString);
 								}
 								catch (Exception e) {
 									log.severe("Exception parsing _count parameter to Integer! " + e.getMessage());
@@ -1729,7 +1733,7 @@ public class RESTResourceOps {
 							if (pageString != null) {
 								try {
 									pageInteger = Integer.valueOf(pageString);
-									log.info("page number = " + pageString);
+									log.fine("page number = " + pageString);
 								}
 								catch (Exception e) {
 									log.severe("Exception parsing page parameter to Integer! " + e.getMessage());
@@ -1740,7 +1744,7 @@ public class RESTResourceOps {
 							String queryString = context.getRequestUri().getQuery();
 							List<NameValuePair> orderedParams = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
 							for(NameValuePair param : orderedParams) {
-								log.info("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+								log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
 							}
 
 				            String locationPath = request.getRequestURL().toString();
@@ -1831,6 +1835,8 @@ public class RESTResourceOps {
         Integer pageInteger = null;
         String pageString = null;
         String summaryString = null;
+        String includeString = null;
+        String revincludeString = null;
         String responseFhirVersion = "";
         try {
         	responseFhirVersion = codeService.getCodeValue("supportedVersions");
@@ -1854,7 +1860,7 @@ public class RESTResourceOps {
 			log.fine("  queryString = '" + queryString + "'");
 			List<NameValuePair> orderedParams = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
 			for(NameValuePair param : orderedParams) {
-				log.info("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+				log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
 			}
 
         	// Get the produces type based on the request Accept or _format parameter
@@ -1889,7 +1895,7 @@ public class RESTResourceOps {
 				if (countString != null) {
 					try {
 						countInteger = Integer.valueOf(countString);
-						log.info("search count = " + countString);
+						log.fine("search count = " + countString);
 					}
 					catch (Exception e) {
 						log.severe("Exception parsing _count parameter to Integer! " + e.getMessage());
@@ -1912,7 +1918,7 @@ public class RESTResourceOps {
 				if (pageString != null) {
 					try {
 						pageInteger = Integer.valueOf(pageString);
-						log.info("page number = " + pageString);
+						log.fine("page number = " + pageString);
 					}
 					catch (Exception e) {
 						log.severe("Exception parsing page parameter to Integer! " + e.getMessage());
@@ -1920,17 +1926,38 @@ public class RESTResourceOps {
 					}
 				}
 
-				String locationPath = null;
-				if (overrideLocationPath != null) {
-					locationPath = overrideLocationPath;
+				// Get the _include parameter if present
+				includeString = ServicesUtil.INSTANCE.getUriParameter("_include", queryParams);
+				if (includeString == null && formParams != null) {
+					includeString = ServicesUtil.INSTANCE.getUriParameter("_include", formParams);
+				}
+
+				// Get the _revinclude parameter if present
+				revincludeString = ServicesUtil.INSTANCE.getUriParameter("_revinclude", queryParams);
+				if (revincludeString == null && formParams != null) {
+					revincludeString = ServicesUtil.INSTANCE.getUriParameter("_revinclude", formParams);
+				}
+
+				// Check for invalid parameter combination of _summary=text and _include or _revinclude present
+				if (summaryString != null && summaryString.equals("text") && (includeString != null || revincludeString != null)) {
+		            String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED,
+		            		"Invalid search parameter combination! _summary=text not allowed with _include or _revinclude.", null, context.getRequestUri().getPath(), producesType);
+
+		            builder = Response.status(Response.Status.PRECONDITION_FAILED).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 				}
 				else {
-					locationPath = context.getRequestUri().toString();
+					String locationPath = null;
+					if (overrideLocationPath != null) {
+						locationPath = overrideLocationPath;
+					}
+					else {
+						locationPath = context.getRequestUri().toString();
+					}
+
+					ResourceContainer resourceContainer = resourceService.search(queryParams, formParams, null, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, false);
+
+					builder = responseBundle(producesType, resourceContainer, locationPath, responseFhirVersion);
 				}
-
-				ResourceContainer resourceContainer = resourceService.search(queryParams, formParams, null, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, false);
-
-				builder = responseBundle(producesType, resourceContainer, locationPath, responseFhirVersion);
 			}
     		else {
 				builder = responseInvalidResourceType(producesType, resourceType, responseFhirVersion);
@@ -1970,6 +1997,7 @@ public class RESTResourceOps {
         String sinceString = null;
         Integer pageInteger = null;
         String pageString = null;
+        String summaryString = null;
         String responseFhirVersion = "";
         try {
         	responseFhirVersion = codeService.getCodeValue("supportedVersions");
@@ -2008,7 +2036,7 @@ public class RESTResourceOps {
 					else {
 						sbLogMsg.append(" Global");
 					}
-					log.info(sbLogMsg.toString());
+					log.fine(sbLogMsg.toString());
 
 					// Get the count and since parameters if present
 					if (contextQueryParams != null) {
@@ -2027,7 +2055,7 @@ public class RESTResourceOps {
 					if (countString != null) {
 						try {
 							countInteger = Integer.valueOf(countString);
-							log.info("history count = " + countString);
+							log.fine("history count = " + countString);
 						}
 						catch (Exception e) {
 							log.severe("Exception parsing _count parameter to Integer! " + e.getMessage());
@@ -2037,7 +2065,7 @@ public class RESTResourceOps {
 					if (sinceString != null) {
 						try {
 							sinceDate = utcDateUtil.parseXMLDate(sinceString);
-							log.info("history since = " + sinceString);
+							log.fine("history since = " + sinceString);
 						}
 						catch (Exception e) {
 							log.severe("Exception parsing _since parameter to UTC Date! " + e.getMessage());
@@ -2056,7 +2084,7 @@ public class RESTResourceOps {
 					if (pageString != null) {
 						try {
 							pageInteger = Integer.valueOf(pageString);
-							log.info("page number = " + pageString);
+							log.fine("page number = " + pageString);
 						}
 						catch (Exception e) {
 							log.severe("Exception parsing page parameter to Integer! " + e.getMessage());
@@ -2064,9 +2092,18 @@ public class RESTResourceOps {
 						}
 					}
 
+					// Get the summary parameter if present
+					if (contextQueryParams != null) {
+						summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", contextQueryParams);
+					}
+					if (pageString == null) {
+						summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+					}
+					log.fine("summary = " + (summaryString != null ? summaryString : "null"));
+
 					String locationPath = context.getRequestUri().toString();
 
-					ResourceContainer resourceContainer = resourceService.history(id, countInteger, sinceDate, pageInteger, locationPath, resourceType, null);
+					ResourceContainer resourceContainer = resourceService.history(id, countInteger, sinceDate, pageInteger, summaryString, locationPath, resourceType);
 
 					if (resourceContainer != null && resourceContainer.getResponseStatus().equals(Response.Status.OK)) {
 
@@ -2285,7 +2322,7 @@ public class RESTResourceOps {
 				}
 			}
     	}
-    	
+
     	return resource;
     }
 
@@ -2341,7 +2378,7 @@ public class RESTResourceOps {
 				throw new XmlPullParserException(e.getMessage());
 			}
 		}
-    	
+
     	return resource;
     }
 
@@ -2466,12 +2503,12 @@ public class RESTResourceOps {
 				if (resourceContainer.getResource() != null) {
 					// Get last update date
 					Date lastUpdate = resourceContainer.getResource().getLastUpdate();
-					log.info("Last Update Date: " + lastUpdate);
+					log.fine("Last Update Date: " + lastUpdate);
 
 
 					if (lastUpdate != null) {
 						sLastUpdate = utcDateUtil.formatUTCDateOffset(lastUpdate);
-						log.info("Last Update UTC Date: " + sLastUpdate);
+						log.fine("Last Update UTC Date: " + sLastUpdate);
 					}
 
 					// ETag to hold the resource version id; format "W/##"

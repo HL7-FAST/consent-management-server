@@ -39,10 +39,10 @@ import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Consent.provisionActorComponent;
 import org.hl7.fhir.r4.model.Consent.provisionDataComponent;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Reference;
 
 import net.aegis.fhir.model.Resource;

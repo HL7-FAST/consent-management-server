@@ -1,6 +1,6 @@
 /*
  * #%L
- * WildFHIR - wildfhir-service
+ * WildFHIR - wildfhir-rest-server
  * %%
  * Copyright (C) 2024 AEGIS.net, Inc.
  * All rights reserved.
@@ -32,8 +32,8 @@
  */
 package net.aegis.fhir.rest.init;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

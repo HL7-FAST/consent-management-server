@@ -36,20 +36,20 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -95,7 +95,7 @@ public class SubscriptionNotificationRESTService {
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/fhir+xml", "application/fhir+json", "application/xml+fhir", "application/json+fhir", "text/xml", "text/json" })
 	public Response notificationR5BackportPost(@Context HttpServletRequest request, @Context HttpHeaders headers, @Context UriInfo ui, InputStream notifyInputStream) {
 
-		log.info("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
+		log.fine("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
 		debugRequest(request, headers, notifyInputStream);
 
@@ -136,7 +136,7 @@ public class SubscriptionNotificationRESTService {
 			builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 		}
 
-		log.info("[END] SubscriptionNotificationRESTService.notificationR5BackportPost()");
+		log.fine("[END] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
 		return builder.build();
 	}
@@ -218,7 +218,7 @@ public class SubscriptionNotificationRESTService {
 		}
 
 		// log level FINE used for debug
-		log.info(debugString.toString());
+		log.fine(debugString.toString());
 
 		return payload;
 	}

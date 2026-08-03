@@ -2,7 +2,7 @@
  * #%L
  * WildFHIR - wildfhir-service
  * %%
- * Copyright (C) 2024 AEGIS.net, Inc.
+ * Copyright (C) 2025 AEGIS.net, Inc.
  * All rights reserved.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,12 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
@@ -170,23 +170,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				throw new Exception(msg.toString());
 			}
 			else {
-				// Attempt to get(read/search) existing Consent; if not found, throw exception
-				if (paramConsent.hasReference()) {
-					String consentId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramConsent.getReference());
-					if (!consentId.isEmpty()) {
-						ResourceContainer readExisting = resourceService.read("Consent", consentId, null);
-						if (readExisting.getResponseStatus().equals(Response.Status.OK)) {
-							log.info("(read) " + paramConsent.getReference() + " found.");
-							byte[] resourceContents = readExisting.getResource().getResourceContents();
-							consent = (Consent) xmlP.parse(resourceContents);
-							existingConsent = true;
-						}
-					}
-				}
-
-				if (existingConsent == false && paramConsent.hasIdentifier()) {
-					// Read didn't work; try searching based on reference identifier, patient reference or identifier
-
+				// Attempt to get(search by identifier; if not, then read by reference) existing Consent; if not found, throw exception
+				if (paramConsent.hasIdentifier()) {
 					// Define query parameters and populate with search parameter values if defined
 					StringBuffer param = new StringBuffer();
 					Identifier identifier = paramConsent.getIdentifier();
@@ -246,6 +231,18 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 							byte[] resourceContents = resources.get(0).getResourceContents();
 							consent = (Consent) xmlP.parse(resourceContents);
 							log.info("(search) Consent/" + consent.getId() + " found.");
+							existingConsent = true;
+						}
+					}
+				}
+				else if (paramConsent.hasReference()) {
+					String consentId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramConsent.getReference());
+					if (!consentId.isEmpty()) {
+						ResourceContainer readExisting = resourceService.read("Consent", consentId, null);
+						if (readExisting.getResponseStatus().equals(Response.Status.OK)) {
+							log.info("(read) " + paramConsent.getReference() + " found.");
+							byte[] resourceContents = readExisting.getResource().getResourceContents();
+							consent = (Consent) xmlP.parse(resourceContents);
 							existingConsent = true;
 						}
 					}
@@ -488,7 +485,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 
 					// Capture successful DocumentReference create to OperationOutcome.issue
 					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,
-							"Consent/" + resCon.getResource().getResourceId() + " successfully revoked, status is now 'rejected'.", null, "Parameters.parameter.where(name = 'consent')");
+							"Consent/" + resCon.getResource().getResourceId() + " successfully revoked, status is now 'inactive'.", null, "Parameters.parameter.where(name = 'consent')");
 					issues.add(issue);
 				}
 				else {

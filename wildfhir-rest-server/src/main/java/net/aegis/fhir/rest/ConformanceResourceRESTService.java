@@ -41,20 +41,20 @@ import java.net.URI;
 import java.util.Date;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.ResourceContainer;
@@ -180,10 +180,10 @@ public class ConformanceResourceRESTService {
 
 					// Get last update date
 					Date lastUpdate = resourceContainer.getConformance().getLastUpdate();
-					log.info("Last Update Date: " + lastUpdate);
+					log.fine("Last Update Date: " + lastUpdate);
 					if (lastUpdate != null) {
 						String sLastUpdate = utcDateUtil.formatUTCDateOffset(lastUpdate);
-						log.info("Last Update UTC Date: " + sLastUpdate);
+						log.fine("Last Update UTC Date: " + sLastUpdate);
 						builder = builder.header("Last-Modified", sLastUpdate);
 					}
 
@@ -279,13 +279,13 @@ public class ConformanceResourceRESTService {
 		String payload = null;
 
 		if (request != null) {
-			log.info("----- HTTP REQUEST -----");
+			log.fine("----- HTTP REQUEST -----");
 
-			log.info("Remote host is '" + (request.getRemoteHost() == null ? "NOT FOUND" : request.getRemoteHost()) + "'");
+			log.fine("Remote host is '" + (request.getRemoteHost() == null ? "NOT FOUND" : request.getRemoteHost()) + "'");
 		}
 
 		if (headers != null) {
-			log.info("----- HTTP HEADERS (REQUEST) -----");
+			log.fine("----- HTTP HEADERS (REQUEST) -----");
 
 			MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
 
@@ -294,13 +294,13 @@ public class ConformanceResourceRESTService {
 				for (String key : requestHeaders.keySet()) {
 
 					for (String keyValue : requestHeaders.get(key)) {
-						log.info("header(" + key + ") is " + keyValue);
+						log.fine("header(" + key + ") is " + keyValue);
 					}
 				}
 			}
 		}
 
-		log.info("----- REQUEST URL -----");
+		log.fine("----- REQUEST URL -----");
 		StringBuilder sbRequestUrl = new StringBuilder(context.getAbsolutePath().getPath());
 		MultivaluedMap<String, String> queryParams = context.getQueryParameters();
 		if (queryParams != null && !queryParams.isEmpty()) {
@@ -310,13 +310,13 @@ public class ConformanceResourceRESTService {
 				if (!first) {
 					sbRequestUrl.append("&");
 				}
-				log.info("header(" + key + ") is " + queryParams.get(key).toString());
+				log.fine("header(" + key + ") is " + queryParams.get(key).toString());
 				sbRequestUrl.append(key).append("=").append(queryParams.get(key).toString());
 			}
 		}
-		log.info(sbRequestUrl.toString());
+		log.fine(sbRequestUrl.toString());
 
-		log.info("----- PAYLOAD ----- [snipped; use fine logging]");
+		log.fine("----- PAYLOAD ----- [snipped; use fine logging]");
         if (resourceInputStream != null) {
 			try {
 				StringWriter writer = new StringWriter();
@@ -333,7 +333,7 @@ public class ConformanceResourceRESTService {
 			}
 		}
 		else {
-			log.info(">> NO PAYLOAD <<");
+			log.fine(">> NO PAYLOAD <<");
 		}
 
 		return payload;

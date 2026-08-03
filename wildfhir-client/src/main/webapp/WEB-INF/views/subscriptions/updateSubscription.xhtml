@@ -15,14 +15,14 @@
 				<h:outputText value="Subscription Update"
 					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
 				<h:outputText value="This interface is used to modify and send a Subscription update request to a consent administration service."
-					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+					style="padding:0px;font-style:italic;font-size:12px;" />
 				<h:outputText value="The Subscription criteria must conform with the FAST Consent SubscriptionTopic allowed search parameters."
-					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+					style="padding:0px;font-style:italic;font-size:12px;" />
 			</p:panelGrid>
 
 			<hr></hr>
 
-			<p:panelGrid id="updateSubscriptionPanel2" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+			<p:panelGrid id="updateSubscriptionPanel2" layout="tabular" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 				<h:outputText value="Format Type (Default JSON): * " />
 				<p:selectOneMenu required="false" label="Select Format Type" value="#{context.selectedFormatType}" maxlength="10" style="width:80px;text-align:left;padding-right:30px;">
 					<f:selectItems value="#{context.formatTypes}" var="formatType" itemLabel="#{formatType}         " itemValue="#{formatType}" />
@@ -56,7 +56,7 @@
 								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 						</p:panelGrid>
 
-						<p:panelGrid id="updateSubscriptionTabPanel1" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+						<p:panelGrid id="updateSubscriptionTabPanel1" layout="tabular" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 							<h:outputText value="Select Subscription *" />
 							<p:selectOneMenu required="true" label="Select Subscription" value="#{context.selectedSubscriptionId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Subscription --         " noSelectionOption="true" />
