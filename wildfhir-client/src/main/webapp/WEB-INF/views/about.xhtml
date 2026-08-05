@@ -44,14 +44,15 @@
 				<ul>
 				<li><b>$fileConsent</b> - used to file a consent with a consent administration service</li>
 				<li><b>$revokeConsent</b> - used to revoke a consent with a consent administration service</li>
-				<li><b>$recordDisclosure</b> - used to record a disclosure based on a given consent for a given patient with a consent administration service</li>
+				<li><b>Create AuditEvent</b> - used to record an AuditEvent disclosure based on a given consent for a given patient with a consent administration service</li>
 				</ul>
 			</li>
 			<li><b>Subscriptions</b> - Manage FAST Consent Subscriptions
 				<ul>
 				<li><b>Create</b> - create a new Subscription resource based on the FASTConsentSubscriptionTopic on a consent administration service</li>
 				<li><b>Update</b> - update an existing Subscription resource based on the FASTConsentSubscriptionTopic on a consent administration service</li>
-				<li><b>Manual</b> - manually execute the Subscription Service for the FAST Consent RI server</li>
+				<li><b>Process</b> - manually execute the Subscription Service for the FAST Consent RI server</li>
+				<li><b>Handshake</b> - manually send a Handshake Notification to a selected Subscription endpoint</li>
 				</ul>
 			</li>
 			<li><b>Interactions</b> - Send valid FHIR interactions to a selected FHIR server

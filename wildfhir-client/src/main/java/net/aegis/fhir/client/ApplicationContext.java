@@ -52,6 +52,8 @@ import jakarta.inject.Named;
 
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Subscription;
 
 import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.model.Clientresource;
@@ -62,6 +64,7 @@ import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.model.Subscriptionactivity;
 import net.aegis.fhir.service.ClientresourceService;
 import net.aegis.fhir.service.CodeService;
+import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ServerdirectoryService;
 import net.aegis.fhir.service.SubscriptionactivityService;
 import net.aegis.fhir.service.client.ConformanceResourceRESTClient;
@@ -90,6 +93,8 @@ public class ApplicationContext implements Serializable {
 	private @Inject ClientresourceService clientresourceService;
 
 	private @Inject CodeService codeService;
+
+	private @Inject ResourceService resourceService;
 
 	private @Inject ServerdirectoryService serverDirectoryService;
 
@@ -170,6 +175,8 @@ public class ApplicationContext implements Serializable {
 	// LabelKeyValueBean list
 	private List<LabelKeyValueBean> listLabelKeyValue;
 
+	private Date datePicker;
+
 	private LocalDateTime dateTimePicker;
 
 	private String convertFromFormatType;
@@ -198,10 +205,14 @@ public class ApplicationContext implements Serializable {
 	private List<Subscriptionactivity> subscriptionactivity;
 
 	private List<Clientresource> clientSubscriptions;
+	private List<LabelKeyValueBean> serverSubscriptions;
 	private String selectedSubscriptionId;
 
 	private List<LabelKeyValueBean> listSubscriptionStatuses;
 	private String selectedSubscriptionStatus;
+
+	private List<LabelKeyValueBean> listSubscriptionTopic;
+	private String selectedSubscriptionTopic;
 
 	private String subscriptionReason;
 	private String subscriptionCriteria;
@@ -229,6 +240,10 @@ public class ApplicationContext implements Serializable {
 	private String selectedProvisionType;
 	private Date endDate;
 	private Date startDate;
+
+	private Integer subscriptionHeartbeat;
+	private Integer subscriptionTimeout;
+	private Integer subscriptionMaxCount;
 
 	public ApplicationContext() {
 
@@ -263,11 +278,15 @@ public class ApplicationContext implements Serializable {
 		this._summary = "";
 		this.pageReference = null;
 		this.resourceResults = null;
+		this.datePicker = null;
 		this.dateTimePicker = null;
 		this.convertFormatOperationOutcome = null;
 		this.validateOperationOutcome = null;
+
+		// Subscriptions
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
+		this.selectedSubscriptionTopic = null;
 		this.subscriptionReason = null;
 		this.subscriptionCriteria = null;
 		this.subscriptionEndpoint = null;
@@ -282,12 +301,16 @@ public class ApplicationContext implements Serializable {
 		this.selectedProvisionType = null;
 		this.endDate = null;
 		this.startDate = null;
+		this.subscriptionHeartbeat = null;
+		this.subscriptionTimeout = null;
+		this.subscriptionMaxCount = null;
 		try {
 			this.clientSubscriptions = clientresourceService.findClientresourceByResourceType("Subscription");
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
 			this.clientRelatedPersons = new ArrayList<Clientresource>();
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
+			this.serverSubscriptions = this.getServerSubscriptions();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -317,11 +340,15 @@ public class ApplicationContext implements Serializable {
 		this._summary = "";
 		this.pageReference = null;
 		this.resourceResults = null;
+		this.datePicker = null;
 		this.dateTimePicker = null;
 		this.convertFormatOperationOutcome = null;
 		this.validateOperationOutcome = null;
+
+		// Subscriptions
 		this.selectedSubscriptionId = null;
 		this.selectedSubscriptionStatus = null;
+		this.selectedSubscriptionTopic = null;
 		this.subscriptionReason = null;
 		this.subscriptionCriteria = null;
 		this.subscriptionEndpoint = null;
@@ -335,11 +362,15 @@ public class ApplicationContext implements Serializable {
 		this.selectedProvisionType = null;
 		this.endDate = null;
 		this.startDate = null;
+		this.subscriptionHeartbeat = null;
+		this.subscriptionTimeout = null;
+		this.subscriptionMaxCount = null;
 		try {
 			this.clientSubscriptions = clientresourceService.findClientresourceByResourceType("Subscription");
 			this.clientConsents = clientresourceService.findClientresourceByResourceType("Consent");
 			this.clientPatients = clientresourceService.findClientresourceByResourceType("Patient");
 			this.clientOrganizations = clientresourceService.findClientresourceByResourceType("Organization");
+			this.serverSubscriptions = this.getServerSubscriptions();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -411,6 +442,14 @@ public class ApplicationContext implements Serializable {
 
 	public void setCodeService(CodeService codeService) {
 		this.codeService = codeService;
+	}
+
+	public ResourceService getResourceService() {
+		return resourceService;
+	}
+
+	public void setResourceService(ResourceService resourceService) {
+		this.resourceService = resourceService;
 	}
 
 	public ServerdirectoryService getServerDirectoryService() {
@@ -697,6 +736,14 @@ public class ApplicationContext implements Serializable {
 		this.listLabelKeyValue = listLabelKeyValue;
 	}
 
+	public Date getDatePicker() {
+		return datePicker;
+	}
+
+	public void setDatePicker(Date datePicker) {
+		this.datePicker = datePicker;
+	}
+
 	public LocalDateTime getDateTimePicker() {
 		return dateTimePicker;
 	}
@@ -841,6 +888,43 @@ public class ApplicationContext implements Serializable {
 		this.clientSubscriptions = clientSubscriptions;
 	}
 
+	public List<LabelKeyValueBean> getServerSubscriptions() {
+		this.serverSubscriptions = new ArrayList<LabelKeyValueBean>();
+
+		try {
+			List<Resource> resourceList = resourceService.readAllFHIRResourceForType("Subscription");
+
+			if (resourceList != null && !resourceList.isEmpty()) {
+				LabelKeyValueBean lkvb = null;
+				Subscription subscription = null;
+				StringBuilder description = null;
+				for (Resource resource : resourceList) {
+					subscription = (Subscription) resource;
+
+					description = new StringBuilder();
+					description.append(subscription.getStatus().toCode());
+					description.append(": ");
+					description.append(subscription.getReason());
+					description.append(" (");
+					description.append(subscription.getId());
+					description.append(")");
+
+					lkvb = new LabelKeyValueBean(description.toString(), subscription.getId(), subscription.getId());
+
+					this.serverSubscriptions.add(lkvb);
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return serverSubscriptions;
+	}
+
+	public void setServerSubscriptions(List<LabelKeyValueBean> serverSubscriptions) {
+		this.serverSubscriptions = serverSubscriptions;
+	}
+
 	public String getSelectedSubscriptionId() {
 		return selectedSubscriptionId;
 	}
@@ -874,6 +958,51 @@ public class ApplicationContext implements Serializable {
 
 	public void setSelectedSubscriptionStatus(String selectedSubscriptionStatus) {
 		this.selectedSubscriptionStatus = selectedSubscriptionStatus;
+	}
+
+	public String getSubscriptionProfileByURL(String url) {
+		String subscriptionProfile = "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription";
+
+		if (url != null) {
+			if (url.contains("FASTSubscription")) {
+				subscriptionProfile = "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription";
+			}
+		}
+
+		return subscriptionProfile;
+	}
+
+	public String getSubscriptionTopicByURL(String url) {
+		String subscriptionTopic = "??";
+
+		if (url != null) {
+			if (url.contains("FASTConsentSubscriptionTopic")) {
+				subscriptionTopic = "FAST Consent Subscription Topic";
+			}
+		}
+
+		return subscriptionTopic;
+	}
+
+	public List<LabelKeyValueBean> getListSubscriptionTopic() {
+		if (listSubscriptionTopic == null) {
+			listSubscriptionTopic = new ArrayList<LabelKeyValueBean>();
+			LabelKeyValueBean lkvb = new LabelKeyValueBean("FAST Consent Subscription Topic", "http://hl7.org/fhir/us/consent-management/SubscriptionTopic/FASTConsentSubscriptionTopic", "");
+			listSubscriptionTopic.add(lkvb);
+		}
+		return listSubscriptionTopic;
+	}
+
+	public void setListSubscriptionTopic(List<LabelKeyValueBean> listSubscriptionTopic) {
+		this.listSubscriptionTopic = listSubscriptionTopic;
+	}
+
+	public String getSelectedSubscriptionTopic() {
+		return selectedSubscriptionTopic;
+	}
+
+	public void setSelectedSubscriptionTopic(String selectedSubscriptionTopic) {
+		this.selectedSubscriptionTopic = selectedSubscriptionTopic;
 	}
 
 	public String getSubscriptionReason() {
@@ -1088,6 +1217,30 @@ public class ApplicationContext implements Serializable {
 
 	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
+	}
+
+	public Integer getSubscriptionHeartbeat() {
+		return subscriptionHeartbeat;
+	}
+
+	public void setSubscriptionHeartbeat(Integer subscriptionHeartbeat) {
+		this.subscriptionHeartbeat = subscriptionHeartbeat;
+	}
+
+	public Integer getSubscriptionTimeout() {
+		return subscriptionTimeout;
+	}
+
+	public void setSubscriptionTimeout(Integer subscriptionTimeout) {
+		this.subscriptionTimeout = subscriptionTimeout;
+	}
+
+	public Integer getSubscriptionMaxCount() {
+		return subscriptionMaxCount;
+	}
+
+	public void setSubscriptionMaxCount(Integer subscriptionMaxCount) {
+		this.subscriptionMaxCount = subscriptionMaxCount;
 	}
 
 	public String getFhirPackages() {

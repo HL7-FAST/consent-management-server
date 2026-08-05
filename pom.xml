@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.aegis.fhir</groupId>
     <artifactId>wildfhir</artifactId>
-    <version>1.0.0-ballot</version>
+    <version>1.0.0-preview</version>
     <packaging>pom</packaging>
     <name>FASTConsentRI</name>
     <description>FAST Consent Reference Implementation based on AEGIS WildFHIR Community Edition - an open-source implementation of the FHIR R4 specification in Java</description>
 
-    <url>http://wildfhir.wildfhir.org/r4</url>
+    <url>http://wildfhir.wildfhir.org/fastconsent/r4</url>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -18,9 +18,9 @@
     </licenses>
 
     <properties>
-        <release.version>1.0.0-ballot</release.version>
+        <release.version>1.0.0-preview</release.version>
 
-        <core.version>6.8.2</core.version>
+        <core.version>6.9.11</core.version>
 
         <!-- Explicitly declare encodings to avoid warning messages on build and to ensure consistent build -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -37,7 +37,7 @@
 
         <!-- Wildfly/JBoss plugin versions -->
         <!-- the version for the Server -->
-        <version.server>38.0.1.Final</version.server>
+        <version.server>39.0.1.Final</version.server>
         <!-- the versions for BOMs, Packs and Plugins -->
         <version.bom.ee>${version.server}</version.bom.ee>
 
@@ -71,26 +71,26 @@
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-jaxrs</artifactId>
-                <version>6.2.12.Final</version>
+                <version>6.2.15.Final</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-jaxb-provider</artifactId>
-                <version>6.2.12.Final</version>
+                <version>6.2.15.Final</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-multipart-provider</artifactId>
-                <version>6.2.12.Final</version>
+                <version>6.2.15.Final</version>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.20.0</version>
+                <version>2.21.1</version>
             </dependency>
 
             <dependency>
@@ -120,7 +120,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.0</version>
+            <version>2.25.3</version>
         </dependency>
 
         <!-- force use of commons-io 2.17.0 used in hapi-fhir-base; otherwise picks up 2.1 from resteasy-jaxrs dependency which causes errors due to missing IOUtils.toString() method -->
@@ -151,7 +151,7 @@
             <id>github</id>
             <url>https://maven.pkg.github.com/hapifhir/org.hl7.fhir.core/</url>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </snapshots>
         </repository>
     </repositories>

@@ -60,11 +60,9 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Endpoint;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Subscription;
@@ -611,21 +609,12 @@ public class ClientresourceService {
 				description.append((consent.hasPatient() ? (consent.getPatient().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference()) : (consent.getPatient().hasIdentifier() ? consent.getPatient().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; prov: ");
 				description.append(consent.getProvision().getType().getDisplay());
-				description.append("; grantee: ");
-				Extension grantee = null;
-				if (consent.hasExtension("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee")) {
-					grantee = consent.getExtensionByUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee");
-					if (grantee.hasValue() && grantee.getValue() instanceof Reference) {
-						Reference gRef = (Reference)grantee.getValue();
-						description.append((gRef.hasReference() ? gRef.getReference() : (gRef.hasIdentifier() ? gRef.getIdentifier().getValue() : "?")));
-					}
-					else {
-						description.append("?");
-					}
-				}
-				else {
-					description.append("?");
-				}
+				description.append("; recipient: ");
+				description.append(consent.getProvision().hasActor() && consent.getProvision().hasActor() ?
+						(consent.getProvision().getActorFirstRep().hasReference() && consent.getProvision().getActorFirstRep().getReference().hasReference() ?
+						ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference()) :
+						(consent.getProvision().getActorFirstRep().hasReference() && consent.getProvision().getActorFirstRep().getReference().hasIdentifier() ?
+						consent.getProvision().getActorFirstRep().getReference().getIdentifier().getValue() : "?") ) : "?");
 				description.append(" (");
 				description.append((consent.hasIdentifier() ? consent.getIdentifierFirstRep().getValue() : (consent.hasId() ? consent.getId() : "?")));
 				description.append(")");

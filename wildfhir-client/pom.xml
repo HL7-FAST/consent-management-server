@@ -5,15 +5,15 @@
     <parent>
         <groupId>net.aegis.fhir</groupId>
         <artifactId>wildfhir</artifactId>
-        <version>1.0.0-ballot</version>
+        <version>1.0.0-preview</version>
     </parent>
     <artifactId>wildfhir-client</artifactId>
-    <version>1.0.0-ballot</version>
+    <version>1.0.0-preview</version>
     <packaging>war</packaging>
     <name>FASTConsentRI-client</name>
-    <description>FAST Consent RI - AEGIS FHIR Client Application</description>
+    <description>FAST Consent RI - AEGIS WildFHIR CE FHIR RESTful Client</description>
 
-    <url>http://wildfhir.wildfhir.org/r4-client</url>
+    <url>http://wildfhir.wildfhir.org/fastconsent/r4-client</url>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -23,7 +23,7 @@
     </licenses>
 
     <properties>
-        <project.war.name>wildfhir-client</project.war.name>
+        <project.war.name>fastconsentri-client</project.war.name>
 
 		<!-- This is used in application.properties file -->
 		<timestamp>${maven.build.timestamp}</timestamp>

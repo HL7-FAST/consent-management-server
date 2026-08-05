@@ -10,18 +10,18 @@ The live deployment of this RI application is hosted in the [HL7 FHIR Foundry](h
 
 | Name | Link |
 | ---- | ---- |
-| RI Server Base URL | https://consent-management-server.fast.hl7.org/r4 |
-| RI Client URL | https://consent-management-server.fast.hl7.org/r4-client |
+| RI Server Base URL | https://consent-management-server.fast.hl7.org/fastconsent/r4 |
+| RI Client URL | https://consent-management-server.fast.hl7.org/fastconsent/r4-client |
 
 ## Prerequisites
 Building and running the server locally requires either Docker or
 - Java 17+
-- Red Hat Wildfly 38.0.1.Final
-- MySQL Community Edition 8.0
+- Red Hat Wildfly 39.0.1.Final
+- MySQL Community Edition 9.x
 
 ## Using Red Hat Wildfly
 
-Please see the [WildFHIR Community Edition Wiki - Installation](https://github.com/AEGISnetInc/WildFHIR/wiki/Installation-v0.6.0) instructions.
+Please see the [WildFHIR Community Edition Wiki - Installation](https://github.com/AEGISnetInc/WildFHIR/wiki/Installation-v0.7.1) instructions.
 
 ## Running via [Docker Hub](https://hub.docker.com/r/hlseven/fast-consent-management-server)
 
@@ -39,7 +39,7 @@ This will run the docker image with the default configuration, mapping port 8080
 You can customize the behavior and capabilities of the underlying WildFHIR CE server directly from the `run` command using environment variables. For example, FHIR validation support for the [FAST Scalable Consent Management IG](https://build.fhir.org/ig/HL7/fhir-consent-management) via the $validate operation requires the installation of the corresponding validation package via the FHIR_PACKAGES environment variable:
 
 ```
-docker run -p 8080:8080 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-ballot hlseven/fast-consent-management-server:latest
+docker run -p 8080:8080 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-preview hlseven/fast-consent-management-server:latest
 ```
 
 or, to facilitate the definition of multiple settings you can create and use an environment variable list file; e.g. 'env.list' (see https://github.com/HL7-FAST/consent-management-server/blob/main/docker/env.list for a complete list):
@@ -69,7 +69,7 @@ The server implements the `Subscription/$status` custom operation as described i
 
 ## Security
 
-The server currently does not enable any security interface beyond HTTPS - OAuth, UDAP, etc.
+The server currently does not enable any security interface beyond HTTPS/TLS 1.2.
 
 
 ## Questions and Contributions

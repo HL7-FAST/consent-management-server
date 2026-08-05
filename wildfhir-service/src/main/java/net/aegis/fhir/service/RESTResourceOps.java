@@ -37,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +45,28 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
+import org.hl7.fhir.r4.formats.IParser.OutputStyle;
+import org.hl7.fhir.r4.formats.JsonParser;
+import org.hl7.fhir.r4.formats.XmlParser;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Subscription;
+import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
+import org.hl7.fhir.r5.model.Enumerations.SubscriptionStatusCodes;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionNotificationType;
+import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionStatusNotificationEventComponent;
+import org.xmlpull.v1.XmlPullParserException;
+
+import com.google.gson.JsonSyntaxException;
 
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionManagement;
@@ -57,30 +80,6 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.UriInfo;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
-import org.hl7.fhir.r4.formats.IParser.OutputStyle;
-import org.hl7.fhir.r4.formats.JsonParser;
-import org.hl7.fhir.r4.formats.XmlParser;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.r5.model.Enumerations.SubscriptionStatusCodes;
-import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionNotificationType;
-import org.hl7.fhir.r5.model.SubscriptionStatus.SubscriptionStatusNotificationEventComponent;
-import org.hl7.fhir.r4.model.DomainResource;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.Subscription;
-import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
-import org.xmlpull.v1.XmlPullParserException;
-
-import com.google.gson.JsonSyntaxException;
-
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.model.ResourceType;
@@ -120,7 +119,7 @@ public class RESTResourceOps {
     /**
      * This returns a single instance with the content specified for the resource type for the current version of the resource.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param requestHeaderParams
      * @param contextQueryParams
@@ -128,7 +127,7 @@ public class RESTResourceOps {
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response resourceTypeRead(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
+    public Response resourceTypeRead(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
 
         log.fine("[START] RESTResourceOps.resourceTypeRead()");
 
@@ -151,7 +150,7 @@ public class RESTResourceOps {
 
         try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Check for valid and supported ResourceType
 			if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
@@ -164,7 +163,7 @@ public class RESTResourceOps {
 						_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", contextQueryParams);
 					}
 					if (_summary == null) {
-						_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+						_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", request);
 					}
 
 					log.fine("Resource id: " + id);
@@ -173,18 +172,28 @@ public class RESTResourceOps {
 
 					log.fine("Resource status: " + resourceContainer.getResponseStatus().name());
 
-					String locationPath = context.getRequestUri().toString();
+					// Get the request URL without the query parameters
+					StringBuffer requestURL = request.getRequestURL();
 
 					/*
 					 * Check for missing resource type if called from batch or transaction
 					 */
-					if (!locationPath.contains(resourceType)) {
-						locationPath += "/" + resourceType + "/" + id;
+					if (!requestURL.toString().contains(resourceType)) {
+						requestURL.append("/").append(resourceType).append("/").append(id);
 					}
 
 					if (resourceContainer != null && resourceContainer.getResource() != null) {
-						locationPath += "/_history/" + resourceContainer.getResource().getVersionId();
+						requestURL.append("/_history/").append(resourceContainer.getResource().getVersionId());
 					}
+
+					// Construct full request URL with any query parameters
+					String queryString = request.getQueryString();
+					if (queryString != null) {
+						queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+						requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+					}
+
+					log.fine("Response Location: " + requestURL);
 
 					// Check for valid returned resource instance; i.e. response status of OK
 					if (resourceContainer.getResponseStatus().equals(Status.OK)) {
@@ -295,7 +304,7 @@ public class RESTResourceOps {
 
 									}
 									else {
-										builder = buildResource(locationPath, producesType, resourceContainer, Ops.READ, responseFhirVersion);
+										builder = buildResource(requestURL.toString(), producesType, resourceContainer, Ops.READ, responseFhirVersion);
 									}
 								}
 							}
@@ -309,12 +318,12 @@ public class RESTResourceOps {
 
 						}
 						else {
-							builder = buildResource(locationPath, producesType, resourceContainer, Ops.READ, responseFhirVersion);
+							builder = buildResource(requestURL.toString(), producesType, resourceContainer, Ops.READ, responseFhirVersion);
 						}
 
 					}
 					else {
-						builder = buildResource(locationPath, producesType, resourceContainer, Ops.READ, responseFhirVersion);
+						builder = buildResource(requestURL.toString(), producesType, resourceContainer, Ops.READ, responseFhirVersion);
 					}
 
 				}
@@ -343,14 +352,14 @@ public class RESTResourceOps {
     /**
      * This returns a single instance with the content specified for the resource type for that version of the resource.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param id
      * @param versionId
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response resourceTypeVRead(UriInfo context, HttpHeaders headers, String id, String versionId, String resourceType) {
+    public Response resourceTypeVRead(HttpServletRequest request, HttpHeaders headers, String id, String versionId, String resourceType) {
 
         log.fine("[START] RESTResourceOps.resourceTypeVRead()");
 
@@ -370,7 +379,7 @@ public class RESTResourceOps {
 
         try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Check for valid and supported ResourceType
 			if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
@@ -379,7 +388,7 @@ public class RESTResourceOps {
 				if (StringUtils.isValidFhirId(id)) {
 
 					// Get the _summary parameter, if present
-					_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+					_summary = ServicesUtil.INSTANCE.getUriParameter("_summary", request);
 
 					log.fine("Resource id: " + id);
 
@@ -387,16 +396,31 @@ public class RESTResourceOps {
 					log.fine("Converted version id: " + iVersionId);
 
 					ResourceContainer resourceContainer = resourceService.vread(resourceType, id, iVersionId, _summary);
-					String locationPath = context.getRequestUri().toString();
+
+					// Get the request URL without the query parameters
+					StringBuffer requestURL = request.getRequestURL();
 
 					/*
 					 * Check for missing resource type if called from batch or transaction
 					 */
-					if (!locationPath.contains(resourceType)) {
-						locationPath += "/" + resourceType + "/" + id + "/_history/" + versionId;
+					if (!requestURL.toString().contains(resourceType)) {
+						requestURL.append("/").append(resourceType).append("/").append(id);
+
+						if (resourceContainer != null && resourceContainer.getResource() != null) {
+							requestURL.append("/_history/").append(resourceContainer.getResource().getVersionId());
+						}
 					}
 
-					builder = buildResource(locationPath, producesType, resourceContainer, Ops.READ, responseFhirVersion);
+					// Construct full request URL with any query parameters
+					String queryString = request.getQueryString();
+					if (queryString != null) {
+						queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+						requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+					}
+
+					log.fine("Response Location: " + requestURL);
+
+					builder = buildResource(requestURL.toString(), producesType, resourceContainer, Ops.READ, responseFhirVersion);
 				}
 				else {
 					builder = responseInvalidResourceId(producesType, resourceType, id, responseFhirVersion);
@@ -422,7 +446,7 @@ public class RESTResourceOps {
      * The create interaction creates a new resource in a server assigned location. If the client wishes to
      * have control over the id of a newly submitted resource, it should use the update interaction instead.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param requestHeaderParams
      * @param resourceInputStream
@@ -430,7 +454,7 @@ public class RESTResourceOps {
      * @param resourceId
      * @return <code>Response</code>
      */
-    public Response create(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, String payload, String resourceType, String resourceId) throws Exception {
+    public Response create(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, String payload, String resourceType, String resourceId) throws Exception {
 
         log.fine("[START] RESTResourceOps.create()");
 
@@ -454,20 +478,24 @@ public class RESTResourceOps {
 
 		try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Get the content type based on the request Content-Type
 			contentType = ServicesUtil.INSTANCE.getHttpHeader(headers, HttpHeaders.CONTENT_TYPE);
 
 			if (contentType != null && !contentType.equals(MediaType.APPLICATION_OCTET_STREAM)) {
-				String contextPath = context.getRequestUri().toString();
+
+				// Get the request URL without the query parameters
+				StringBuffer requestURL = request.getRequestURL();
 
 				/*
 				 * Check for missing resource type if called from batch or transaction
 				 */
-				if (!contextPath.contains(resourceType)) {
-					contextPath += "/" + resourceType;
+				if (!requestURL.toString().contains(resourceType)) {
+					requestURL.append("/").append(resourceType);
 				}
+				String contextPath = requestURL.toString();
+
 				/*
 				 * Remove resource id if called from update
 				 */
@@ -503,9 +531,13 @@ public class RESTResourceOps {
 								MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 
 								// Execute search as defined in If-None-Exist header
-								String locationPath = context.getRequestUri().toString();
 
-								ResourceContainer searchContainer = resourceService.search(queryParams, null, null, null, resourceType, locationPath, null, null, null, false);
+								// Construct full request URL with If-None-Exist header query parameters
+								requestURL = request.getRequestURL();
+								requestURL.append("?").append(ifNoneExist);
+								String locationPath = requestURL.toString();
+
+								ResourceContainer searchContainer = resourceService.search(queryParams, null, null, resourceType, locationPath, null, null, null, false);
 
 								if (searchContainer != null && searchContainer.getResponseStatus().equals(Status.OK) && searchContainer.getBundle() != null) {
 
@@ -587,11 +619,14 @@ public class RESTResourceOps {
 
 							// Check for no existing text narrative
 							if (resource instanceof DomainResource) {
-								DomainResource dResource = (DomainResource) resource;
+								// Check for non-R4 resource types
+								if (!(resourceType.equals("SubscriptionStatus") || resourceType.equals("SubscriptionTopic"))) {
+									DomainResource dResource = (DomainResource) resource;
 
-								if (!dResource.hasText()) {
-									// Use RI NarrativeGenerator
-									FHIRNarrativeGeneratorClient.instance().generate(dResource);
+									if (!dResource.hasText()) {
+										// Use RI NarrativeGenerator
+										FHIRNarrativeGeneratorClient.instance().generate(dResource);
+									}
 								}
 							}
 
@@ -607,7 +642,7 @@ public class RESTResourceOps {
 							newResource.setResourceType(resourceType);
 							newResource.setResourceContents(bResource);
 
-							ResourceContainer resourceContainer = resourceService.create(newResource, resourceId, context.getAbsolutePath().toString());
+							ResourceContainer resourceContainer = resourceService.create(newResource, resourceId, request.getRequestURL().toString());
 
 							if (resourceId == null) {
 								sbLocationPath.append("/").append(resourceContainer.getResource().getResourceId());
@@ -699,7 +734,7 @@ public class RESTResourceOps {
     /**
      * The update interaction creates a new current version for an existing resource or creates a new resource if no resource already exists for the given id.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param requestHeaderParams
      * @param contextQueryParams
@@ -708,7 +743,7 @@ public class RESTResourceOps {
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response update(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String payload, String resourceType) throws Exception {
+    public Response update(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> requestHeaderParams, MultivaluedMap<String,String> contextQueryParams, String id, String payload, String resourceType) throws Exception {
 
         log.fine("[START] RESTResourceOps.update()");
 
@@ -739,15 +774,15 @@ public class RESTResourceOps {
 
 			if (contentType != null && !contentType.equals(MediaType.APPLICATION_OCTET_STREAM)) {
 				// Get the produces type based on the request Accept
-				producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+				producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 				// Check for valid and supported ResourceType
 				if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
 
 					// Get the query parameters that represent the search criteria if any
-					// FHIR-293 - Code correction to create new MultivaluedHashMap to hold all params
-					MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-					queryParams.putAll(context.getQueryParameters());
+
+					MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
+
 					if (contextQueryParams != null) {
 						queryParams.putAll(contextQueryParams);
 					}
@@ -780,9 +815,17 @@ public class RESTResourceOps {
 							log.fine("Conditional Update requested and supported - start search");
 
 							// Execute search as defined in the request uri parameters
-							String locationPath = context.getRequestUri().toString();
 
-							ResourceContainer searchContainer = resourceService.search(queryParams, null, null, null, resourceType, locationPath, null, null, null, false);
+							// Construct full request URL with any query parameters
+							StringBuffer requestURL = request.getRequestURL();
+							String queryString = request.getQueryString();
+							if (queryString != null) {
+								queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+								requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+							}
+							String locationPath = requestURL.toString();
+
+							ResourceContainer searchContainer = resourceService.search(queryParams, null, null, resourceType, locationPath, null, null, null, false);
 
 							if (searchContainer != null && searchContainer.getResponseStatus().equals(Status.OK) && searchContainer.getBundle() != null) {
 
@@ -849,7 +892,7 @@ public class RESTResourceOps {
 						if (okToCreate) {
 
 							// Call create logic and RETURN
-							return this.create(context, headers, null, payload, resourceType, id);
+							return this.create(request, headers, null, payload, resourceType, id);
 
 						}
 						// Else, check for valid FHIR resource id data type compliance
@@ -888,7 +931,7 @@ public class RESTResourceOps {
 									}
 
 									// Call create logic and RETURN
-									return this.create(context, headers, null, resourcePayload, resourceType, id);
+									return this.create(request, headers, null, resourcePayload, resourceType, id);
 								}
 								else {
 									// resource id not found or ids do not match, return 400 (Bad Request) with OperationOutcome
@@ -968,11 +1011,14 @@ public class RESTResourceOps {
 									if (resource.hasId() && resource.getId().equals(id)) {
 										// Check for no existing text narrative
 										if (resource instanceof DomainResource) {
-											DomainResource dResource = (DomainResource) resource;
+											// Check for non-R4 resource types
+											if (!(resourceType.equals("SubscriptionStatus") || resourceType.equals("SubscriptionTopic"))) {
+												DomainResource dResource = (DomainResource) resource;
 
-											if (!dResource.hasText()) {
-												// Use Cached NarrativeGeneratorClient
-												FHIRNarrativeGeneratorClient.instance().generate(dResource);
+												if (!dResource.hasText()) {
+													// Use Cached NarrativeGeneratorClient
+													FHIRNarrativeGeneratorClient.instance().generate(dResource);
+												}
 											}
 										}
 
@@ -987,18 +1033,7 @@ public class RESTResourceOps {
 										updateResource.setResourceType(resourceType);
 										updateResource.setResourceContents(bResource);
 
-										String absolutePath = context.getAbsolutePath().toString();
-
-										/*
-										 * Check for missing resource type if called from batch or transaction
-										 */
-										if (!absolutePath.contains(resourceType)) {
-											absolutePath += "/" + resourceType + "/" + id;
-										}
-
-										resourceContainer = resourceService.update(id, updateResource, absolutePath);
-
-										String locationPath = context.getRequestUri().toString();
+										String locationPath = request.getRequestURL().toString();
 
 										/*
 										 * Check for missing resource type if called from batch or transaction
@@ -1006,6 +1041,8 @@ public class RESTResourceOps {
 										if (!locationPath.contains(resourceType)) {
 											locationPath += "/" + resourceType + "/" + id;
 										}
+
+										resourceContainer = resourceService.update(id, updateResource, locationPath);
 
 										if (resourceContainer != null && resourceContainer.getResource() != null) {
 											locationPath += "/_history/" + resourceContainer.getResource().getVersionId();
@@ -1111,14 +1148,14 @@ public class RESTResourceOps {
 	 * The patch interaction creates a new current version for an existing resource for the given id using a partial
 	 * update mechanism.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param id
      * @param resourceInputStream
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response patch(UriInfo context, HttpHeaders headers, String id, InputStream resourceInputStream, String resourceType) {
+    public Response patch(HttpServletRequest request, HttpHeaders headers, String id, InputStream resourceInputStream, String resourceType) {
 
         log.fine("[START] RESTResourceOps.patch()");
 
@@ -1145,7 +1182,7 @@ public class RESTResourceOps {
 
 			if (contentType != null && !contentType.equals(MediaType.APPLICATION_OCTET_STREAM)) {
 				// Get the produces type based on the request Accept
-				producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+				producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 				// Check for valid and supported ResourceType
 				if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
@@ -1153,8 +1190,17 @@ public class RESTResourceOps {
 					// Additional special check for unsupported resource type Binary
 					if (!resourceType.equals("Binary")) {
 
+						// Construct full request URL with any query parameters
+						StringBuffer requestURL = request.getRequestURL();
+						String queryString = request.getQueryString();
+						if (queryString != null) {
+							queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+							requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+						}
+						String locationPath = requestURL.toString();
+
 						// Get the query parameters that represent the search criteria if any
-						MultivaluedMap<String, String> queryParams = context.getQueryParameters();
+						MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
 
 						boolean isConditional = false;
 						boolean okToPatch = true;
@@ -1183,16 +1229,14 @@ public class RESTResourceOps {
 								log.fine("Conditional Patch Update requested and supported - start search");
 
 								// Execute search as defined in the request uri parameters
-								String locationPath = context.getRequestUri().toString();
-
-								ResourceContainer searchContainer = resourceService.search(queryParams, null, null, null, resourceType, locationPath, null, null, null, false);
+								ResourceContainer searchContainer = resourceService.search(queryParams, null, null, resourceType, locationPath, null, null, null, false);
 
 								if (searchContainer != null && searchContainer.getResponseStatus().equals(Status.OK) && searchContainer.getBundle() != null) {
 
 									Bundle searchBundle = searchContainer.getBundle();
 									if (!searchBundle.hasEntry()) {
 										// If no matches, execute create by setting okToCreate = true and okToUpdate = true
-										String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION, OperationOutcome.IssueType.NOTFOUND, "Conditional patch update failed due to esource to patch does not exist.", null, context.getRequestUri().toString(), producesType);
+										String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION, OperationOutcome.IssueType.NOTFOUND, "Conditional patch update failed due to esource to patch does not exist.", null, locationPath, producesType);
 
 										builder = Response.status(Response.Status.NOT_FOUND).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 
@@ -1253,7 +1297,7 @@ public class RESTResourceOps {
 								if (resourceContainer == null || resourceContainer.getResource() == null || !resourceContainer.getResponseStatus().equals(Status.OK)) {
 
 									// OperationOutcome for resource contents
-									String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION, OperationOutcome.IssueType.NOTFOUND, "Resource to patch does not exist.", null, context.getRequestUri().toString(), producesType);
+									String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION, OperationOutcome.IssueType.NOTFOUND, "Resource to patch does not exist.", null, locationPath, producesType);
 
 									builder = Response.status(Response.Status.NOT_FOUND).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 								}
@@ -1316,25 +1360,41 @@ public class RESTResourceOps {
 
 										// Call JSON or XML patch logic based on the Content-Type
 										if (contentType == null || contentType.indexOf("xml") >= 0) {
-											log.fine("Calling XML Patch based on Content-Type of " + contentType);
-											resourceContainer = resourceService.xmlPatch(payload, resourceContainer, context.getAbsolutePath().toString());
+											// Check XML payload for <Parameters> tag
+											if (payload.contains("<Parameters")) {
+												resourceContainer = new ResourceContainer();
+												resourceContainer.setResponseStatus(Status.NOT_IMPLEMENTED);
+												resourceContainer.setMessage("FHIRPath PATCH not implemented for content-type '" + contentType + "'!");
+											}
+											else {
+												log.fine("Calling XML Patch based on Content-Type of " + contentType);
+												resourceContainer = resourceService.xmlPatch(payload, resourceContainer, request.getRequestURL().toString());
+											}
 										}
 										else {
-											log.fine("Calling JSON Patch based on Content-Type of " + contentType);
-											resourceContainer = resourceService.jsonPatch(payload, resourceContainer, context.getAbsolutePath().toString());
+											// Check JSON payload for resourceType attribute
+											if (payload.contains("resourceType")) {
+												resourceContainer = new ResourceContainer();
+												resourceContainer.setResponseStatus(Status.NOT_IMPLEMENTED);
+												resourceContainer.setMessage("FHIRPath PATCH not implemented for content-type '" + contentType + "'!");
+											}
+											else {
+												log.fine("Calling JSON Patch based on Content-Type of " + contentType);
+												resourceContainer = resourceService.jsonPatch(payload, resourceContainer, request.getRequestURL().toString());
+											}
 										}
 
 										// Check for error or exception
 										if (resourceContainer == null || resourceContainer.getResource() == null || !resourceContainer.getResponseStatus().equals(Status.OK)) {
 
 											// OperationOutcome for resource contents
-											String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.EXCEPTION, resourceContainer.getMessage(), null, context.getRequestUri().toString(), producesType);
+											String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.EXCEPTION, resourceContainer.getMessage(), null, locationPath, producesType);
 
 											builder = Response.status(resourceContainer.getResponseStatus()).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 										}
 										else {
 											// Generate location path with new reference url to the updated resource
-											String locationPath = context.getRequestUri().toString();
+											locationPath = request.getRequestURL().toString();
 											if (resourceContainer != null && resourceContainer.getResource() != null) {
 												locationPath += "/_history/" + resourceContainer.getResource().getVersionId();
 											}
@@ -1420,14 +1480,14 @@ public class RESTResourceOps {
 	/**
 	 * The delete interaction removes an existing resource.
 	 *
-	 * @param context
+	 * @param request
 	 * @param headers
 	 * @param contextQueryParams
 	 * @param id
 	 * @param resourceType
 	 * @return <code>Response</code>
 	 */
-	public Response delete(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
+	public Response delete(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
 
 		log.fine("[START] RESTResourceOps.delete()");
 
@@ -1447,15 +1507,23 @@ public class RESTResourceOps {
 
 		try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Check for valid and supported ResourceType
 			if (ResourceType.isValidResourceType(resourceType) && ResourceType.isSupportedResourceType(resourceType)) {
 
+        		// Construct full request URL with any query parameters
+				StringBuffer requestURL = request.getRequestURL();
+				String queryString = request.getQueryString();
+				if (queryString != null) {
+					queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+					requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+				}
+				String locationPath = requestURL.toString();
+
 				// Get the query parameters that represent the search criteria if any
-				// FHIR-293 - Code correction to create new MultivaluedHashMap to hold all params
-				MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-				queryParams.putAll(context.getQueryParameters());
+				MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
+
 				if (contextQueryParams != null) {
 					queryParams.putAll(contextQueryParams);
 				}
@@ -1499,9 +1567,7 @@ public class RESTResourceOps {
 						log.fine("Conditional Delete is supported!");
 
 						// Execute search as defined in the request uri parameters
-						String locationPath = context.getRequestUri().toString();
-
-						ResourceContainer searchContainer = resourceService.search(queryParams, null, null, null, resourceType, locationPath, null, null, null, false);
+						ResourceContainer searchContainer = resourceService.search(queryParams, null, null, resourceType, locationPath, null, null, null, false);
 
 						if (searchContainer != null && searchContainer.getResponseStatus().equals(Status.OK) && searchContainer.getBundle() != null) {
 							log.fine("Conditional Delete search successful.");
@@ -1603,7 +1669,7 @@ public class RESTResourceOps {
 
 							if (resourceContainer != null) {
 								// if resourceContainer is not null, delete happened, finish processing
-								String locationPath = context.getRequestUri().toString();
+								locationPath = request.getRequestURL().toString();
 								if (resourceContainer != null && resourceContainer.getResource() != null) {
 									locationPath += "/_history/" + resourceContainer.getResource().getVersionId();
 								}
@@ -1635,18 +1701,17 @@ public class RESTResourceOps {
 	}
 
     /**
-     * <p>Performs a compartment search using any query parameters passed via {@link UriInfo}.If no<br/>
+     * <p>Performs a compartment search using any query parameters passed via {@link HttpServletRequest}.If no<br/>
      * query parameters are present search is done using {@code resourceType}.<br/>
      * This returns a {@link Response} with an {@link Bundle} containing the found search contents.</p>
      * @param request
      * @param headers
-     * @param context
      * @param compartment
      * @param id
      * @param resourceType
      * @return Response
      */
-    public Response compartment(HttpServletRequest request, HttpHeaders headers, UriInfo context, String compartment, String id, String resourceType) {
+    public Response compartment(HttpServletRequest request, HttpHeaders headers, String compartment, String id, String resourceType) {
 
         log.fine("[START] RESTResourceOps.compartment()");
 
@@ -1671,7 +1736,7 @@ public class RESTResourceOps {
 
         try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Check for valid and supported Compartment
         	boolean isCompartmentValid = false;
@@ -1701,7 +1766,7 @@ public class RESTResourceOps {
 					if (StringUtils.isValidFhirId(id)) {
 
 						// Get the query parameters that represent the search criteria
-						MultivaluedMap<String, String> queryParams = context.getQueryParameters();
+						MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
 
 						// Add compartment reference to search criteria query parameter
 						List<String> criteriaNames = ResourceType.findCompartmentResourceTypeCriteria(compartment, resourceType);
@@ -1711,7 +1776,7 @@ public class RESTResourceOps {
 							}
 
 							// Get the count parameter if present
-							countString = ServicesUtil.INSTANCE.getUriParameter("_count", context);
+							countString = ServicesUtil.INSTANCE.getUriParameter("_count", request);
 
 							if (countString != null) {
 								try {
@@ -1725,10 +1790,10 @@ public class RESTResourceOps {
 							}
 
 							// Get the _summary parameter if present
-							summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+							summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", request);
 
 							// Get the page parameter if present
-							pageString = ServicesUtil.INSTANCE.getUriParameter("page", context);
+							pageString = ServicesUtil.INSTANCE.getUriParameter("page", request);
 
 							if (pageString != null) {
 								try {
@@ -1741,15 +1806,24 @@ public class RESTResourceOps {
 								}
 							}
 
-							String queryString = context.getRequestUri().getQuery();
-							List<NameValuePair> orderedParams = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
-							for(NameValuePair param : orderedParams) {
-								log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+							List<NameValuePair> orderedParams = null;
+
+							// Construct full request URL with any query parameters
+							StringBuffer requestURL = request.getRequestURL();
+							String queryString = request.getQueryString();
+							if (queryString != null) {
+								queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+								// Construct ordered parameters for search
+								orderedParams = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
+								for (NameValuePair param : orderedParams) {
+									log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+								}
+
+								requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
 							}
+							String locationPath = requestURL.toString();
 
-				            String locationPath = request.getRequestURL().toString();
-
-							resourceContainer = resourceService.search(queryParams, null, null, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, true);
+							resourceContainer = resourceService.search(queryParams, null, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, true);
 
 							builder = responseBundle(producesType, resourceContainer, locationPath, responseFhirVersion);
 						}
@@ -1784,36 +1858,36 @@ public class RESTResourceOps {
     }
 
     /**
-     * <p>Performs a search using any query parameters passed via {@link UriInfo}.If no<br/>
+     * <p>Performs a search using any query parameters passed via {@link HttpServletRequest}.If no<br/>
      * query parameters are present search is done using {@code resourceType}.<br/>
      * This returns a {@link Response} with an {@link Bundle} containing the found search contents.</p>
+     * @param request
      * @param headers
-     * @param context
      * @param contextQueryParams
      * @param resourceType
      * @return Response
      */
-    public Response search(HttpHeaders headers, UriInfo context, MultivaluedMap<String,String> contextQueryParams, String resourceType) {
-    	return search(headers, context, contextQueryParams, resourceType, null);
+    public Response search(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String resourceType) {
+    	return search(request, headers, contextQueryParams, resourceType, null);
     }
 
     /**
-     * <p>Performs a search using any query parameters passed via {@link UriInfo}.If no<br/>
+     * <p>Performs a search using any query parameters passed via {@link HttpServletRequest}.If no<br/>
      * query parameters are present search is done using {@code resourceType}.<br/>
      * This returns a {@link Response} with an {@link Bundle} containing the found search contents.</p>
+     * @param request
      * @param headers
-     * @param context
      * @param contextQueryParams
      * @param resourceType
      * @param formParams
      * @return Response
      */
-    public Response search(HttpHeaders headers, UriInfo context, MultivaluedMap<String,String> contextQueryParams, String resourceType, MultivaluedMap<String, String> formParams) {
-    	return search(headers, context, contextQueryParams, resourceType, formParams, null);
+    public Response search(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String resourceType, MultivaluedMap<String, String> formParams) {
+    	return search(request, headers, contextQueryParams, resourceType, formParams, null);
     }
 
     /**
-     * <p>Performs a search using any query parameters passed via {@link UriInfo}.If no<br/>
+     * <p>Performs a search using any query parameters passed via {@link HttpServletRequest}.If no<br/>
      * query parameters are present search is done using {@code resourceType}.<br/>
      * This returns a {@link Response} with an {@link Bundle} containing the found search contents.</p>
      * @param headers
@@ -1824,7 +1898,7 @@ public class RESTResourceOps {
      * @param overrideLocationPath
      * @return Response
      */
-    public Response search(HttpHeaders headers, UriInfo context, MultivaluedMap<String,String> contextQueryParams, String resourceType, MultivaluedMap<String, String> formParams, String overrideLocationPath) {
+    public Response search(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String resourceType, MultivaluedMap<String, String> formParams, String overrideLocationPath) {
 
         log.fine("[START] RESTResourceOps.search()");
 
@@ -1855,16 +1929,24 @@ public class RESTResourceOps {
 				queryString = ServicesUtil.INSTANCE.extractURLParams(overrideLocationPath);
 			}
 			else {
-				queryString = context.getRequestUri().getQuery();
+				queryString = request.getQueryString();
+				if (queryString != null) {
+					queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
+				}
+				else {
+					queryString = "";
+				}
 			}
 			log.fine("  queryString = '" + queryString + "'");
-			List<NameValuePair> orderedParams = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
-			for(NameValuePair param : orderedParams) {
-				log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+			List<NameValuePair> orderedParams = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
+			if (orderedParams != null && !orderedParams.isEmpty()) {
+				for(NameValuePair param : orderedParams) {
+					log.fine("  param.name = '" + param.getName() + "'; param.value = '" + param.getValue() + "'");
+				}
 			}
 
         	// Get the produces type based on the request Accept or _format parameter
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context, formParams);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request, formParams);
 
     		// Check for valid and supported ResourceType
         	boolean isResourceTypeValid = false;
@@ -1879,9 +1961,8 @@ public class RESTResourceOps {
     		if (isResourceTypeValid) {
 
 				// Get the query parameters that represent the search criteria
-				// FHIR-293 - Code correction to create new MultivaluedHashMap to hold all params
-				MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-				queryParams.putAll(context.getQueryParameters());
+				MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
+
 				if (contextQueryParams != null) {
 					queryParams.putAll(contextQueryParams);
 				}
@@ -1938,23 +2019,27 @@ public class RESTResourceOps {
 					revincludeString = ServicesUtil.INSTANCE.getUriParameter("_revinclude", formParams);
 				}
 
+				String locationPath = null;
+				if (overrideLocationPath != null) {
+					locationPath = overrideLocationPath;
+				}
+				else {
+					StringBuffer requestURL = request.getRequestURL();
+					if (queryString != null) {
+						requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+					}
+					locationPath = requestURL.toString();
+				}
+
 				// Check for invalid parameter combination of _summary=text and _include or _revinclude present
 				if (summaryString != null && summaryString.equals("text") && (includeString != null || revincludeString != null)) {
 		            String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.NOTSUPPORTED,
-		            		"Invalid search parameter combination! _summary=text not allowed with _include or _revinclude.", null, context.getRequestUri().getPath(), producesType);
+		            		"Invalid search parameter combination! _summary=text not allowed with _include or _revinclude.", null, locationPath, producesType);
 
 		            builder = Response.status(Response.Status.PRECONDITION_FAILED).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 				}
 				else {
-					String locationPath = null;
-					if (overrideLocationPath != null) {
-						locationPath = overrideLocationPath;
-					}
-					else {
-						locationPath = context.getRequestUri().toString();
-					}
-
-					ResourceContainer resourceContainer = resourceService.search(queryParams, formParams, null, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, false);
+					ResourceContainer resourceContainer = resourceService.search(queryParams, formParams, orderedParams, resourceType, locationPath, countInteger, pageInteger, summaryString, false);
 
 					builder = responseBundle(producesType, resourceContainer, locationPath, responseFhirVersion);
 				}
@@ -1978,14 +2063,14 @@ public class RESTResourceOps {
     /**
      * This returns a <code>Bundle</code> with the found history contents for the resource type.
      *
-     * @param context
+     * @param request
      * @param headers
      * @param contextQueryParams
      * @param id
      * @param resourceType
      * @return <code>Response</code>
      */
-    public Response history(UriInfo context, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
+    public Response history(HttpServletRequest request, HttpHeaders headers, MultivaluedMap<String,String> contextQueryParams, String id, String resourceType) {
 
         log.fine("[START] RESTResourceOps.history()");
 
@@ -2011,7 +2096,7 @@ public class RESTResourceOps {
 
 		try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Check for valid and supported ResourceType
 			boolean isResourceTypeValid = false;
@@ -2043,13 +2128,13 @@ public class RESTResourceOps {
 						countString = ServicesUtil.INSTANCE.getUriParameter("_count", contextQueryParams);
 					}
 					if (countString == null) {
-						countString = ServicesUtil.INSTANCE.getUriParameter("_count", context);
+						countString = ServicesUtil.INSTANCE.getUriParameter("_count", request);
 					}
 					if (contextQueryParams != null) {
 						sinceString = ServicesUtil.INSTANCE.getUriParameter("_since", contextQueryParams);
 					}
 					if (sinceString == null) {
-						sinceString = ServicesUtil.INSTANCE.getUriParameter("_since", context);
+						sinceString = ServicesUtil.INSTANCE.getUriParameter("_since", request);
 					}
 
 					if (countString != null) {
@@ -2078,7 +2163,7 @@ public class RESTResourceOps {
 						pageString = ServicesUtil.INSTANCE.getUriParameter("page", contextQueryParams);
 					}
 					if (pageString == null) {
-						pageString = ServicesUtil.INSTANCE.getUriParameter("page", context);
+						pageString = ServicesUtil.INSTANCE.getUriParameter("page", request);
 					}
 
 					if (pageString != null) {
@@ -2097,11 +2182,17 @@ public class RESTResourceOps {
 						summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", contextQueryParams);
 					}
 					if (pageString == null) {
-						summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", context);
+						summaryString = ServicesUtil.INSTANCE.getUriParameter("_summary", request);
 					}
 					log.fine("summary = " + (summaryString != null ? summaryString : "null"));
 
-					String locationPath = context.getRequestUri().toString();
+					// Construct full request URL with any query parameters
+					StringBuffer requestURL = request.getRequestURL();
+					String queryString = request.getQueryString();
+					if (queryString != null) {
+						requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+					}
+					String locationPath = requestURL.toString();
 
 					ResourceContainer resourceContainer = resourceService.history(id, countInteger, sinceDate, pageInteger, summaryString, locationPath, resourceType);
 
@@ -2192,7 +2283,7 @@ public class RESTResourceOps {
 		List<String[]> validParams = new ArrayList<String[]>();
 		List<String[]> invalidParams = new ArrayList<String[]>();
 
-		List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, null, "SubscriptionStatus", false, null, null, null, validParams, invalidParams);
+		List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, "SubscriptionStatus", false, null, null, null, validParams, invalidParams);
 
 		long numEvents = resources.size();
 
@@ -2404,8 +2495,8 @@ public class RESTResourceOps {
             builder = Response.status(resourceContainer.getResponseStatus()).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 
             if (resourceContainer.getResponseStatus().equals(Response.Status.OK)) {
-                // Define URI location
-                URI resourceLocation = new URI(URLEncoder.encode(locationPath, StandardCharsets.UTF_8.toString()));
+				// Define URI location with decoded URL
+                URI resourceLocation = new URI(locationPath);
                 builder = builder.contentLocation(resourceLocation);
 
                 if (resourceContainer.getBundle() != null) {
@@ -2428,7 +2519,8 @@ public class RESTResourceOps {
                         sResourceSearch = oResourceSearch.toString();
                     }
 
-                    builder = builder.entity(sResourceSearch).header(HttpHeaders.CONTENT_LENGTH, sResourceSearch.getBytes("UTF-8").length);
+                    builder = builder.entity(sResourceSearch).header(HttpHeaders.CONTENT_LENGTH, sResourceSearch.getBytes("UTF-8").length)
+                    		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 
                 } else {
                 	// Response status is not OK;; build OperationOutcome response resource
@@ -2449,8 +2541,41 @@ public class RESTResourceOps {
 
                 	String outcome = ServicesUtil.INSTANCE.getOperationOutcome(outcomeIssueSeverity, outcomeIssueType, message, null, null, producesType);
 
-                    builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+                    builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).header(HttpHeaders.CONTENT_LENGTH, outcome.getBytes("UTF-8").length)
+                    		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
                 }
+            } else if (resourceContainer.getResponseStatus().equals(Response.Status.FORBIDDEN)) {
+            	// Search query failed with errors; return search generated outcome
+            	if (resourceContainer.getOutcome() != null) {
+                    String sResourceSearch = "";
+
+                    if (producesType.indexOf("xml") >= 0) {
+                        // Convert OperationOutcome to XML
+                    	oResourceSearch = new ByteArrayOutputStream();
+        				XmlParser xmlParser = new XmlParser();
+        				xmlParser.setOutputStyle(OutputStyle.PRETTY);
+        				xmlParser.compose(oResourceSearch, resourceContainer.getOutcome(), true);
+                        sResourceSearch = oResourceSearch.toString();
+                    } else {
+                        // Convert OperationOutcome to JSON
+                        oResourceSearch = new ByteArrayOutputStream();
+                        JsonParser jsonParser = new JsonParser();
+                        jsonParser.setOutputStyle(OutputStyle.PRETTY);
+                        jsonParser.compose(oResourceSearch, resourceContainer.getOutcome());
+                        sResourceSearch = oResourceSearch.toString();
+                    }
+
+                    builder = builder.status(resourceContainer.getResponseStatus()).entity(sResourceSearch).header(HttpHeaders.CONTENT_LENGTH, sResourceSearch.getBytes("UTF-8").length)
+                    		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+            	}
+            	else {
+            		// Search query failed with error but no generated outcome was returned 
+                    String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.PROCESSING,
+                    		"Search query processing failed without generating specific errors! Review your search request for any inconsistencies with the FHIR specification.", null, null, producesType);
+
+                    builder = Response.status(resourceContainer.getResponseStatus()).entity(outcome).header(HttpHeaders.CONTENT_LENGTH, outcome.getBytes("UTF-8").length)
+                    		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+            	}
             } else {
                 // Something went wrong
             	String message = "Failure processing search.";
@@ -2459,13 +2584,15 @@ public class RESTResourceOps {
             	}
                 String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.TRANSIENT, message, null, null, producesType);
 
-                builder = Response.status(resourceContainer.getResponseStatus()).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+                builder = Response.status(resourceContainer.getResponseStatus()).entity(outcome).header(HttpHeaders.CONTENT_LENGTH, outcome.getBytes("UTF-8").length)
+                		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
             }
         } else {
             // Something went wrong
             String outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.TRANSIENT, "No response container returned.", null, null, producesType);
 
-            builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+            builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).header(HttpHeaders.CONTENT_LENGTH, outcome.getBytes("UTF-8").length)
+            		.type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
         }
 
         return builder;
@@ -2485,7 +2612,7 @@ public class RESTResourceOps {
 	 */
 	private Response.ResponseBuilder buildResource(String locationPath, String producesType, ResourceContainer resourceContainer, Enum<Ops> opsCode, String responseFhirVersion) throws URISyntaxException, Exception {
 
-		log.fine("[START] RESTResourceOps.buildResource()");
+		log.fine("[START] RESTResourceOps.buildResource() - locationPath " + locationPath);
 
 		Response.ResponseBuilder builder;
 		String outcome = "";
@@ -2497,8 +2624,9 @@ public class RESTResourceOps {
 			builder = Response.status(resourceContainer.getResponseStatus());
 
 			if (resourceContainer.getResource() != null || opsCode.equals(Ops.DELETE)) {
-				// Define URI location
-                URI resourceLocation = new URI(URLEncoder.encode(locationPath, StandardCharsets.UTF_8.toString()));
+				// Define URI location with decoded URL
+                URI resourceLocation = new URI(locationPath);
+				log.fine("resourceLocation: " + resourceLocation.toString());
 
 				if (resourceContainer.getResource() != null) {
 					// Get last update date

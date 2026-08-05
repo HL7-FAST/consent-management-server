@@ -32,14 +32,19 @@
  */
 package net.aegis.fhir.service.validation;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
-import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r5.elementmodel.Manager.FhirFormat;
+import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r5.formats.IParser.OutputStyle;
 import org.hl7.fhir.r5.formats.JsonParser;
 import org.hl7.fhir.r5.formats.XmlParser;
@@ -54,7 +59,6 @@ import org.hl7.fhir.r5.utils.validation.constants.BestPracticeWarningLevel;
 import org.hl7.fhir.r5.utils.validation.constants.ReferenceValidationPolicy;
 import org.hl7.fhir.utilities.FhirPublication;
 import org.hl7.fhir.utilities.npm.FilesystemPackageCacheManager;
-import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.hl7.fhir.validation.ValidationEngine;
 import org.hl7.fhir.validation.ValidationEngine.ValidationEngineBuilder;
 import org.hl7.fhir.validation.instance.advisor.BasePolicyAdvisorForFullValidation;
@@ -75,6 +79,7 @@ public class FHIRValidatorClient {
     private static FHIRValidatorClient me;
 
     private static String FHIR_PACKAGES_ENV_VAR = "FHIR_PACKAGES";
+    private static String FHIR_TX_SERVER_ENV_VAR = "FHIR_TX_SERVER";
 
 	private ValidationEngine engine = null;
 
@@ -95,6 +100,25 @@ public class FHIRValidatorClient {
 
 			long start = System.currentTimeMillis();
 
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection em = DriverManager.getConnection("jdbc:mysql://localhost:3306/fastconsentr4?useUnicode=yes&useSSL=false&verifyServerCertificate=false&allowPublicKeyRetrieval=true&user=wildfhiruser&password=wildfhiruser");
+
+			String codeValueUrlQuery = "SELECT value FROM fastconsentr4.code WHERE codeName = ?";
+			String fhirPackages = null;
+			String fhirTxServer = null;
+
+			PreparedStatement cStatement = em.prepareStatement(codeValueUrlQuery);
+			cStatement.setString(1, "fhirPackages");
+			ResultSet cResultSet = cStatement.executeQuery();
+			if (cResultSet.next()) {
+				fhirPackages = cResultSet.getString(1);
+			}
+			cStatement.setString(1, "fhirTxServer");
+			cResultSet = cStatement.executeQuery();
+			if (cResultSet.next()) {
+				fhirTxServer = cResultSet.getString(1);
+			}
+
 			InstanceValidatorParameters defaultInstanceValidatorParameters = new InstanceValidatorParameters();
 			// Set validation check for valid restful resource references
 			defaultInstanceValidatorParameters.setAssumeValidRestReferences(true);
@@ -109,13 +133,24 @@ public class FHIRValidatorClient {
 			IValidationPolicyAdvisor policyAdvisor = new BasePolicyAdvisorForFullValidation(ReferenceValidationPolicy.IGNORE, null);
 			engine.setPolicyAdvisor(policyAdvisor);
 
-			// Check for additional packages via environment variable
-			String fhirPackages = System.getenv(FHIR_PACKAGES_ENV_VAR);
+			// Check for additional packages via database code setting or environment variable
+			if (fhirPackages == null || fhirPackages.isEmpty()) {
+				fhirPackages = System.getenv(FHIR_PACKAGES_ENV_VAR);
+			}
 			if (fhirPackages != null && !fhirPackages.isEmpty()) {
 				loadPackages(fhirPackages);
 			}
 
-			engine.connectToTSServer("http://tx.fhir.org/r4", null, FhirPublication.R4, false);
+			// Check for FHIR terminology server URL via database code setting or environment variable
+			if (fhirTxServer == null || fhirTxServer.isEmpty()) {
+				fhirTxServer = System.getenv(FHIR_TX_SERVER_ENV_VAR);
+			}
+			if (fhirTxServer == null || fhirTxServer.isEmpty()) {
+				fhirTxServer = "http://tx.fhir.org/r4";
+			}
+			log.info("FHIR TX SERVER " + fhirTxServer);
+
+			engine.connectToTSServer(fhirTxServer, null, FhirPublication.R4, false);
 
 			log.info("FHIR R4 v4.0.1 Validation Engine initialization completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 		}
@@ -177,9 +212,7 @@ public class FHIRValidatorClient {
 
 			FhirFormat cntType = getFhirFormat(resourceContents);
 
-			List<ValidationMessage> messages = new ArrayList<ValidationMessage>();
-
-			rOutcome = engine.validate(resourceContents, cntType, profiles, messages);
+			rOutcome = engine.validate(cntType, new ByteArrayInputStream(resourceContents), profiles);
 
 			try {
 				// Now parse the Resource contents; this is the last validation to insure the contents is a valid FHIR resource instance

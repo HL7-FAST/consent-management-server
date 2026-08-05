@@ -7,16 +7,14 @@
 
 	<!-- This is the view file for the FAST Consent $recordDisclosure Tab -->
 
-	<p:tab title="$recordDisclosure" id="recordDisclosureTab" cache="false">
+	<p:tab title="Create AuditEvent" id="recordDisclosureTab" cache="false">
 
 		<h:form id="recordDisclosureForm" prependId="false" style="width:100%;border:none;">
 			<p:panelGrid id="recordDisclosurePanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
 				<p:messages id="recordDisclosureMessages" />
-				<h:outputText value="Record Disclosure"
+				<h:outputText value="Create AuditEvent (Disclosure)"
 					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
-				<h:outputText value="This operation is used to record a disclosure based on a given consent for a given patient with a consent administration service."
-					style="padding:0px;font-style:italic;font-size:12px;" />
-				<h:outputText value="The parameters are a Consent AuditEvent and a reference to the Consent resource."
+				<h:outputText value="Create an AuditEvent (disclosure) resource based on a given consent for a given patient in a consent administration service."
 					style="padding:0px;font-style:italic;font-size:12px;" />
 			</p:panelGrid>
 
@@ -52,7 +50,7 @@
 				<p:tabView id="recordDisclosureTabView" widgetVar="recordDisclosureTabView">
 					<p:tab title="Consent" id="recordDisclosureTab0">
 						<p:panelGrid id="recordDisclosureTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
-							<h:outputText value="The $record-disclosure Parameters will be constructed from the selections. A fictitious AuditEvent resource will be generated for the selected Patient Consent and entered data."
+							<h:outputText value="The AuditEvent (disclosure) resource will be constructed for the selected Patient Consent and entered data."
 								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 						</p:panelGrid>
 
@@ -84,7 +82,7 @@
 						</p:panelGrid>
 					</p:tab>
 
-					<p:tab title="Parameters" id="recordDisclosureTab1">
+					<p:tab title="Request" id="recordDisclosureTab1">
 						<h:inputTextarea value="#{context.resourceString}" cols="80" rows="24" />
 					</p:tab>
 

@@ -28,13 +28,20 @@
 					<f:selectItem itemValue="#{null}" itemLabel="-- Select FHIR Server --         " noSelectionOption="true" />
 					<f:selectItems value="#{context.availableServers}" var="server" itemLabel="#{server.name.trim()}         " itemValue="#{server.basePath}" />
 				</p:selectOneMenu>
+
+				<h:outputText value=" " />
+				<p:commandButton value="Show Create Options" icon="ui-icon-plus"
+					actionListener="#{controller.showCreateOptions}"
+					oncomplete="PF('createResourceTabView').select(0)"
+					update=":tabView:interactionsTabView:fhirCreateForm">
+				</p:commandButton>
 			</p:panelGrid>
-		</h:form>
-		<p>
-			<h:outputText value=" " />
-		</p>
-		<h:form id="fhirCreateForm2" prependId="false" style="width:100%;border:none;" enctype="multipart/form-data" acceptcharset="UTF-8">
-			<p:panel id="createResourcePanel" widgetVar="createResourcePanel" dynamic="true" cache="false">
+
+			<p>
+				<h:outputText value=" " />
+			</p>
+
+			<p:outputPanel id="createResourcePanel" rendered="#{context.resourceString ne null}">
 				<p:tabView id="createResourceTabView" widgetVar="createResourceTabView" dynamic="true" cache="false">
 					<p:tab title="Resource Definition" id="createResourceDefinitionTab">
 						<p:panelGrid id="createPanel2" layout="tabular" columns="2" border="0" cellpadding="3" cellspacing="10" styleClass="borderlessGridPanel">
@@ -80,7 +87,7 @@
 							styleClass="whiteSpaceClass" />
 					</p:tab>
 				</p:tabView>
-			</p:panel>
+			</p:outputPanel>
 		</h:form>
 	</p:tab>
 </ui:composition>

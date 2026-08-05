@@ -100,6 +100,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.PositiveIntType;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.Resource;
@@ -108,6 +109,7 @@ import org.hl7.fhir.r4.model.Subscription;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelComponent;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionChannelType;
 import org.hl7.fhir.r4.model.Subscription.SubscriptionStatus;
+import org.hl7.fhir.r4.model.UnsignedIntType;
 import org.primefaces.event.TabChangeEvent;
 
 import net.aegis.fhir.client.ApplicationContext;
@@ -301,6 +303,37 @@ public class ApplicationController implements Serializable {
 		context.setResourceString(null);
 
 		log.fine("[END] ApplicationController.fhirCreate()");
+	}
+
+	/**
+	 * Display resource specific search criteria based on the selected resource type
+	 *
+	 * @param event
+	 */
+	public void showCreateOptions(ActionEvent event) {
+		log.info("[START] ApplicationController.showCreateOptions()");
+
+		String resourceType = context.getSelectedResourceType();
+		String formatType = context.getSelectedFormatType();
+
+		StringBuilder sbResource = new StringBuilder("");
+
+		if (formatType.equals("XML")) {
+			sbResource.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+			sbResource.append("<").append(resourceType).append(" xmlns=\"http://hl7.org/fhir\">\n");
+			sbResource.append("  <!-- INSERT or REPLACE CONTENTS HERE -->\n");
+			sbResource.append("<").append(resourceType).append("/>");
+		}
+		else {
+			sbResource.append("{\n");
+			sbResource.append("  \"resourceType\":\"").append(resourceType).append("\"\n");
+			sbResource.append("  /* INSERT or REPLACE CONTENTS HERE */\n");
+			sbResource.append("}\n");
+		}
+
+		context.setResourceString(sbResource.toString());
+
+		log.info("[END] ApplicationController.showCreateOptions()");
 	}
 
 	/**
@@ -1698,25 +1731,45 @@ public class ApplicationController implements Serializable {
 	}
 
 	/**
-	 * Generate the $validate operation Parameters payload template
+	 * Generate the $everything operation Parameters payload template
 	 *
 	 * @param event
 	 */
 	public void everythingShowTemplate(ActionEvent event) {
-		log.fine("[START] ApplicationController.everythingShowTemplate()");
+		log.info("[START] ApplicationController.everythingShowTemplate()");
+
+		String formatType = context.getSelectedFormatType();
 
 		StringBuilder sbTemplate = new StringBuilder("");
-		sbTemplate.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
-		sbTemplate.append("<Parameters xmlns=\"http://hl7.org/fhir\">\n");
-		sbTemplate.append("  <parameter>\n");
-		sbTemplate.append("    <name value=\"start\"/>\n");
-		sbTemplate.append("    <valueDate value=\"YYYY-MM-DD\"/>\n");
-		sbTemplate.append("  </parameter>\n");
-		sbTemplate.append("  <parameter>\n");
-		sbTemplate.append("    <name value=\"end\"/>\n");
-		sbTemplate.append("    <valueDate value=\"YYYY-MM-DD\"/>\n");
-		sbTemplate.append("  </parameter>\n");
-		sbTemplate.append("</Parameters>");
+
+		if (formatType.equals("XML")) {
+			sbTemplate.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n");
+			sbTemplate.append("<Parameters xmlns=\"http://hl7.org/fhir\">\n");
+			sbTemplate.append("  <parameter>\n");
+			sbTemplate.append("    <name value=\"start\"/>\n");
+			sbTemplate.append("    <valueDate value=\"YYYY-MM-DD\"/>\n");
+			sbTemplate.append("  </parameter>\n");
+			sbTemplate.append("  <parameter>\n");
+			sbTemplate.append("    <name value=\"end\"/>\n");
+			sbTemplate.append("    <valueDate value=\"YYYY-MM-DD\"/>\n");
+			sbTemplate.append("  </parameter>\n");
+			sbTemplate.append("</Parameters>");
+		}
+		else {
+			sbTemplate.append("{\n");
+			sbTemplate.append("  \"resourceType\": \"Parameters\",\n");
+			sbTemplate.append("  \"parameter\": [\n");
+			sbTemplate.append("    {\n");
+			sbTemplate.append("      \"name\": \"start\",\n");
+			sbTemplate.append("      \"valueDate\": \"YYYY-MM-DD\"\n");
+			sbTemplate.append("    },\n");
+			sbTemplate.append("    {\n");
+			sbTemplate.append("      \"name\": \"end\",\n");
+			sbTemplate.append("      \"valueDate\": \"YYYY-MM-DD\"\n");
+			sbTemplate.append("    }\n");
+			sbTemplate.append("  ]\n");
+			sbTemplate.append("}");
+		}
 
 		context.setResourceString(sbTemplate.toString());
 	}
@@ -2083,7 +2136,7 @@ public class ApplicationController implements Serializable {
 
 			// Get selected client resources
 			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientId));
-			RelatedPerson grantee = (RelatedPerson) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientRelatedPersonId));
+			RelatedPerson recipient = (RelatedPerson) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientRelatedPersonId));
 			Serverdirectory server = context.getServerDirectoryService().findServerdirectoryByBasePath(context.getSelectedServerURL());
 
 			// Build $fileConsent Parameters with Consent and DocumentReference
@@ -2103,17 +2156,8 @@ public class ApplicationController implements Serializable {
 			meta = new Meta();
 			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsent");
 			consent.setMeta(meta);
-			Extension extension = new Extension();
-			extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee");
-			Reference referenceGrantee = new Reference();
-			referenceGrantee.setReference("RelatedPerson/" + grantee.getId());
-			if (grantee.hasIdentifier()) {
-				referenceGrantee.setIdentifier(grantee.getIdentifierFirstRep());
-			}
-			extension.setValue(referenceGrantee);
-			consent.addExtension(extension);
 
-			extension = new Extension();
+			Extension extension = new Extension();
 			extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager");
 			Reference reference = new Reference();
 			// Build manager Organization reference from selected Serverdirectory
@@ -2194,7 +2238,12 @@ public class ApplicationController implements Serializable {
 			coding.setCode("IRCP");
 			codeableConcept.addCoding(coding);
 			actor.setRole(codeableConcept);
-			actor.setReference(referenceGrantee);
+			Reference referenceRecipient = new Reference();
+			referenceRecipient.setReference("RelatedPerson/" + recipient.getId());
+			if (recipient.hasIdentifier()) {
+				referenceRecipient.setIdentifier(recipient.getIdentifierFirstRep());
+			}
+			actor.setReference(referenceRecipient);
 			provision.addActor(actor);
 			consent.setProvision(provision);
 
@@ -2252,7 +2301,7 @@ public class ApplicationController implements Serializable {
 			sb.append(", ");
 			sb.append(consent.getProvision().getType().toCode());
 			sb.append(" ");
-			sb.append(grantee.getNameFirstRep().getNameAsSingleString());
+			sb.append(recipient.getNameFirstRep().getNameAsSingleString());
 			sb.append(" access to my medical records.");
 			attachment.setData(sb.toString().getBytes("UTF-8"));
 			content.setAttachment(attachment);
@@ -2492,9 +2541,9 @@ public class ApplicationController implements Serializable {
 			String consentPatientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference());
 			Clientresource consentPatient = context.getClientresourceService().readClientResource("Patient", consentPatientId);
 			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(consentPatient.getId());
-			// Get Consent grantee (RelatedPersion)
-			String granteeId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference());
-			RelatedPerson grantee = (RelatedPerson) context.getClientresourceService().readFHIRResource("RelatedPerson", granteeId);
+			// Get Consent recipient (RelatedPersion)
+			String recipientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference());
+			RelatedPerson recipient = (RelatedPerson) context.getClientresourceService().readFHIRResource("RelatedPerson", recipientId);
 
 			DocumentReferenceContentComponent content = new DocumentReferenceContentComponent();
 			Attachment attachment = new Attachment();
@@ -2504,7 +2553,7 @@ public class ApplicationController implements Serializable {
 			sb.append(", revoke my consent to ");
 			sb.append(consent.getProvision().getType().toCode());
 			sb.append(" ");
-			sb.append(grantee.getNameFirstRep().getNameAsSingleString());
+			sb.append(recipient.getNameFirstRep().getNameAsSingleString());
 			sb.append(" access to my medical records.");
 			attachment.setData(sb.toString().getBytes("UTF-8"));
 			content.setAttachment(attachment);
@@ -2595,7 +2644,7 @@ public class ApplicationController implements Serializable {
 	 */
 	public void processRecordDisclosure(ActionEvent event) {
 		log.fine("[START] ApplicationController.processRecordDisclosure()");
-		log.info("$recordDisclosure info: ");
+		log.info("Create AuditEvent Disclosure info: ");
 
 		UTCDateUtil utcDateUtil;
 
@@ -2603,7 +2652,7 @@ public class ApplicationController implements Serializable {
 			utcDateUtil = new UTCDateUtil();
 			String formatType = context.getSelectedFormatType();
 			log.info("Selected Format Type: " + formatType);
-			log.info("BasePath for $recordDisclosure: " + context.getSelectedServerURL());
+			log.info("BasePath for Create AuditEvent Disclosure: " + context.getSelectedServerURL());
 			Response response = null;
 			String fhirInteraction = context.getSelectedFhirInteraction();
 			Date startDate = context.getStartDate();
@@ -2626,21 +2675,11 @@ public class ApplicationController implements Serializable {
 			Patient patient = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientId));
 			Consent consent = (Consent) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientConsentId));
 
-			// Build recordDisclosure Parameters with Consent and DocumentReference
-			Parameters p = new Parameters();
-			p.setId(UUIDUtil.getUUID());
-			Meta meta = new Meta();
-			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosureParameters");
-			p.setMeta(meta);
-
-			// disclosure parameter
-			ParametersParameterComponent param = new ParametersParameterComponent();
-			param.setName("disclosure");
-
+			// Build AuditEvent Disclosure from Consent and Patient
 			AuditEvent disclosure = new AuditEvent();
 			String disclosureId = UUIDUtil.getUUID();
 			disclosure.setId(disclosureId);
-			meta = new Meta();
+			Meta meta = new Meta();
 			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent");
 			disclosure.setMeta(meta);
 
@@ -2658,7 +2697,7 @@ public class ApplicationController implements Serializable {
 			coding.setCode("AuthZ-Consent");
 			disclosure.addSubtype(coding);
 
-//			//subtype (choice - restful get interactions)
+			//subtype (choice - restful get interactions) - NO LONGER ALLOWED BASED ON FAST AUDITEVENT PROFILE
 //			coding = new Coding();
 //			coding.setSystem("http://hl7.org/fhir/restful-interaction");
 //			coding.setCode(fhirInteraction);
@@ -2880,75 +2919,101 @@ public class ApplicationController implements Serializable {
 
 			disclosure.addEntity(entity);
 
-			param.setResource(disclosure);
-
-			p.addParameter(param);
-
-			// consent parameter
-			param = new ParametersParameterComponent();
-			param.setName("consent");
-
-			// Build consent Reference parameter value
-			reference = new Reference();
-			reference.setReference("Consent/" + consent.getId());
-			if (consent.hasIdentifier()) {
-				reference.setIdentifier(consent.getIdentifierFirstRep());
-			}
-			param.setValue(reference);
-
-			p.addParameter(param);
-
-			// Send $recordDisclosure request
+			// Send AuditEvent Disclosure create request
 			JsonParser jsonParser = new JsonParser();
 			jsonParser.setOutputStyle(OutputStyle.PRETTY);
 			XmlParser xmlParser = new XmlParser();
 			xmlParser.setOutputStyle(OutputStyle.PRETTY);
 			ByteArrayOutputStream oOp = new ByteArrayOutputStream();
 			if (formatType.equals("JSON")) {
-				jsonParser.compose(oOp, p);
+				jsonParser.compose(oOp, disclosure);
 
 				context.setResourceString(oOp.toString());
 
-				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_JSON_CONTENT, Constants.FHIR_JSON_CONTENT, null, "recordDisclosure", null, null);
+				response = context.getResourceRESTClient().create(disclosure, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_JSON_CONTENT, null, null, null, null);
 			}
 			else {
-				xmlParser.compose(oOp, p, true);
+				xmlParser.compose(oOp, disclosure, true);
 
 				context.setResourceString(oOp.toString());
 
-				response = context.getResourceOperationClient().resourceOperation(p, null, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_XML_CONTENT, Constants.FHIR_XML_CONTENT, null, "recordDisclosure", null, null);
+				response = context.getResourceRESTClient().create(disclosure, context.getSelectedServerURL(), "AuditEvent", Constants.FHIR_XML_CONTENT, null, null, null, null);
 			}
 
 			if (response != null) {
-				ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
-
-				if (formatType.equals("JSON")) {
-					context.setResponseString(wrapper.getResourceJSON());
+				String contentType = response.getHeaderString("Content-Type");
+				if (contentType != null) {
+					if (contentType.toUpperCase().contains("XML")) {
+						context.setReturnedFormatType("XML");
+					}
+					else if (contentType.toUpperCase().contains("JSON")) {
+						context.setReturnedFormatType("JSON");
+					}
+					else {
+						context.setReturnedFormatType(formatType);
+					}
 				}
 				else {
-					context.setResponseString(wrapper.getResourceXML());
+					context.setReturnedFormatType(formatType);
 				}
 
-				if (wrapper.getResponseStatus() < 400) {
-					FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "$recordDisclosure request successfully processed.", ""));
+				ResourceResponseWrapper wrapper;
 
-					consent.setStatus(ConsentState.REJECTED);
+				if ((response.getStatus() == Response.Status.OK.getStatusCode()) || (response.getStatus() == Response.Status.CREATED.getStatusCode())) {
+					try {
+						wrapper = new ResourceResponseWrapper(response);
+
+						if (context.getReturnedFormatType().equals("XML")) {
+							context.setResponseString(wrapper.getResourceXML());
+						}
+						else {
+							context.setResponseString(wrapper.getResourceJSON());
+						}
+
+						FacesContext.getCurrentInstance().addMessage(
+								"tabView:fastconsentTabView:recordDisclosureForm",
+								new FacesMessage(FacesMessage.SEVERITY_INFO, "AuditEvent with ID: " + wrapper.getResourceBean().getResourceId() + " successfully created.", "AuditEvent with ID: " + wrapper.getResourceBean().getResourceId()
+										+ " successfully created."));
+					}
+					catch (Exception e) {
+						log.severe(e.getMessage());
+						FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm",
+								new FacesMessage(FacesMessage.SEVERITY_ERROR, "Response resource json parsing failed! Please check the client logs.", "Response resource json parsing failed! Please check the client logs."));
+						e.printStackTrace();
+					}
 				}
 				else {
-					FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_ERROR, "$recordDisclosure response failure [" + wrapper.getResponseStatus() + "].", ""));
+					try {
+						wrapper = new ResourceResponseWrapper(response);
 
-					consent.setStatus(ConsentState.INACTIVE);
+						if (context.getReturnedFormatType().equals("XML")) {
+							context.setResponseString(wrapper.getResourceXML());
+						}
+						else {
+							context.setResponseString(wrapper.getResourceJSON());
+						}
+
+						FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm", new FacesMessage(FacesMessage.SEVERITY_INFO, "Response " + response.getStatus() + " - Failed to create new Resource entry.", "Response " + response.getStatus() + " - Failed to create new Resource entry."));
+					}
+					catch (Exception e) {
+						log.severe(e.getMessage());
+						FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm",
+								new FacesMessage(FacesMessage.SEVERITY_ERROR, "Response resource xml parsing failed! Please check the client logs.", "Response resource xml parsing failed! Please check the client logs."));
+						e.printStackTrace();
+					}
 				}
 			}
 			else {
 				context.setResponseString("ERROR: Response is empty!");
 				FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Response is empty.", ""));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Create AuditEvent Disclosure! Response is empty.", ""));
+
+				context.setResourceString("Response is empty.");
 			}
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:fastconsentTabView:recordDisclosureForm",
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing $recordDisclosure! Please check the client logs.", "Error processing $recordDisclosure! Please check the client logs."));
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Create AuditEvent Disclosure! Please check the client logs.", "Error processing Create AuditEvent Disclosure! Please check the client logs."));
 
 			context.setResourceString(e.getMessage());
 			
@@ -3038,8 +3103,15 @@ public class ApplicationController implements Serializable {
 						for (Path entry : stream) {
 							log.info("Path Found: " + entry.toString());
 							File serverFile = new File(entry.toString());
-							if (createServerResource(serverFile, localServer)) {
-								result.add(entry);
+							if (entry.toString().contains("SubscriptionTopic")) {
+								if (createServerResourceR5(serverFile, localServer)) {
+									result.add(entry);
+								}
+							}
+							else {
+								if (createServerResourceR4(serverFile, localServer)) {
+									result.add(entry);
+								}
 							}
 						}
 
@@ -3136,26 +3208,31 @@ public class ApplicationController implements Serializable {
 		return bResult;
 	}
 
-	private boolean createServerResource(File serverFile, Serverdirectory localServer) {
+	private boolean createServerResourceR4(File serverFile, Serverdirectory localServer) {
 
+		JsonParser jsonParser = null;
+		ByteArrayInputStream iResource = null;
+		Resource resource = null;
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
 		boolean bResult = false;
 		String serverFileName = "";
 
 		try {
 			serverFileName = serverFile.getName();
 
-			log.fine("[START] ApplicationController.createServerResource() for " + serverFileName);
+			log.fine("[START] ApplicationController.createServerResourceR4() for " + serverFileName);
 
 			// Read contents of serverFileName and create in RI repository
 			String serverContents = stringBuilder(serverFile.getPath());
 
-			org.hl7.fhir.r5.formats.JsonParser jsonParser = new org.hl7.fhir.r5.formats.JsonParser();
-			ByteArrayInputStream iResource = new ByteArrayInputStream(serverContents.getBytes());
-			org.hl7.fhir.r5.model.Resource resource = jsonParser.parse(iResource);
+			jsonParser = new JsonParser();
+			iResource = new ByteArrayInputStream(serverContents.getBytes());
+			resource = jsonParser.parse(iResource);
 
-			Response response = context.getResourceRESTClient().updateR5(resource.getId(), resource, localServer.getBasePath(), resource.getResourceType().name(), Constants.FHIR_JSON_CONTENT, null, null, null, null, null);
+			response = context.getResourceRESTClient().update(resource.getId(), resource, localServer.getBasePath(), resource.getResourceType().name(), Constants.FHIR_JSON_CONTENT, null, null, null, null, null);
 
-			ResourceResponseWrapper wrapper = new ResourceResponseWrapper(response);
+			wrapper = new ResourceResponseWrapper(response);
 
 			if (wrapper.getResponseStatus() < 400) {
 				bResult = true;
@@ -3169,8 +3246,66 @@ public class ApplicationController implements Serializable {
 			log.severe("Error processing serverFile '" + serverFile.getName() + "' - " + e.getMessage());
 			bResult = false;
 		}
+		finally {
+			jsonParser = null;
+			iResource = null;
+			resource = null;
+			response = null;
+			wrapper = null;
+		}
 
-		log.fine("[END] ApplicationController.createServerResource()");
+		log.fine("[END] ApplicationController.createServerResourceR4()");
+
+		return bResult;
+	}
+
+	private boolean createServerResourceR5(File serverFile, Serverdirectory localServer) {
+
+		org.hl7.fhir.r5.formats.JsonParser jsonParser = null;
+		ByteArrayInputStream iResource = null;
+		org.hl7.fhir.r5.model.Resource resource = null;
+		Response response = null;
+		ResourceResponseWrapper wrapper = null;
+		boolean bResult = false;
+		String serverFileName = "";
+
+		try {
+			serverFileName = serverFile.getName();
+
+			log.fine("[START] ApplicationController.createServerResourceR5() for " + serverFileName);
+
+			// Read contents of serverFileName and create in RI repository
+			String serverContents = stringBuilder(serverFile.getPath());
+
+			jsonParser = new org.hl7.fhir.r5.formats.JsonParser();
+			iResource = new ByteArrayInputStream(serverContents.getBytes());
+			resource = jsonParser.parse(iResource);
+
+			response = context.getResourceRESTClient().updateR5(resource.getId(), resource, localServer.getBasePath(), resource.getResourceType().name(), Constants.FHIR_JSON_CONTENT, null, null, null, null, null);
+
+			wrapper = new ResourceResponseWrapper(response);
+
+			if (wrapper.getResponseStatus() < 400) {
+				bResult = true;
+			}
+			else {
+				bResult = false;
+			}
+		}
+		catch (Exception e) {
+			// Swallow exception to allow processing to continue
+			log.severe("Error processing serverFile '" + serverFile.getName() + "' - " + e.getMessage());
+			bResult = false;
+		}
+		finally {
+			jsonParser = null;
+			iResource = null;
+			resource = null;
+			response = null;
+			wrapper = null;
+		}
+
+		log.fine("[END] ApplicationController.createServerResourceR5()");
 
 		return bResult;
 	}
@@ -3543,6 +3678,29 @@ public class ApplicationController implements Serializable {
 		log.fine("[END] ApplicationController.processUpdateSubscription()");
 	}
 
+	public void handleCreateSubscriptionTopicChange() throws Exception {
+		try {
+			// Get selected subscription topic
+			String subscriptionTopicURL = context.getSelectedSubscriptionTopic();
+
+			if (subscriptionTopicURL != null) {
+				// Populate createSubscription criteria value that can be changed
+				String subscriptionCriteria = null;
+
+				if (subscriptionTopicURL.contains("FASTConsentSubscriptionTopic")) {
+					subscriptionCriteria = "Consent?patient:identifier=PATIENTID{&actor:identifier=ACTORID&controller:identifier=CONTROLLERID&status=STATUS&category=CATEGORY}";
+				}
+
+				context.setSubscriptionCriteria(subscriptionCriteria);
+			}
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:createSubscriptionForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Create Scription handle ScriptionTopic change! Please check the client logs. " + e.getMessage(), ""));
+			e.printStackTrace();
+		}
+	}
+
 	public void handleUpdateSubscriptionChange() throws Exception {
 		try {
 			// Get selected subscription resource
@@ -3554,9 +3712,6 @@ public class ApplicationController implements Serializable {
 				// We know these values exist because we populated them when performing fileConsent
 				String selectedSubscriptionStatus = subscription.getStatus().toCode();
 				context.setSelectedSubscriptionStatus(selectedSubscriptionStatus);
-
-				Date endDate = subscription.getEnd();
-				context.setEndDate(endDate);
 
 				String subscriptionReason = subscription.getReason();
 				context.setSubscriptionReason(subscriptionReason);
@@ -3572,11 +3727,67 @@ public class ApplicationController implements Serializable {
 
 				StringType selectedSubscriptionContentType = (StringType)subscription.getChannel().getPayloadElement().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-payload-content").getValue();
 				context.setSelectedSubscriptionContentType(selectedSubscriptionContentType.getValue());
+
+				Date endDate = subscription.getEnd();
+				context.setEndDate(endDate);
+
+				if (subscription.getChannel().hasExtension("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-heartbeat-period")) {
+					UnsignedIntType uIntType = (UnsignedIntType)subscription.getChannel().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-heartbeat-period").getValue();
+					context.setSubscriptionHeartbeat(uIntType.getValue());
+				}
+				else {
+					context.setSubscriptionHeartbeat(null);
+				}
+
+				if (subscription.getChannel().hasExtension("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-timeout")) {
+					UnsignedIntType uIntType = (UnsignedIntType)subscription.getChannel().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-timeout").getValue();
+					context.setSubscriptionTimeout(uIntType.getValue());
+				}
+				else {
+					context.setSubscriptionTimeout(null);
+				}
+
+				if (subscription.getChannel().hasExtension("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-max-count")) {
+					PositiveIntType pIntType = (PositiveIntType)subscription.getChannel().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-max-count").getValue();
+					context.setSubscriptionMaxCount(pIntType.getValue());
+				}
+				else {
+					context.setSubscriptionMaxCount(null);
+				}
 			}
 		}
 		catch (Exception e) {
 			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:updateSubscriptionForm",
 					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Update Scription handle Scription change! Please check the client logs. " + e.getMessage(), ""));
+			e.printStackTrace();
+		}
+	}
+
+	public void handleSubscriptionHandshakeChange() throws Exception {
+		try {
+			// Get selected subscription resource
+			String subscriptionId = context.getSelectedSubscriptionId();
+			Subscription subscription = (Subscription) context.getResourceService().readFHIRResourceForTypeId("Subscription", subscriptionId);
+
+			if (subscription != null) {
+				// Populate updateSubscription values that can be changed
+
+				String selectedSubscriptionTopicURL = subscription.getCriteria();
+				context.setSelectedSubscriptionTopic(context.getSubscriptionTopicByURL(selectedSubscriptionTopicURL));
+
+				String subscriptionReason = subscription.getReason();
+				context.setSubscriptionReason(subscriptionReason);
+
+				StringType subscriptionCriteria = (StringType)subscription.getCriteriaElement().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria").getValue();
+				context.setSubscriptionCriteria(subscriptionCriteria.getValue());
+
+				String subscriptionEndpoint = subscription.getChannel().getEndpoint();
+				context.setSubscriptionEndpoint(subscriptionEndpoint);
+			}
+		}
+		catch (Exception e) {
+			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:subscriptionHandshakeForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error processing Scription Handshake handle Scription change! Please check the client logs. " + e.getMessage(), ""));
 			e.printStackTrace();
 		}
 	}
@@ -3646,6 +3857,58 @@ public class ApplicationController implements Serializable {
 		}
 
 		log.fine("[END] ApplicationController.fhirProcessSubscriptions()");
+	}
+
+	/**
+	 * Send a Handshake notification for the selected Subscription
+	 *
+	 * @param event
+	 */
+	public void processSubscriptionHandshake(ActionEvent event) {
+		log.info("[START] ApplicationController.processSubscriptionHandshake()");
+
+		List<LabelKeyValueBean> results = new ArrayList<LabelKeyValueBean>();
+
+		try {
+			if (context.getCodeService().isSupported("subscriptionServiceEnabled")) {
+
+				String subscriptionId = context.getSelectedSubscriptionId();
+
+				Subscription subscription = (Subscription) context.getResourceService().readFHIRResourceForTypeId("Subscription", subscriptionId);
+
+				if (subscription == null) {
+
+					FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:subscriptionHandshakeForm",
+							new FacesMessage(FacesMessage.SEVERITY_WARN, "Please select a Subscription.", "Please select a Subscription."));
+
+				}
+				else {
+					StringBuffer returnedDetails = new StringBuffer();
+
+					LabelKeyValueBean result = context.getSubscriptionServiceR5().sendHandshake(subscription, returnedDetails);
+
+					results.add(result);
+
+					context.setListLabelKeyValue(results);
+
+					FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:subscriptionHandshakeForm",
+							new FacesMessage(FacesMessage.SEVERITY_INFO, "Subscription handshake processing complete.", (returnedDetails != null ? returnedDetails.toString() : "Subscription handshake processing complete.")));
+				}
+			}
+			else {
+				FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:subscriptionHandshakeForm",
+						new FacesMessage(FacesMessage.SEVERITY_WARN, "Subscription processing is not enabled.", "Subscription processing is not enabled."));
+			}
+		}
+		catch (Exception e1) {
+			log.info(e1.getMessage());
+			FacesContext.getCurrentInstance().addMessage("tabView:subscriptionsTabView:subscriptionHandshakeForm",
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error executing subscription handshake processing! Please check the client logs.", "Error executing subscription handshake processing! Please check the client logs."));
+
+			e1.printStackTrace();
+		}
+
+		log.info("[END] ApplicationController.processSubscriptionHandshake()");
 	}
 
 	/**

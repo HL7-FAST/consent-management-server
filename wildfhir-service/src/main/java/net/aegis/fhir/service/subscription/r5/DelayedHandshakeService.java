@@ -2,7 +2,7 @@
  * #%L
  * WildFHIR - wildfhir-service
  * %%
- * Copyright (C) 2024 AEGIS.net, Inc.
+ * Copyright (C) 2025 AEGIS.net, Inc.
  * All rights reserved.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,42 +30,34 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.service.provenance;
+package net.aegis.fhir.service.subscription.r5;
 
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Provenance;
-import org.hl7.fhir.r4.model.Resource;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Singleton;
+import jakarta.enterprise.concurrent.ManagedScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.core.HttpHeaders;
+@Singleton
+public class DelayedHandshakeService {
 
-/**
- * @author Venkat.Keesara
- *
- */
-public class ProvenanceUpdateResource extends ProvenanceResourceProxy {
+    @Resource
+    private ManagedScheduledExecutorService scheduler;
 
-	@Override
-	public Resource generateProvenance(HttpServletRequest request, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception {
-
-		Provenance fhirResource = new Provenance();
-
-		prepareBasicData(fhirResource, request, headers, locationPath, identifier);
-
-		return fhirResource;
-	}
-
-	@Override
-	public CodeableConcept getActivity() {
-		CodeableConcept activity = new CodeableConcept();
-		Coding activityCoding = new Coding();
-		activityCoding.setSystem(ProvenanceActivityTypeEnum.UPDATE.getSystem());
-		activityCoding.setCode(ProvenanceActivityTypeEnum.UPDATE.getCode());
-		activityCoding.setDisplay(ProvenanceActivityTypeEnum.UPDATE.getDisplay());
-		activity.addCoding(activityCoding);
-		return activity;
-	}
+    public ScheduledFuture<?> triggerDelayedTask(Runnable task, long delay, TimeUnit unit) {
+        return scheduler.schedule(() -> {
+            // Safe to use CDI, JNDI, JPA/EntityManager, JMS, etc. here
+        	try {
+        		task.run();
+        	}
+        	catch (Exception e) {
+                // Log it — exceptions thrown inside the task are otherwise
+                // swallowed until you call future.get()
+                Logger.getLogger(DelayedHandshakeService.class.getName())
+                      .severe("Delayed handshake task failed: " + e.getMessage());
+            }
+        }, delay, unit);
+    }
 
 }

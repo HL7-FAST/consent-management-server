@@ -32,6 +32,7 @@
  */
 package net.aegis.fhir.service;
 
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,14 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-
-import jakarta.ejb.Stateless;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -61,13 +54,17 @@ import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryResponseComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.service.util.ServicesUtil;
@@ -103,7 +100,7 @@ public class BatchService {
 	 * corresponding entry request. The returned batch-response bundle will contain a bundle
 	 * entry for each request with the entry response populated.
 	 *
-	 * @param context
+	 * @param request
 	 * @param headers
 	 * @param contentType
 	 * @param producesType
@@ -113,14 +110,12 @@ public class BatchService {
 	 * @return <code>ResourceContainer</code>
 	 * @throws Exception
 	 */
-	public ResourceContainer batch(UriInfo context, HttpHeaders headers, String contentType, String producesType, Bundle bundleToProcess, String locationPath, List<String> authMapPatient) throws Exception {
+	public ResourceContainer batch(HttpServletRequest request, HttpHeaders headers, String contentType, String producesType, Bundle bundleToProcess, String locationPath, List<String> authMapPatient) throws Exception {
 
 		log.fine("[START] BatchService.batch()");
 
 		ResourceContainer resourceContainer = new ResourceContainer();
 		Bundle bundleResponse = null;
-		Boolean txOutcomeAck = Boolean.valueOf(false);
-		String txOutcomeAckText = null;
 
 		try {
 			resourceContainer.setBundle(bundleResponse);
@@ -200,7 +195,7 @@ public class BatchService {
 								List<NameValuePair> params = URLEncodedUtils.parse(urlParams, Charset.defaultCharset());
 								urlPathParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 
-								Response deleteResponse = resourceOps.delete(context, headers, urlPathParams, resourceId, resourceType);
+								Response deleteResponse = resourceOps.delete(request, headers, urlPathParams, resourceId, resourceType);
 
 								setResponseParams(deleteResponse, bundleDeleteEntry, producesType, entryCount, null);
 							}
@@ -269,7 +264,7 @@ public class BatchService {
 											boolean processResult = processVariableReferences(bundlePostEntry.getResource(), postFullUrlMap, contentType, newResourceString);
 
 											if (processResult) {
-												Response createResponse = resourceOps.create(context, headers, requestHeaderParams, newResourceString.toString(), resourceType, resourceId);
+												Response createResponse = resourceOps.create(request, headers, requestHeaderParams, newResourceString.toString(), resourceType, resourceId);
 
 												setResponseParams(createResponse, bundlePostEntry, producesType, entryCount, postFullUrlMap);
 											}
@@ -343,7 +338,7 @@ public class BatchService {
 										boolean processResult = processVariableReferences(bundlePutEntry.getResource(), postFullUrlMap, contentType, newResourceString);
 
 										if (processResult) {
-											Response updateResponse = resourceOps.update(context, headers, requestHeaderParams, urlPathParams, resourceId, newResourceString.toString(), resourceType);
+											Response updateResponse = resourceOps.update(request, headers, requestHeaderParams, urlPathParams, resourceId, newResourceString.toString(), resourceType);
 
 											setResponseParams(updateResponse, bundlePutEntry, producesType, entryCount, postFullUrlMap);
 										}
@@ -430,20 +425,20 @@ public class BatchService {
 
 								if (resourceType != null && resourceId != null && hasHistoryInPath == false) {
 									// Check for read operation
-									getResponse = resourceOps.resourceTypeRead(context, headers, requestHeaderParams, urlPathParams, resourceId, resourceType);
+									getResponse = resourceOps.resourceTypeRead(request, headers, requestHeaderParams, urlPathParams, resourceId, resourceType);
 								}
 								else if (resourceType != null && resourceId != null && hasHistoryInPath == true && versionId != null) {
 									// Check for vread operation
-									getResponse = resourceOps.resourceTypeVRead(context, headers, resourceId, versionId, resourceType);
+									getResponse = resourceOps.resourceTypeVRead(request, headers, resourceId, versionId, resourceType);
 								}
 								else if (resourceType != null && hasHistoryInPath == true && versionId == null) {
 									// Check for history operation
-									getResponse = resourceOps.history(context, headers, urlPathParams, resourceId, resourceType);
+									getResponse = resourceOps.history(request, headers, urlPathParams, resourceId, resourceType);
 								}
 								else if (resourceId == null && hasHistoryInPath == false && versionId == null) {
 									// Check for search operation
 									// Use txLocationPath from transaction bundle entry request
-									getResponse = resourceOps.search(headers, context, urlPathParams, resourceType, null, txLocationPath);
+									getResponse = resourceOps.search(request, headers, urlPathParams, resourceType, null, txLocationPath);
 								}
 
 								if (getResponse != null) {
@@ -513,35 +508,6 @@ public class BatchService {
 					}
 
 					entryCount++;
-				}
-
-				/*
-				 * Check for Nictiz txOutcomeAck to add final OperationOutcome with information issue
-				 * containing txOutcomeAckText text.
-				 */
-				if (txOutcomeAck.booleanValue() == true) {
-					log.fine("===== BatchService - PROCESS TX OUTCOME ACK = TRUE");
-
-					bundleResponseEntry = new BundleEntryComponent();
-					String ooResourceId = UUIDUtil.getUUID(false);
-					bundleResponseEntry.setFullUrl("urn:uuid:" + ooResourceId);
-
-					OperationOutcome finalInfoOO = ServicesUtil.INSTANCE.getOperationOutcomeResource(IssueSeverity.INFORMATION, IssueType.INFORMATIONAL, txOutcomeAckText);
-					finalInfoOO.setId(ooResourceId);
-					finalInfoOO.setLanguage("nl-NL");
-					XhtmlNode ooDiv = finalInfoOO.getText().getDiv();
-					ooDiv.setAttribute("lang", "nl-NL");
-					ooDiv.setAttribute("xml:lang", "nl-NL");
-					bundleResponseEntry.setResource(finalInfoOO);
-
-					BundleEntryResponseComponent bundleEntryResponse = new BundleEntryResponseComponent();
-					bundleEntryResponse.setStatus("200");
-					bundleResponseEntry.setResponse(bundleEntryResponse);
-
-					bundleResponseEntries.add(bundleResponseEntry);
-				}
-				else {
-					log.fine("===== BatchService - SKIP TX OUTCOME ACK = FALSE");
 				}
 
 				bundleResponse.setEntry(bundleResponseEntries);
@@ -728,6 +694,9 @@ public class BatchService {
 							log.fine("     ----- BatchService - setResponseParams - put map for [" + bundleEntry.getFullUrl() + "] with value [" + relativeReference + "]");
 						}
 					}
+
+					// Decode location string
+					location = URLDecoder.decode(location, "UTF-8");
 
 					// FHIR-154 - If location contains _history, remove
 					if (location.contains("/_history")) {

@@ -125,7 +125,7 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 			MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 
 			// Search for all SubscriptionStatus with subscription = current Subscription; return as searchset Bundle
-			ResourceContainer rc = resourceService.search(queryParams, null, null, null, "SubscriptionStatus", "INTERNAL", null, null, null, false);
+			ResourceContainer rc = resourceService.search(queryParams, null, null, "SubscriptionStatus", "INTERNAL", null, null, null, false);
 
 			// Check for matched SubscriptionStatus resources
 			if (rc != null && rc.getBundle() != null && !rc.getBundle().getEntry().isEmpty()) {
@@ -155,7 +155,7 @@ public class FASTConsentSubscriptionTopic extends SubscriptionTopicProxy {
 			queryParams = ServicesUtil.INSTANCE.listNameValuePairToMultivaluedMapString(params);
 
 			// Search for all Consent matching criteria; return as searchset Bundle
-			rc = resourceService.search(queryParams, null, null, null, "Consent", "INTERNAL", null, null, null, false);
+			rc = resourceService.search(queryParams, null, null, "Consent", "INTERNAL", null, null, null, false);
 
 			// Check for matched Subscription resources
 			if (rc != null && rc.getBundle() != null && !rc.getBundle().getEntry().isEmpty()) {

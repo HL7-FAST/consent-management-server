@@ -52,7 +52,7 @@
 				<p:tabView id="updateSubscriptionTabView" widgetVar="updateSubscriptionTabView">
 					<p:tab title="Subscription" id="updateSubscriptionTab0">
 						<p:panelGrid id="updateSubscriptionTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
-							<h:outputText value="Select the Subscription resource to update. The current values that may be updated will be displayed. The default topic is the FASTConsentSubscriptionTopic. The default channel type is 'rest-hook'."
+							<h:outputText value="Select the Subscription resource to update. The current values that may be updated will be displayed. The default channel type is 'rest-hook'."
 								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 						</p:panelGrid>
 
@@ -64,13 +64,13 @@
 								<p:ajax update="updateSubscriptionStatusDropdown,updateSubscriptionEndDate,updateSubscriptionReason,updateSubscriptionCriteria,updateSubscriptionEndpoint,updateSubscriptionPayloadTypeDropdown,updateSubscriptionContentTypeDropdown" listener="#{controller.handleUpdateSubscriptionChange}" />
 							</p:selectOneMenu>
 
+							<h:outputText value="SubscriptionTopic *" />
+							<h:inputText id="updateSubscriptionTopic" value="#{context.selectedSubscriptionTopic}" size="50" disabled="true" />
+
 							<h:outputText value="Select Status *" />
 							<p:selectOneMenu id="updateSubscriptionStatusDropdown" required="true" label="Select Status" value="#{context.selectedSubscriptionStatus}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
 								<f:selectItems value="#{context.listSubscriptionStatuses}" var="sta" itemLabel="#{sta.label.trim()}         " itemValue="#{sta.key}" />
 							</p:selectOneMenu>
-
-							<h:outputText value="End Date (Optional)" />
-							<p:datePicker id="updateSubscriptionEndDate" value="#{context.endDate}" showButtonBar="true" />
 
 							<h:outputText value="Reason (description) * " />
 							<h:inputText id="updateSubscriptionReason" value="#{context.subscriptionReason}" maxlength="500" required="true" requiredMessage="Please enter the reason why this subscription was created" size="50" />
@@ -90,6 +90,22 @@
 							<p:selectOneMenu id="updateSubscriptionContentTypeDropdown" required="true" label="Select Payload Content" value="#{context.selectedSubscriptionContentType}" maxlength="255" style="width:240px;text-align:left;padding-right:30px;">
 								<f:selectItems value="#{context.listSubscriptionContentTypes}" var="con" itemLabel="#{con.label.trim()}         " itemValue="#{con.key}" />
 							</p:selectOneMenu>
+
+							<h:outputText value="End Date (Optional)" />
+							<p:datePicker id="updateSubscriptionEndDate" value="#{context.endDate}" showButtonBar="true" />
+
+							<h:outputText id="heartbeat" value="Heartbeat secs (Optional) " />
+							<p:inputNumber id="updateSubscriptionHeartbeat" value="#{context.subscriptionHeartbeat}" decimalPlaces="0" roundMethod="S" minValue="0" size="10" />
+
+							<h:outputText id="timeout" value="Timeout secs (Optional) " />
+							<p:inputNumber id="updateSubscriptionTimeout" value="#{context.subscriptionTimeout}" decimalPlaces="0" roundMethod="S" minValue="0" size="10" />
+
+							<h:outputText id="maxcount" value="Max Count (Optional) " />
+							<p:inputNumber id="updateSubscriptionMaxCount" value="#{context.subscriptionMaxCount}" decimalPlaces="0" roundMethod="S" minValue="1" size="10" />
+
+							<p:tooltip id="toolTipheartbeat" for="heartbeat" value="Please enter the interval in seconds to send a 'heartbeat' notification" position="top" />
+							<p:tooltip id="toolTiptimeout" for="timeout" value="Please enter the interval in seconds to attempt notification delivery" position="top" />
+							<p:tooltip id="toolTipmaxcount" for="maxcount" value="Please enter the maximum number of triggering resources included in notification bundles" position="top" />
 						</p:panelGrid>
 					</p:tab>
 

@@ -72,6 +72,9 @@ public class InitializeCodeConfiguration extends HttpServlet {
 		Map.entry("WILDFHIR_PROVENANCESERVICEENABLED", "provenanceServiceEnabled"),
 		Map.entry("WILDFHIR_SUBSCRIPTIONSERVICEENABLED", "subscriptionServiceEnabled"),
 		Map.entry("WILDFHIR_SUBSCRIPTIONSERVICEINTERVAL", "subscriptionServiceInterval"),
+		Map.entry("WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED", "subscriptionActivateRequested"),
+		Map.entry("WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED", "subscriptionHandshakeEnabled"),
+		Map.entry("WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY", "subscriptionHandshakeDelay"),
 		Map.entry("WILDFHIR_TXCONCURRENTLIMIT", "txConcurrentLimit")
 	));
 
