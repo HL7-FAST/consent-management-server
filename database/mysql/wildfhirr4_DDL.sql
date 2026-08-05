@@ -2,15 +2,15 @@
 CREATE USER IF NOT EXISTS wildfhiruser IDENTIFIED BY 'wildfhiruser';
 
 -- -----------------------------------------------------
--- Schema wildfhirr4
+-- Schema fastconsentr4
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS wildfhirr4 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
-USE wildfhirr4 ;
+CREATE SCHEMA IF NOT EXISTS fastconsentr4 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
+USE fastconsentr4 ;
 
 -- -----------------------------------------------------
--- Table wildfhirr4.code
+-- Table fastconsentr4.code
 -- -----------------------------------------------------
-CREATE TABLE wildfhirr4.code (
+CREATE TABLE fastconsentr4.code (
   id INT(11) NOT NULL AUTO_INCREMENT,
   codeName VARCHAR(64) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   value VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
@@ -25,9 +25,9 @@ COMMENT = 'Code Table - WildFHIR configuration settings';
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.conformance
+-- Table fastconsentr4.conformance
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.conformance (
+CREATE TABLE IF NOT EXISTS fastconsentr4.conformance (
   id INT(11) NOT NULL AUTO_INCREMENT,
   resourceId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   versionId INT(11) NOT NULL,
@@ -42,13 +42,13 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Stores the CapabilityStatement resource for this server';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.conformance (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.conformance (id ASC);
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.providerdirectory
+-- Table fastconsentr4.providerdirectory
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.serverdirectory (
+CREATE TABLE IF NOT EXISTS fastconsentr4.serverdirectory (
   id INT(11) NOT NULL AUTO_INCREMENT,
   name VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   description VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL DEFAULT NULL,
@@ -61,13 +61,13 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Simple FHIR server directory list';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.serverdirectory (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.serverdirectory (id ASC);
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.resource
+-- Table fastconsentr4.resource
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.resource (
+CREATE TABLE IF NOT EXISTS fastconsentr4.resource (
   id INT(11) NOT NULL AUTO_INCREMENT,
   resourceId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   versionId INT(11) NOT NULL,
@@ -92,17 +92,17 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Stores current and history versions of a resource';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.resource (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.resource (id ASC);
 
-CREATE INDEX idx_resource_version ON wildfhirr4.resource (resourceId ASC, versionId ASC);
+CREATE INDEX idx_resource_version ON fastconsentr4.resource (resourceId ASC, versionId ASC);
 
-CREATE INDEX idx_resource_status_type ON wildfhirr4.resource (resourceType ASC, status ASC);
+CREATE INDEX idx_resource_status_type ON fastconsentr4.resource (resourceType ASC, status ASC);
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.resourcemetadata
+-- Table fastconsentr4.resourcemetadata
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.resourcemetadata (
+CREATE TABLE IF NOT EXISTS fastconsentr4.resourcemetadata (
   id INT(11) NOT NULL AUTO_INCREMENT,
   resourceJoinId INT(11) NOT NULL,
   paramName VARCHAR(127) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
@@ -116,37 +116,37 @@ CREATE TABLE IF NOT EXISTS wildfhirr4.resourcemetadata (
   PRIMARY KEY (id),
   CONSTRAINT fk_resourcemetatdata_resource
     FOREIGN KEY (resourceJoinId)
-    REFERENCES wildfhirr4.resource (id))
+    REFERENCES fastconsentr4.resource (id))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'The current valid resource searchable metadata';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.resourcemetadata (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.resourcemetadata (id ASC);
 
-CREATE INDEX fk_resourcemetatdata_resource_idx ON wildfhirr4.resourcemetadata (resourceJoinId ASC);
+CREATE INDEX fk_resourcemetatdata_resource_idx ON fastconsentr4.resourcemetadata (resourceJoinId ASC);
 
-CREATE INDEX idx_resourcemetadata_paramName ON wildfhirr4.resourcemetadata (paramName ASC);
+CREATE INDEX idx_resourcemetadata_paramName ON fastconsentr4.resourcemetadata (paramName ASC);
 
-CREATE INDEX idx_resourcemetadata_paramNameType ON wildfhirr4.resourcemetadata (paramName ASC, paramType ASC);
+CREATE INDEX idx_resourcemetadata_paramNameType ON fastconsentr4.resourcemetadata (paramName ASC, paramType ASC);
 
-CREATE INDEX idx_resourcemetadata_paramValue ON wildfhirr4.resourcemetadata (paramValue ASC);
+CREATE INDEX idx_resourcemetadata_paramValue ON fastconsentr4.resourcemetadata (paramValue ASC);
 
-CREATE INDEX idx_resourcemetadata_systemValue ON wildfhirr4.resourcemetadata (systemValue ASC);
+CREATE INDEX idx_resourcemetadata_systemValue ON fastconsentr4.resourcemetadata (systemValue ASC);
 
-CREATE INDEX idx_resourcemetadata_codeValue ON wildfhirr4.resourcemetadata (codeValue ASC);
+CREATE INDEX idx_resourcemetadata_codeValue ON fastconsentr4.resourcemetadata (codeValue ASC);
 
-CREATE INDEX idx_resourcemetadata_textValue ON wildfhirr4.resourcemetadata (textValue ASC);
+CREATE INDEX idx_resourcemetadata_textValue ON fastconsentr4.resourcemetadata (textValue ASC);
 
-CREATE INDEX idx_resourcemetadata_paramValueU ON wildfhirr4.resourcemetadata (paramValueU ASC);
+CREATE INDEX idx_resourcemetadata_paramValueU ON fastconsentr4.resourcemetadata (paramValueU ASC);
 
-CREATE INDEX idx_resourcemetadata_textValueU ON wildfhirr4.resourcemetadata (textValueU ASC);
+CREATE INDEX idx_resourcemetadata_textValueU ON fastconsentr4.resourcemetadata (textValueU ASC);
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.clientresource
+-- Table fastconsentr4.clientresource
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.clientresource (
+CREATE TABLE IF NOT EXISTS fastconsentr4.clientresource (
   id INT(11) NOT NULL AUTO_INCREMENT,
   resourceId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   resourceType VARCHAR(45) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
@@ -162,15 +162,15 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Stores client resource instances without version history';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.clientresource (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.clientresource (id ASC);
 
-CREATE INDEX idx_resource_resourceType ON wildfhirr4.clientresource (resourceType ASC, resourceId ASC);
+CREATE INDEX idx_resource_resourceType ON fastconsentr4.clientresource (resourceType ASC, resourceId ASC);
 
 
 -- -----------------------------------------------------
--- Table wildfhirr4.subscriptionactivity
+-- Table fastconsentr4.subscriptionactivity
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS wildfhirr4.subscriptionactivity (
+CREATE TABLE IF NOT EXISTS fastconsentr4.subscriptionactivity (
   id INT(11) NOT NULL AUTO_INCREMENT,
   subscriptionId VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NOT NULL,
   recorded DATETIME NOT NULL,
@@ -183,10 +183,10 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Stores record of subscription activity';
 
-CREATE UNIQUE INDEX id_UNIQUE ON wildfhirr4.subscriptionactivity (id ASC);
+CREATE UNIQUE INDEX id_UNIQUE ON fastconsentr4.subscriptionactivity (id ASC);
 
-CREATE INDEX idx_resourceId_status ON wildfhirr4.subscriptionactivity (subscriptionId ASC, status ASC);
+CREATE INDEX idx_resourceId_status ON fastconsentr4.subscriptionactivity (subscriptionId ASC, status ASC);
 
 
 -- grant privileges to wildfhiruser
-GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE ON wildfhirr4.* to wildfhiruser;
+GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE ON fastconsentr4.* to wildfhiruser;

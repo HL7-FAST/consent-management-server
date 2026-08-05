@@ -1,4 +1,4 @@
-USE wildfhirr4
+USE fastconsentr4
 DELIMITER $$
 
 create function calcDistanceMi(lat float, lng float, pnt_lat float, pnt_lng float)
