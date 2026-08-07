@@ -277,6 +277,7 @@ public class ResourceService {
 						}
 						else {
 							if (codeService.isSupported("subscriptionActivateRequested")) {
+								log.info("Subscription Activate true");
 								// Set Subscription to active without handshake check
 								subscription.setStatus(SubscriptionStatus.ACTIVE);
 							}

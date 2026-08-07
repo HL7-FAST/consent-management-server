@@ -113,14 +113,14 @@ import org.hl7.fhir.r4.model.UnsignedIntType;
 import org.primefaces.event.TabChangeEvent;
 
 import net.aegis.fhir.client.ApplicationContext;
-import net.aegis.fhir.client.model.BundleWrapper;
-import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.client.util.WildfhirClientException;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
+import net.aegis.fhir.model.client.BundleWrapper;
+import net.aegis.fhir.model.client.ResourceResponseWrapper;
 import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.StringUtils;
 import net.aegis.fhir.service.util.UTCDateUtil;
@@ -3430,7 +3430,7 @@ public class ApplicationController implements Serializable {
 			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription");
 			subscription.setMeta(meta);
 
-			subscription.setStatus(SubscriptionStatus.ACTIVE);
+			subscription.setStatus(SubscriptionStatus.REQUESTED);
 
 			if (endDate != null) {
 				subscription.setEnd(endDate);

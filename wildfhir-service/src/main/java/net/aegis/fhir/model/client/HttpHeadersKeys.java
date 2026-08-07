@@ -30,7 +30,7 @@
  * limitations under the License.
  * #L%
  */
-package net.aegis.fhir.client.util;
+package net.aegis.fhir.model.client;
 
 /**
  * <p>

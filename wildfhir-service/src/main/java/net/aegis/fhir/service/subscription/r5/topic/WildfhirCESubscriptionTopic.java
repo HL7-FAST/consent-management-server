@@ -251,7 +251,6 @@ public class WildfhirCESubscriptionTopic extends SubscriptionTopicProxy {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -315,6 +314,16 @@ public class WildfhirCESubscriptionTopic extends SubscriptionTopicProxy {
 		subscriptionStatus.addNotificationEvent(ssne);
 
 		return subscriptionStatus;
+	}
+
+	@Override
+	public boolean processEventNotification(ResourceService resourceService,
+			ResourcemetadataService resourcemetadataService, CodeService codeService,
+			AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification,
+			org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType,
+			StringBuffer returnedDetails) throws Exception {
+
+		return true; // default, no processing
 	}
 
 }

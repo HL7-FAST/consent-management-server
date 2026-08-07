@@ -55,13 +55,13 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Subscription;
 
-import net.aegis.fhir.client.model.ResourceResponseWrapper;
 import net.aegis.fhir.model.Clientresource;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.OperationOutcomeWrapper;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.model.Serverdirectory;
 import net.aegis.fhir.model.Subscriptionactivity;
+import net.aegis.fhir.model.client.ResourceResponseWrapper;
 import net.aegis.fhir.service.ClientresourceService;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ResourceService;
@@ -1247,9 +1247,12 @@ public class ApplicationContext implements Serializable {
 		String packages;
 
 		try {
-			packages = System.getenv("FHIR_PACKAGES");
-			if (packages == null) {
-				packages = "not defined";
+			packages = codeService.findCodeValueByName("fhirPackages");
+			if (packages == null || packages.isEmpty()) {
+				packages = System.getenv("FHIR_PACKAGES");
+				if (packages == null || packages.isEmpty()) {
+					packages = "not defined";
+				}
 			}
 		}
 		catch (Exception e) {

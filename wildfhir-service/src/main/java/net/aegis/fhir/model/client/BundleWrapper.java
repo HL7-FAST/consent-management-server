@@ -1,4 +1,4 @@
-package net.aegis.fhir.client.model;
+package net.aegis.fhir.model.client;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;

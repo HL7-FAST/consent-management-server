@@ -94,9 +94,9 @@ public class SubscriptionNotificationRESTService {
 
 		log.fine("[START] SubscriptionNotificationRESTService.notificationR5BackportPost()");
 
-		String payload = DebugUtil.debugRequest(request, headers, notifyInputStream);
+		String payload = DebugUtil.debugRequest(request, headers, notifyInputStream, null, false);
 
-		String outcome = null;
+		StringBuffer outcome = new StringBuffer();
 		Response.ResponseBuilder builder = null;
 		String producesType = null;
         String responseFhirVersion = "";
@@ -118,10 +118,10 @@ public class SubscriptionNotificationRESTService {
 			 * Process Subscription Notification Bundle based on Subscription criteria processing, heart beat or handshake
 			 */
 			if (subscriptionServiceR5.processSubscriptionNotification(request, headers, payload, outcome)) {
-				builder = Response.status(Response.Status.OK).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+				builder = Response.status(Response.Status.OK).entity(outcome.toString()).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 			}
 			else {
-				builder = Response.status(Response.Status.BAD_REQUEST).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+				builder = Response.status(Response.Status.BAD_REQUEST).entity(outcome.toString()).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 			}
 		}
 		catch (Exception e) {
@@ -129,9 +129,10 @@ public class SubscriptionNotificationRESTService {
 			e.printStackTrace();
 
 			// Handle generic exceptions
-			outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.FATAL, OperationOutcome.IssueType.EXCEPTION, e.getMessage());
+			outcome = new StringBuffer();
+			outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.FATAL, OperationOutcome.IssueType.EXCEPTION, e.getMessage()));
 
-			builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+			builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome.toString()).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 		}
 
 		log.fine("[END] SubscriptionNotificationRESTService.notificationR5BackportPost()");

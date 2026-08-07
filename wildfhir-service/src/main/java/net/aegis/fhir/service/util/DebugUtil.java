@@ -145,8 +145,9 @@ public class DebugUtil {
 					payload = writer.toString();
 	
 					if (snipped == false) {
-						log.info("----- PAYLOAD ----- [snipped; use fine logging]");
-						log.fine(payload);
+						//log.info("----- PAYLOAD ----- [snipped; use fine logging]");
+						log.info("----- PAYLOAD -----");
+						log.info(payload);
 					}
 					else {
 						log.info("----- PAYLOAD ----- [snipped]");
@@ -189,7 +190,8 @@ public class DebugUtil {
 
 				log.info("----- RESPONSE STATUS ----- " + Integer.toString(response.getStatus()));
 
-				log.info("----- PAYLOAD ----- [snipped; use fine logging]");
+				//log.info("----- PAYLOAD ----- [snipped; use fine logging]");
+				log.info("----- PAYLOAD -----");
 				String entity = null;
 				if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
 					entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
@@ -200,7 +202,7 @@ public class DebugUtil {
 						entity = ">> NO ENTITY PAYLOAD <<";
 					}
 				}
-				log.fine(entity);
+				log.info(entity);
 			}
 			else {
 				log.info("----- HTTP RESPONSE ----- NULL");

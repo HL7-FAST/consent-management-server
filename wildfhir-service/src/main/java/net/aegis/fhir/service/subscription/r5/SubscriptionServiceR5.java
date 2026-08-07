@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
@@ -140,7 +141,7 @@ public class SubscriptionServiceR5 {
 	 */
 	public List<LabelKeyValueBean> processSubscriptions(Date since) throws Exception {
 
-		log.fine("[START] SubscriptionServiceR5.processSubscriptions()");
+		log.info("[START] SubscriptionServiceR5.processSubscriptions()");
 
 		// Verify since date is not null
 		if (since == null) {
@@ -161,7 +162,7 @@ public class SubscriptionServiceR5 {
 		try {
 			// Construct _lastUpdated parameters string
 			StringBuilder sbSinceParams = new StringBuilder("_lastUpdated=ge")
-					.append(utcDateUtil.formatDate(since, UTCDateUtil.DATETIME_ONLY_PARAMETER_FORMAT));
+					.append(utcDateUtil.formatDate(since, UTCDateUtil.DATETIME_ONLY_PARAMETER_FORMAT, null));
 
 			log.fine("sbSinceParams [" + sbSinceParams.toString() + "]");
 
@@ -181,6 +182,7 @@ public class SubscriptionServiceR5 {
 				JsonParser jsonParse = new JsonParser();
 				jsonParse.setOutputStyle(OutputStyle.PRETTY);
 				String payload = null;
+				String responseEntity = null;
 
 				// For each Subscription entry
 				Subscription subscription = null;
@@ -193,7 +195,10 @@ public class SubscriptionServiceR5 {
 
 					// Initialize result bean
 					result = new LabelKeyValueBean(subscription.getId(), subscription.getChannel().getType().name() + "; " + subscription.getChannel().getEndpoint(),
-							subscription.getCriteria(), "", "processing", "");
+							(subscription.getCriteriaElement().hasExtension("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria") ?
+									subscription.getCriteriaElement().getExtensionByUrl("http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria").getValue().primitiveValue() :
+									subscription.getCriteria()),
+							"", "processing", "");
 
 					/*
 					 * Use Factory Pattern for execution of SubscriptionTopic operation
@@ -231,7 +236,7 @@ public class SubscriptionServiceR5 {
 							Response response = null;
 							if (returnedDetails != null && returnedDetails.length() > 0) {
 								result.setType(returnedDetails.toString());
-								log.fine("REST Hook " + returnedDetails.toString());
+								log.info("REST Hook " + returnedDetails.toString());
 							}
 							else {
 								// Parse subscriptionBundle to XML or JSON String based on the Subscription payload
@@ -249,23 +254,28 @@ public class SubscriptionServiceR5 {
 								else {
 									// Unsupported mime type format
 									result.setType("Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
-									log.fine("REST Hook Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
+									log.info("REST Hook Invalid channel payload mime type '" + subscription.getChannel().getPayload() + "'!");
 								}
-							}
 
-							if (okToPost == true) {
-								// Process HTTP headers if present
-								List<String> headers = new ArrayList<String>();
-								for (StringType header : subscription.getChannel().getHeader()) {
-									headers.add(header.asStringValue());
+								if (okToPost == true) {
+									// Process HTTP headers if present
+									List<String> headers = new ArrayList<String>();
+									for (StringType header : subscription.getChannel().getHeader()) {
+										headers.add(header.asStringValue());
+									}
+									response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload, subscription.getChannel().getPayload(), headers);
+
+									responseEntity = response.readEntity(String.class);
+									if (!StringUtils.isEmpty(responseEntity)) {
+										payload = responseEntity + "\n\n--------------------\n\n" + payload;
+									}
+
+									result.setRefType(payload);
 								}
-								response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload, subscription.getChannel().getPayload(), headers);
 
-								result.setRefType(payload);
+								// Update Subscription status based on current result and post response
+								this.setSubscriptionStatus(subscriptionBundle, subscription, response, result);
 							}
-
-							// Update Subscription status based on current result and post response
-							this.setSubscriptionStatus(subscriptionBundle, subscription, response, result);
 
 							result.setPath("complete");
 							break;
@@ -350,15 +360,15 @@ public class SubscriptionServiceR5 {
 						switch (subscription.getChannel().getType()) {
 						case EMAIL:
 							result.setPath("Email channel type not supported");
-							log.info("Email channel type not currently supported.");
+							log.fine("Email channel type not currently supported.");
 							break;
 						case MESSAGE:
 							result.setPath("FHIR messaging channel not supported");
-							log.info("FHIR messaging channel type not currently supported.");
+							log.fine("FHIR messaging channel type not currently supported.");
 							break;
 						case NULL:
 							result.setPath("NULL channel type not supported");
-							log.info("NULL channel type not currently supported.");
+							log.fine("NULL channel type not currently supported.");
 							break;
 						case RESTHOOK:
 							/*
@@ -412,15 +422,15 @@ public class SubscriptionServiceR5 {
 							break;
 						case SMS:
 							result.setPath("SMS channel type not supported");
-							log.info("SMS channel type not currently supported.");
+							log.fine("SMS channel type not currently supported.");
 							break;
 						case WEBSOCKET:
 							result.setPath("Websocket channel type not supported");
-							log.info("Websocket channel type not currently supported.");
+							log.fine("Websocket channel type not currently supported.");
 							break;
 						default:
 							result.setPath("Unknown channel type");
-							log.info("Unknown channel type!");
+							log.fine("Unknown channel type!");
 							break;
 						}
 					} else {
@@ -444,7 +454,7 @@ public class SubscriptionServiceR5 {
 		return result;
 	}
 
-	public boolean processSubscriptionNotification(HttpServletRequest request, HttpHeaders headers, String payload, String outcome) throws Exception {
+	public boolean processSubscriptionNotification(HttpServletRequest request, HttpHeaders headers, String payload, StringBuffer outcome) throws Exception {
 
 		log.info("[START] SubscriptionServiceR5.processSubscriptionNotification()");
 
@@ -454,16 +464,16 @@ public class SubscriptionServiceR5 {
 		Parameters pSubscriptionStatus = null;
 		org.hl7.fhir.r5.model.SubscriptionStatus existingSubscriptionStatus = null;
 
+		if (outcome == null) {
+			outcome = new StringBuffer();
+		}
+
 		try {
 			// Get the produces type based on the request Accept
 			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			// Get the content type based on the request Content-Type
 			contentType = ServicesUtil.INSTANCE.getHttpHeader(headers, HttpHeaders.CONTENT_TYPE);
-
-			// Initialize outcome to "default success"
-			outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-					OperationOutcome.IssueType.INFORMATIONAL, "default success", null, null, producesType);
 
 			// Instantiate the Resource; this is the first, simple validation of the
 			// resource
@@ -508,8 +518,8 @@ public class SubscriptionServiceR5 {
 							clientresourceService.update(clientresource, subscription);
 
 							// Set outcome to "Handshake success"
-							outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-									OperationOutcome.IssueType.INFORMATIONAL, "Handshake success", null, null, producesType);
+							outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
+									OperationOutcome.IssueType.INFORMATIONAL, "Handshake success", null, null, producesType));
 						}
 						else {
 							throw new Exception("Notification Bundle SubscriptionStatus Subscription cannot be found locally!");
@@ -521,23 +531,63 @@ public class SubscriptionServiceR5 {
 				}
 				if (sNotifyType.equals(SubscriptionNotificationType.HEARTBEAT)) {
 					// Set outcome to "Heartbeat success"
-					outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-							OperationOutcome.IssueType.INFORMATIONAL, "Heartbeat success", null, null, producesType);
+					outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
+							OperationOutcome.IssueType.INFORMATIONAL, "Heartbeat success", null, null, producesType));
 				}
 				if (sNotifyType.equals(SubscriptionNotificationType.EVENTNOTIFICATION)) {
-					// Set outcome to "Event notification success"
-					outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-							OperationOutcome.IssueType.INFORMATIONAL, "Event notification success", null, null, producesType);
+					// Process the event notification based on the subscription topic
+					String topic = null;
+
+					if (existingSubscriptionStatus.hasTopic()) {
+						topic = existingSubscriptionStatus.getTopic();
+						/*
+						 * Use Factory Pattern for execution of SubscriptionTopic operation
+						 */
+						SubscriptionTopicProxyObjectFactory topicFactory = new SubscriptionTopicProxyObjectFactory();
+						SubscriptionTopicProxy topicProxy = topicFactory.getSubscriptionTopicProxy(topic);
+
+						// Check for non-null topic proxy
+						if (topicProxy != null) {
+							StringBuffer returnedDetails = new StringBuffer();
+
+							result = topicProxy.processEventNotification(resourceService, resourcemetadataService, codeService, auditEventService, provenanceService, notifyBundle, existingSubscriptionStatus, producesType, returnedDetails);
+
+							if (result == true) {
+								// Successful processing, return information outcome with returnedDetails
+								outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
+										OperationOutcome.IssueType.INFORMATIONAL,
+										"Subscription Notification processing complete for Subscription Topic '" + topic + "'.", returnedDetails.toString(), null, producesType));
+							}
+							else {
+								// Failure processing, return error outcome with returnedDetails
+								outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR,
+										OperationOutcome.IssueType.PROCESSING,
+										"Error processing Subscription Notification for Subscription Topic '" + topic + "'!", returnedDetails.toString(), null, producesType));
+							}
+						}
+						else {
+							result = false;
+							outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR,
+									OperationOutcome.IssueType.PROCESSING,
+									"Cannot process Subscription Notification! Unknown Subscription Topic '" + topic + "'.", null, null, producesType));
+						}
+					}
+					else {
+						result = false;
+						outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR,
+								OperationOutcome.IssueType.PROCESSING,
+								"Cannot process Subscription Notification! Subscription Topic not defined.", null, null, producesType));
+					}
 				}
 				if (sNotifyType.equals(SubscriptionNotificationType.QUERYSTATUS)) {
 					// Set outcome to "Query status success"
-					outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-							OperationOutcome.IssueType.INFORMATIONAL, "Query status ok", null, null, producesType);
+					outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
+							OperationOutcome.IssueType.INFORMATIONAL, "Query status ok", null, null, producesType));
 				}
 				if (sNotifyType.equals(SubscriptionNotificationType.QUERYEVENT)) {
 					// Set outcome to "Query event not implemented"
-					outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
-							OperationOutcome.IssueType.INFORMATIONAL, "Query event not implemented", null, null, producesType);
+					outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.INFORMATION,
+							OperationOutcome.IssueType.INFORMATIONAL, "Query event not implemented", null, null, producesType));
 				}
 			}
 			else {
@@ -545,9 +595,10 @@ public class SubscriptionServiceR5 {
 			}
 		} catch (Exception e) {
 			result = false;
-			outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR,
+			outcome = new StringBuffer();
+			outcome.append(ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR,
 					OperationOutcome.IssueType.EXCEPTION,
-					"Exception processing subscription notification! " + e.getMessage(), null, null, producesType);
+					"Exception processing subscription notification! " + e.getMessage(), null, null, producesType));
 			log.severe("Exception processing subscription notification! " + e.getMessage());
 		}
 
@@ -758,14 +809,17 @@ public class SubscriptionServiceR5 {
 
 		// If error, create new SubscriptionStatus with error condition
 		if (bResult == false) {
-			for (BundleEntryComponent entry : subscriptionBundle.getEntry()) {
-				if (entry.getResource().getResourceType().equals(ResourceType.Parameters)) {
-					pExistingSubscriptionStatus = (Parameters) entry.getResource();
-					existingSubscriptionStatus = (org.hl7.fhir.r5.model.SubscriptionStatus) ServicesUtil.INSTANCE
-							.convertR4ParametersToR5SubscriptionStatus(pExistingSubscriptionStatus);
-					break;
+			if (subscriptionBundle != null && subscriptionBundle.hasEntry()) {
+				for (BundleEntryComponent entry : subscriptionBundle.getEntry()) {
+					if (entry.getResource().getResourceType().equals(ResourceType.Parameters)) {
+						pExistingSubscriptionStatus = (Parameters) entry.getResource();
+						existingSubscriptionStatus = (org.hl7.fhir.r5.model.SubscriptionStatus) ServicesUtil.INSTANCE
+								.convertR4ParametersToR5SubscriptionStatus(pExistingSubscriptionStatus);
+						break;
+					}
 				}
 			}
+
 			errorSubscriptionStatus = this.errorSubscriptionStatus(subscription, existingSubscriptionStatus, baseUrl,
 					errorCode, msg.toString());
 			pErrorSubscriptionStatus = (Parameters) ServicesUtil.INSTANCE

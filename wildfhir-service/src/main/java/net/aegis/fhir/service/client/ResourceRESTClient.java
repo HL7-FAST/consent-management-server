@@ -1310,6 +1310,11 @@ public class ResourceRESTClient implements Serializable {
 				resourceResponse = targetBuilder.post(Entity.text(""));
 			}
 
+			// buffering the response allows for multiple invocations of readEntity(...) on it.
+			if (resourceResponse.hasEntity()) {
+				resourceResponse.bufferEntity();
+			}
+
 			DebugUtil.debugResponse(resourceResponse);
 
 		}

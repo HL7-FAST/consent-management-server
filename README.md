@@ -32,7 +32,7 @@ docker pull hlseven/fast-consent-management-server:latest
 docker run -p 8080:8080 hlseven/fast-consent-management-server:latest
 ```
 
-This will run the docker image with the default configuration, mapping port 8080 from the container to port 8080 in the host. Once running, you can access `http://localhost:8080/r4` as the base URL for your REST requests.
+This will run the docker image with the default configuration, mapping port 8080 from the container to port 8080 in the host. Once running, you can access `http://localhost:8080/fastconsent/r4` as the base URL for your REST requests.
 
 ### Configuration via environment variables
 
@@ -60,6 +60,11 @@ You can also expose the following additional ports if desired:
 ## FAST Consent Custom Operations
 
 The server implements the custom operations as described in the IG in the [Artifacts - Operation Definitions](https://build.fhir.org/ig/HL7/fhir-consent-management/artifacts.html#behavior-operation-definitions) section.
+
+
+## FAST Consent Custom Search Parameters
+
+The server implements the custom search parameters as described in the IG in the [Artifacts - Search Parameters](https://build.fhir.org/ig/HL7/fhir-consent-management/artifacts.html#behavior-search-parameters) section.
 
 
 ## Subscriptions R5 Backport Operations

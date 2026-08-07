@@ -1,4 +1,4 @@
-package net.aegis.fhir.client.model;
+package net.aegis.fhir.model.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +13,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
 
-import net.aegis.fhir.client.util.HttpHeadersKeys;
 import net.aegis.fhir.service.util.ServicesUtil;
 
 /**
