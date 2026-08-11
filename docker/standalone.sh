@@ -1,10 +1,14 @@
-#!/bin/bash
+#!/bin/sh
 
 # Use --debug to activate debug mode with an optional argument to specify the port.
 # Usage : standalone.sh --debug
 #         standalone.sh --debug 9797
 
 # By default debug mode is disabled.
+
+# Identifies the launch script type.
+export JBOSS_LAUNCH_SCRIPT="linux"
+
 DEBUG_MODE="${DEBUG:-false}"
 DEBUG_PORT="${DEBUG_PORT:-8787}"
 GC_LOG="$GC_LOG"
@@ -30,7 +34,7 @@ do
           shift
           break;;
       *)
-          SERVER_OPTS="$SERVER_OPTS '$1'"
+          SERVER_OPTS="$SERVER_OPTS \"$1\""
           ;;
     esac
     shift
@@ -151,7 +155,7 @@ if $linux; then
     for var in $CONSOLIDATED_OPTS
     do
        # Remove quotes
-       p=`echo $var | tr -d "'"`
+       p=`echo $var | tr -d "'" | tr -d "\""`
        case $p in
          -Djboss.server.base.dir=*)
               JBOSS_BASE_DIR=`readlink -m ${p#*=}`
@@ -172,8 +176,8 @@ if $solaris; then
     # process the standalone options
     for var in $CONSOLIDATED_OPTS
     do
-       # Remove quotes
-       p=`echo $var | tr -d "'"`
+      # Remove quotes
+      p=`echo $var | tr -d "'" | tr -d "\""`
       case $p in
         -Djboss.server.base.dir=*)
              JBOSS_BASE_DIR=`echo $p | awk -F= '{print $2}'`
@@ -196,7 +200,7 @@ if $darwin || $freebsd || $other ; then
     for var in $CONSOLIDATED_OPTS
     do
        # Remove quotes
-       p=`echo $var | tr -d "'"`
+       p=`echo $var | tr -d "'" | tr -d "\""`
        case $p in
          -Djboss.server.base.dir=*)
               JBOSS_BASE_DIR=`cd ${p#*=} ; pwd -P`
@@ -215,6 +219,15 @@ if $darwin || $freebsd || $other ; then
        esac
     done
 fi
+
+# clean server opts
+for var in $SERVER_OPTS
+do
+   v=`echo "${var}" | sed 's/-Djboss.server.base.dir//g'`
+   if [ "${v}" != "${var}" ]; then
+     SERVER_OPTS=`echo "${SERVER_OPTS}" | sed "s|${var}||g"`
+   fi
+done
 
 # determine the default base dir, if not set
 if [ "x$JBOSS_BASE_DIR" = "x" ]; then
@@ -246,40 +259,13 @@ fi
 
 
 if [ "$PRESERVE_JAVA_OPTS" != "true" ]; then
-    # Check for -d32/-d64 in JAVA_OPTS
-    JVM_D64_OPTION=`echo $JAVA_OPTS | $GREP "\-d64"`
-    JVM_D32_OPTION=`echo $JAVA_OPTS | $GREP "\-d32"`
-
-    # Check If server or client is specified
-    SERVER_SET=`echo $JAVA_OPTS | $GREP "\-server"`
-    CLIENT_SET=`echo $JAVA_OPTS | $GREP "\-client"`
-
-    if [ "x$JVM_D32_OPTION" != "x" ]; then
-        JVM_OPTVERSION="-d32"
-    elif [ "x$JVM_D64_OPTION" != "x" ]; then
-        JVM_OPTVERSION="-d64"
-    elif $darwin && [ "x$SERVER_SET" = "x" ]; then
-        # Use 32-bit on Mac, unless server has been specified or the user opts are incompatible
-        "$JAVA" -d32 $JAVA_OPTS -version > /dev/null 2>&1 && PREPEND_JAVA_OPTS="-d32" && JVM_OPTVERSION="-d32"
-    fi
-
-    if [ "x$CLIENT_SET" = "x" -a "x$SERVER_SET" = "x" ]; then
-        # neither -client nor -server is specified
-        if $darwin && [ "$JVM_OPTVERSION" = "-d32" ]; then
-            # Prefer client for Macs, since they are primarily used for development
-            PREPEND_JAVA_OPTS="$PREPEND_JAVA_OPTS -client"
-        else
-            PREPEND_JAVA_OPTS="$PREPEND_JAVA_OPTS -server"
-        fi
-    fi
-
     # Set flag if JVM is modular
     setModularJdk
 
     if [ "$GC_LOG" = "true" ]; then
         # Enable rotating GC logs if the JVM supports it and GC logs are not already enabled
         mkdir -p $JBOSS_LOG_DIR
-        NO_GC_LOG_ROTATE=`echo $JAVA_OPTS | $GREP "\-Xlog\:\?gc"`
+        NO_GC_LOG_ROTATE=`echo $JAVA_OPTS | $GREP "\-Xlog:\?gc"`
         if [ "x$NO_GC_LOG_ROTATE" = "x" ]; then
             # backup prior gc logs
             mv -f "$JBOSS_LOG_DIR/gc.log" "$JBOSS_LOG_DIR/backupgc.log" >/dev/null 2>&1
@@ -299,15 +285,26 @@ if [ "$PRESERVE_JAVA_OPTS" != "true" ]; then
                 TMP_PARAM="-verbose:gc -Xloggc:\"$JBOSS_LOG_DIR/gc.log\" -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=3M -XX:-TraceClassUnloading"
             fi
 
-            eval "$JAVA" $JVM_OPTVERSION $TMP_PARAM -version >/dev/null 2>&1 && PREPEND_JAVA_OPTS="$PREPEND_JAVA_OPTS $TMP_PARAM"
+            eval "$JAVA" $TMP_PARAM -version >/dev/null 2>&1 && PREPEND_JAVA_OPTS="$PREPEND_JAVA_OPTS $TMP_PARAM"
             # Remove the gc.log file from the -version check
             rm -f "$JBOSS_LOG_DIR/gc.log" >/dev/null 2>&1
         fi
     fi
 
+    JDK_FILTER_SET=`echo $JAVA_OPTS | $GREP "\-Djdk.serialFilter"`
+    if [ "x$DISABLE_JDK_SERIAL_FILTER" = "x" -a "x$JDK_FILTER_SET" = "x" ]; then
+        PREPEND_JAVA_OPTS="$PREPEND_JAVA_OPTS -Djdk.serialFilter=\"$JDK_SERIAL_FILTER\""
+    fi
+
     # Set default modular JVM options
     setDefaultModularJvmOptions $JAVA_OPTS
     JAVA_OPTS="$JAVA_OPTS $DEFAULT_MODULAR_JVM_OPTIONS"
+
+    # Set default Security Manager configuration value
+    if [ "$SECMGR" = "true" ]; then
+        setSecurityManagerDefault
+        JAVA_OPTS="$JAVA_OPTS $SECURITY_MANAGER_CONFIG_OPTION"
+    fi
 
     JAVA_OPTS="$PREPEND_JAVA_OPTS $JAVA_OPTS"
 fi
@@ -315,14 +312,21 @@ fi
 # Process the JAVA_OPTS and fail the script of a java.security.manager was found
 SECURITY_MANAGER_SET=`echo $JAVA_OPTS | $GREP "java\.security\.manager"`
 if [ "x$SECURITY_MANAGER_SET" != "x" ]; then
-    echo "ERROR: The use of -Djava.security.manager has been removed. Please use the -secmgr command line argument or SECMGR=true environment variable."
-    exit 1
+    SECURITY_MANAGER_SET_TO_ALLOW=`echo $JAVA_OPTS | $GREP "java\.security\.manager=allow"`
+    if [ "x$SECURITY_MANAGER_SET_TO_ALLOW" = "x" ]; then
+        echo "ERROR: The use of -Djava.security.manager has been removed. Please use the -secmgr command line argument or SECMGR=true environment variable."
+        exit 1
+    fi
 fi
 
 # Set up the module arguments
-MODULE_OPTS=""
+MODULE_OPTS="$MODULE_OPTS"
 if [ "$SECMGR" = "true" ]; then
     MODULE_OPTS="$MODULE_OPTS -secmgr";
+fi
+AGENT_SET=$(echo "$MODULE_OPTS" | $GREP "\-javaagent:")
+if [ "x$AGENT_SET" != "x" ]; then
+  JAVA_OPTS="-javaagent:\"${JBOSS_HOME}/jboss-modules.jar\" ${JAVA_OPTS}"
 fi
 
 # Display our environment
@@ -392,7 +396,7 @@ while true; do
          JBOSS_STATUS=0
       fi
       if [ "$JBOSS_STATUS" -ne 10 ]; then
-            # Wait for a complete shudown
+            # Wait for a complete shutdown
             wait $JBOSS_PID 2>/dev/null
       fi
       if [ "x$JBOSS_PIDFILE" != "x" ]; then
@@ -400,7 +404,17 @@ while true; do
       fi
    fi
    if [ "$JBOSS_STATUS" -eq 10 ]; then
-      echo "Restarting application server..."
+      echo "INFO: Restarting..."
+   elif [ "$JBOSS_STATUS" -eq 20 ]; then
+        echo "INFO: Starting Candidate Server installation using Management CLI Installer script"
+        INST_MGR_CONSOLE_FILE="${JBOSS_LOG_DIR}/management-cli-installer-out.log"
+        "${JBOSS_HOME}/bin/installation-manager.sh" "${JBOSS_HOME}" "${JBOSS_CONFIG_DIR}/logging.properties" "${JBOSS_LOG_DIR}/server.log" >> "${INST_MGR_CONSOLE_FILE}" 2>&1
+        if [ $? -eq 0 ]; then
+          echo "INFO: Candidate Server installation completed successfully."
+        else
+          echo "ERROR: Candidate Server installation failed. Check Management CLI Installer script log file for more information: ${INST_MGR_CONSOLE_FILE}"
+        fi
+        echo "INFO: Restarting..."
    else
       exit $JBOSS_STATUS
    fi
