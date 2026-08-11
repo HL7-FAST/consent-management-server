@@ -75,7 +75,9 @@ public class InitializeCodeConfiguration extends HttpServlet {
 		Map.entry("WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED", "subscriptionActivateRequested"),
 		Map.entry("WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED", "subscriptionHandshakeEnabled"),
 		Map.entry("WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY", "subscriptionHandshakeDelay"),
-		Map.entry("WILDFHIR_TXCONCURRENTLIMIT", "txConcurrentLimit")
+		Map.entry("WILDFHIR_TXCONCURRENTLIMIT", "txConcurrentLimit"),
+		Map.entry("FHIR_PACKAGES", "fhirPackages"),
+		Map.entry("FHIR_T_SERVER", "fhirTxServer")
 	));
 
 	@Inject

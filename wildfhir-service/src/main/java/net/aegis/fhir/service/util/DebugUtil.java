@@ -172,8 +172,13 @@ public class DebugUtil {
 	 * </p>
 	 *
 	 * @param response
+	 * @param snipped
 	 */
 	public static void debugResponse(Response response) {
+		DebugUtil.debugResponse(response, true);
+	}
+
+	public static void debugResponse(Response response, boolean snipped) {
 
 		try {
 			if (response != null) {
@@ -190,19 +195,24 @@ public class DebugUtil {
 
 				log.info("----- RESPONSE STATUS ----- " + Integer.toString(response.getStatus()));
 
-				//log.info("----- PAYLOAD ----- [snipped; use fine logging]");
-				log.info("----- PAYLOAD -----");
-				String entity = null;
-				if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
-					entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
-				} else {
-					if (response.hasEntity()) {
-						entity = response.readEntity(String.class);
+
+				if (snipped == false) {
+					log.info("----- PAYLOAD -----");
+					String entity = null;
+					if (response.getStatus() == Response.Status.NOT_MODIFIED.getStatusCode()) {
+						entity = Response.Status.NOT_MODIFIED.getReasonPhrase();
 					} else {
-						entity = ">> NO ENTITY PAYLOAD <<";
+						if (response.hasEntity()) {
+							entity = response.readEntity(String.class);
+						} else {
+							entity = ">> NO ENTITY PAYLOAD <<";
+						}
 					}
+					log.info(entity);
 				}
-				log.info(entity);
+				else {
+					log.info("----- PAYLOAD ----- [snipped]");
+				}
 			}
 			else {
 				log.info("----- HTTP RESPONSE ----- NULL");
