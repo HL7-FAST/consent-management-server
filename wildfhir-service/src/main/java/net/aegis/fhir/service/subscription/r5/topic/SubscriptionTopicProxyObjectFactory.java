@@ -49,6 +49,9 @@ public class SubscriptionTopicProxyObjectFactory {
 		if (topic.startsWith("http://hl7.org/fhir/us/consent-management/SubscriptionTopic/FASTConsentSubscriptionTopic")) {
 			return new FASTConsentSubscriptionTopic();
 		}
+		if (topic.startsWith("http://wildfhir.wildfhir.org/ig/wildfhirce/SubscriptionTopic/WildfhirCESubscriptionTopic")) {
+			return new WildfhirCESubscriptionTopic();
+		}
 
 		return proxy;
 	}

@@ -36,19 +36,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import javax.transaction.UserTransaction;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import jakarta.transaction.UserTransaction;
 
 import net.aegis.fhir.model.Subscriptionactivity;
 
@@ -109,7 +109,7 @@ public class SubscriptionactivityService {
 			userTransaction.commit();
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 
@@ -143,7 +143,7 @@ public class SubscriptionactivityService {
 			userTransaction.commit();
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 
@@ -186,7 +186,7 @@ public class SubscriptionactivityService {
 			userTransaction.commit();
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 
@@ -224,7 +224,7 @@ public class SubscriptionactivityService {
 			}
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 
@@ -255,7 +255,7 @@ public class SubscriptionactivityService {
 
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 
@@ -290,7 +290,7 @@ public class SubscriptionactivityService {
 
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
+			log.severe(e.getMessage());
 			throw e;
 		}
 

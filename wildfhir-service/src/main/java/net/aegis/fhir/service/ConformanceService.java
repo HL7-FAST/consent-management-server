@@ -37,19 +37,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.transaction.UserTransaction;
-import javax.ws.rs.core.Response;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.transaction.UserTransaction;
+import jakarta.ws.rs.core.Response;
 
 import net.aegis.fhir.model.Code;
 import net.aegis.fhir.model.Conformance;
@@ -188,7 +188,6 @@ public class ConformanceService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -227,7 +226,6 @@ public class ConformanceService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -260,7 +258,6 @@ public class ConformanceService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -299,7 +296,6 @@ public class ConformanceService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -324,7 +320,7 @@ public class ConformanceService {
 				String baseUrl = getBaseUrl();
 				log.fine("getBaseUrl: " + baseUrl);
 				resourceContainer.setResponseStatus(Response.Status.OK);
-			}else {
+			} else {
 				resourceContainer.setResponseStatus(Response.Status.NOT_FOUND);
 			}
 

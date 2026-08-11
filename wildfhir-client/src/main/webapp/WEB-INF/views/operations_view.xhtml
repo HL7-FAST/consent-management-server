@@ -5,26 +5,24 @@
 	xmlns:p="http://primefaces.org/ui"
 	xmlns:c="http://java.sun.com/jstl/core">
 
-	<!-- This is the view file for the FAST Consent Operations Tab -->
+	<!-- This is the view file for the Operations Tab -->
 
-	<p:tab title="FAST Consent Ops" id="operationsTab" cache="false">
+	<p:tab title="Operations" id="operationsTab" cache="false">
 
 		<p:panelGrid id="operationsTabPanel1" columns="1" border="0"
 			cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
-			<h:outputText value="FAST Consent Operations"
+			<h:outputText value="FHIR Operations"
 				style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
-			<h:outputText value="These interfaces use a small pre-defined test data set. See About for more info."
-				style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
 		</p:panelGrid>
 
 		<p:tabView id="operationsTabView" widgetVar="operationsTabView" cache="false">
 
 			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
-				update=":tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm" />
+				update=":tabView:operationsTabView:convertFormatForm,:tabView:operationsTabView:everythingForm,:tabView:operationsTabView:validateForm,:tabView:operationsTabView:validateForm2" />
 
-			<ui:include src="/WEB-INF/views/operations/fileConsent.xhtml" />
-			<ui:include src="/WEB-INF/views/operations/revokeConsent.xhtml" />
-			<ui:include src="/WEB-INF/views/operations/recordDisclosure.xhtml" />
+			<ui:include src="/WEB-INF/views/operations/fhirConvertFormat.xhtml" />
+			<ui:include src="/WEB-INF/views/operations/fhirEverything.xhtml" />
+			<ui:include src="/WEB-INF/views/operations/fhirValidate.xhtml" />
 
 		</p:tabView>
 	</p:tab>

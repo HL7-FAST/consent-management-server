@@ -5,7 +5,7 @@ services:
       - WILDFHIR_HOSTNAME=d29wn3k3.aegis.net
       - WILDFHIR_RESOURCEPURGEALLENABLED=true
       - WILDFHIR_DATABASE_HOST=d29wn3k3.aegis.net
-      - FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-ballot
+      - FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-preview
     container_name: fastconsent-ri
     hostname: d29wn3k3.aegis.net
     ports:

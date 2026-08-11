@@ -36,19 +36,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.transaction.UserTransaction;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.transaction.UserTransaction;
 
 import net.aegis.fhir.model.Code;
 
@@ -108,7 +108,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -147,7 +146,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -182,7 +180,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -226,7 +223,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -267,7 +263,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -318,7 +313,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -371,7 +365,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -424,7 +417,6 @@ public class CodeService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -508,7 +500,7 @@ public class CodeService {
 
 		if (code != null && codeValue != null) {
 			code.setValue(codeValue);
-			
+
 			code = this.update(code);
 		}
 

@@ -1,9 +1,12 @@
 # -------------------------------------------------------------------------------
-# Build consent-management-server image
+# Build consent-management-server multi-arch image
+# - Build SBOM attestation and a provenance attestation with max mode provenance
 # - Named tag 1.0.0
-# - IMPORTANT Copy wildfhir-client.war and wildfhir-rest-server.war files to
+# - IMPORTANT Copy fastconsentri-client.war and fastconsentri-rest-server.war files to
 #   docker folder first
 # -------------------------------------------------------------------------------
+docker buildx build --provenance=true --sbom=true --platform linux/arm64,linux/amd64 -t hlseven/consent-management-server:1.0.0 .
+
 docker build -t hlseven/consent-management-server:1.0.0 .
 
 # -------------------------------------------------------------------------------
@@ -21,9 +24,9 @@ docker compose -p fastconsent-ri create
 # - Expose ports 3306, 8080, 8443, 9990 for db, browser and RESTful client access
 # - 2nd command illustrates setting specific individual environment varables
 # -------------------------------------------------------------------------------
-docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 --env-file env.list --name=fastconsent-ri hlseven/consent-management-server:1.0.0
+docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 --env-file ./env.list --name=fastconsent-ri hlseven/consent-management-server:1.0.0
 
-docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 -e WILDFHIR_HOST=d29wn3k3.aegis.net -e WILDFHIR_DATABASE_HOST=localhost -e WILDFHIR_BASEURL=http://d29wn3k3.aegis.net:8080/r4 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0 --name=fastconsent-ri hlseven/consent-management-server:1.0.0
+docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 -e WILDFHIR_HOST=d29wn3k3.aegis.net -e WILDFHIR_DATABASE_HOST=localhost -e WILDFHIR_BASEURL=http://d29wn3k3.aegis.net:8080/r4 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-preview --name=fastconsent-ri hlseven/consent-management-server:1.0.0
 
 # -------------------------------------------------------------------------------
 # Run consent-management-server container

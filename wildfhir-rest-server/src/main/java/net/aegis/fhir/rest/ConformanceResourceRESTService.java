@@ -35,40 +35,35 @@ package net.aegis.fhir.rest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import net.aegis.fhir.model.Constants;
-import net.aegis.fhir.model.ResourceContainer;
-import net.aegis.fhir.service.CodeService;
-import net.aegis.fhir.service.ConformanceService;
-import net.aegis.fhir.service.util.ServicesUtil;
-import net.aegis.fhir.service.util.UTCDateUtil;
-
-import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.OperationOutcome;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import net.aegis.fhir.model.Constants;
+import net.aegis.fhir.model.ResourceContainer;
+import net.aegis.fhir.service.CodeService;
+import net.aegis.fhir.service.ConformanceService;
+import net.aegis.fhir.service.util.DebugUtil;
+import net.aegis.fhir.service.util.ServicesUtil;
+import net.aegis.fhir.service.util.UTCDateUtil;
 
 /**
  * JAX-RS capabilities Service
@@ -87,9 +82,6 @@ public class ConformanceResourceRESTService {
 
 	@Inject
 	UTCDateUtil utcDateUtil;
-
-	@Context
-	private UriInfo context;
 
 	@Inject
 	CodeService codeService;
@@ -114,7 +106,7 @@ public class ConformanceResourceRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = getConformance(request, headers, true, "0");
 			}
@@ -140,7 +132,7 @@ public class ConformanceResourceRESTService {
 
 		log.fine("[START] ConformanceResourceRESTService.getConformance()");
 
-		debugRequest(request, headers, null);
+        DebugUtil.debugRequest(request, headers, null);
 
 		Response.ResponseBuilder builder = null;
 		ByteArrayInputStream iConformance = null;
@@ -158,7 +150,7 @@ public class ConformanceResourceRESTService {
 
 		try {
 			// Get the produces type based on the request Content-Type
-			String producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			String producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			ResourceContainer resourceContainer = conformanceService.read();
 
@@ -170,7 +162,7 @@ public class ConformanceResourceRESTService {
 
 				if (resourceContainer.getConformance() != null) {
 					// Define URI location
-					String locationPath = context.getBaseUri().getPath();
+					String locationPath = request.getRequestURL().toString();
 					if (isMetadata) {
 						locationPath += "/metadata";
 					}
@@ -180,10 +172,10 @@ public class ConformanceResourceRESTService {
 
 					// Get last update date
 					Date lastUpdate = resourceContainer.getConformance().getLastUpdate();
-					log.info("Last Update Date: " + lastUpdate);
+					log.fine("Last Update Date: " + lastUpdate);
 					if (lastUpdate != null) {
 						String sLastUpdate = utcDateUtil.formatUTCDateOffset(lastUpdate);
-						log.info("Last Update UTC Date: " + sLastUpdate);
+						log.fine("Last Update UTC Date: " + sLastUpdate);
 						builder = builder.header("Last-Modified", sLastUpdate);
 					}
 
@@ -262,81 +254,6 @@ public class ConformanceResourceRESTService {
 		}
 
 		return builder.build();
-	}
-
-	/**
-	 * <p>
-	 * Prints the contents of the received request.<br/>
-	 * Useful for debugging purposes.
-	 * </p>
-	 *
-	 * @param request
-	 * @param headers
-	 * @param response
-	 */
-	private String debugRequest(HttpServletRequest request, HttpHeaders headers, InputStream resourceInputStream) {
-
-		String payload = null;
-
-		if (request != null) {
-			log.info("----- HTTP REQUEST -----");
-
-			log.info("Remote host is '" + (request.getRemoteHost() == null ? "NOT FOUND" : request.getRemoteHost()) + "'");
-		}
-
-		if (headers != null) {
-			log.info("----- HTTP HEADERS (REQUEST) -----");
-
-			MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-
-			if (requestHeaders != null) {
-
-				for (String key : requestHeaders.keySet()) {
-
-					for (String keyValue : requestHeaders.get(key)) {
-						log.info("header(" + key + ") is " + keyValue);
-					}
-				}
-			}
-		}
-
-		log.info("----- REQUEST URL -----");
-		StringBuilder sbRequestUrl = new StringBuilder(context.getAbsolutePath().getPath());
-		MultivaluedMap<String, String> queryParams = context.getQueryParameters();
-		if (queryParams != null && !queryParams.isEmpty()) {
-			sbRequestUrl.append("?");
-			boolean first = true;
-			for (String key : queryParams.keySet()) {
-				if (!first) {
-					sbRequestUrl.append("&");
-				}
-				log.info("header(" + key + ") is " + queryParams.get(key).toString());
-				sbRequestUrl.append(key).append("=").append(queryParams.get(key).toString());
-			}
-		}
-		log.info(sbRequestUrl.toString());
-
-		log.info("----- PAYLOAD ----- [snipped; use fine logging]");
-        if (resourceInputStream != null) {
-			try {
-				StringWriter writer = new StringWriter();
-				String encoding = "UTF-8";
-				IOUtils.copy(resourceInputStream, writer, encoding);
-				payload = writer.toString();
-
-				log.fine(payload);
-
-			}
-			catch (Exception e) {
-				log.severe("Exception parsing payload! " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		else {
-			log.info(">> NO PAYLOAD <<");
-		}
-
-		return payload;
 	}
 
 }

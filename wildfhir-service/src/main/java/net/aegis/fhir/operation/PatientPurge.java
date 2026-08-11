@@ -34,16 +34,20 @@ package net.aegis.fhir.operation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import org.hl7.fhir.r4.model.DateType;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import net.aegis.fhir.model.LabelKeyValueBean;
 import net.aegis.fhir.model.Resource;
 import net.aegis.fhir.model.ResourceContainer;
@@ -59,11 +63,6 @@ import net.aegis.fhir.service.narrative.FHIRNarrativeGeneratorClient;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
 
-import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
-
 /**
  * @author richard.ettema
  *
@@ -72,11 +71,8 @@ public class PatientPurge extends ResourceOperationProxy {
 
 	private Logger log = Logger.getLogger("PatientPurge");
 
-	/* (non-Javadoc)
-	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
-	 */
 	@Override
-	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
+	public Parameters executeOperation(HttpServletRequest request, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
 
 		log.fine("[START] PatientPurge.executeOperation()");
 
@@ -88,7 +84,7 @@ public class PatientPurge extends ResourceOperationProxy {
 			 * If inputParameters is null, attempt to extract parameters from context
 			 */
 			if (inputParameters == null) {
-				inputParameters = getParametersFromQueryParams(context);
+				inputParameters = getParametersFromQueryParams(request);
 			}
 
 			/*
@@ -206,15 +202,15 @@ public class PatientPurge extends ResourceOperationProxy {
 		 */
 		String startDateCriteria = null;
 		if (startDate != null) {
-			log.info("startDate = " + startDate.getValueAsString());
+			log.fine("startDate = " + startDate.getValueAsString());
 			startDateCriteria = "ge" + startDate.getValueAsString();
-			log.info("startDateCriteria = " + startDateCriteria);
+			log.fine("startDateCriteria = " + startDateCriteria);
 		}
 		String endDateCriteria = null;
 		if (endDate != null) {
-			log.info("endDate = " + endDate.getValueAsString());
+			log.fine("endDate = " + endDate.getValueAsString());
 			endDateCriteria = "le" + endDate.getValueAsString();
-			log.info("endDateCriteria = " + endDateCriteria);
+			log.fine("endDateCriteria = " + endDateCriteria);
 		}
 
 		/*
@@ -229,9 +225,9 @@ public class PatientPurge extends ResourceOperationProxy {
 
 		for (LabelKeyValueBean lkvb : compartmentResourceTypeCriteriaList) {
 
-			log.info("========================================================================");
-			log.info("===== Processing resource type " + lkvb.getKey());
-			log.info("========================================================================");
+			log.fine("========================================================================");
+			log.fine("===== Processing resource type " + lkvb.getKey());
+			log.fine("========================================================================");
 
 			// Set patient criteria
 			queryParams = new MultivaluedHashMap<String, String>();
@@ -257,14 +253,14 @@ public class PatientPurge extends ResourceOperationProxy {
 			List<String[]> validParams = new ArrayList<String[]>();
 			List<String[]> invalidParams = new ArrayList<String[]>();
 
-			resources = resourceService.searchQuery(queryParams, null, null, lkvb.getKey(), false, null, null, null, validParams, invalidParams);
+			resources = resourceService.searchQuery(queryParams, null, lkvb.getKey(), false, null, null, null, validParams, invalidParams);
 
 			if (resources != null && resources.size() > 0) {
 				/*
 				 * Purge found resources
 				 */
 				for (Resource resourceEntry : resources) {
-					log.info("     ----- Purging resource " + resourceEntry.getResourceType() + "/" + resourceEntry.getResourceId());
+					log.fine("     ----- Purging resource " + resourceEntry.getResourceType() + "/" + resourceEntry.getResourceId());
 
 					resourceService.purge(resourceEntry.getId());
 				}
@@ -282,7 +278,7 @@ public class PatientPurge extends ResourceOperationProxy {
 		 * Finally, purge the Patient if no date parameters were sent
 		 */
 		if (startDateCriteria == null && endDateCriteria == null) {
-			log.info("Purging Patient");
+			log.fine("Purging Patient");
 
 			resourceService.purge(patient.getId());
 			total++;
@@ -293,7 +289,7 @@ public class PatientPurge extends ResourceOperationProxy {
 			rOutcome.getIssue().add(issue);
 		}
 		else {
-			log.info("Start or End date parameters sent; skipping purge of Patient");
+			log.fine("Start or End date parameters sent; skipping purge of Patient");
 
 			issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(OperationOutcome.IssueSeverity.INFORMATION, OperationOutcome.IssueType.INFORMATIONAL,
 				"Patient $purge - Patient purge skipped; start or end date parameter sent.", null, null);
@@ -316,11 +312,11 @@ public class PatientPurge extends ResourceOperationProxy {
 
 	/**
 	 *
-	 * @param context
+	 * @param request
 	 * @return <code>Parameters</code>
 	 * @throws Exception
 	 */
-	private Parameters getParametersFromQueryParams(UriInfo context) throws Exception {
+	private Parameters getParametersFromQueryParams(HttpServletRequest request) throws Exception {
 
 		log.fine("[START] ResourceOperationsRESTService.getParametersFromQueryParams()");
 
@@ -328,8 +324,8 @@ public class PatientPurge extends ResourceOperationProxy {
 		Parameters queryParameters = new Parameters();
 
 		try {
-			if (context != null) {
-				log.info("Checking for search parameters...");
+			if (request != null) {
+				log.fine("Checking for search parameters...");
 
 				/*
 				 * Extract the individual expected parameters
@@ -338,7 +334,7 @@ public class PatientPurge extends ResourceOperationProxy {
 				DateType endDate = null;
 
 				// Get the query parameters that represent the search criteria
-				MultivaluedMap<String, String> queryParams = context.getQueryParameters();
+				MultivaluedMap<String, String> queryParams = ServicesUtil.INSTANCE.parseRequestQuery(request);
 
 				if (queryParams != null && queryParams.size() > 0) {
 					Set<Entry<String, List<String>>> paramSet = queryParams.entrySet();

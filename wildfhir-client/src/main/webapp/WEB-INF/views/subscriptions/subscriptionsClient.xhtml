@@ -7,7 +7,7 @@
 
 	<!-- This is the view file for the Subscription Client Tab -->
 
-	<p:tab id="subscriptionClientTab" title="Manual" cache="false">
+	<p:tab id="subscriptionClientTab" title="Process" cache="false">
 		<h:form id="subscriptionClientForm" prependId="false"
 			style="width:100%;border:none;">
 			<p:panelGrid id="subscriptionClientPanel1" columns="1" border="0"
@@ -16,14 +16,20 @@
 				<h:outputText value="Subscription Client"
 					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
 				<h:outputText value="This is a manual execution of the subscription notification service."
-					style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+					style="padding:0px;font-style:italic;font-size:12px;" />
 			</p:panelGrid>
 
 			<hr></hr>
 
-			<p:panelGrid id="subscriptionClientPanel2" columns="2" border="0"
+			<p:panelGrid id="subscriptionClientPanel2" layout="tabular" columns="2" border="0"
 				cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
-				<h:outputText value="Since DateTime: " />
+				<h:outputText value="Use Last Processed DateTime: " />
+				<h:outputText value="#{context.subscriptionLastProcessedFormatted}" />
+
+				<h:outputText value="Or," />
+				<h:outputText value="" />
+
+				<h:outputText value="Select Since DateTime: " />
 				<p:datePicker id="buttonbar" value="#{context.dateTimePicker}" showButtonBar="true" showTime="true" showSeconds="true" hourFormat="24" pattern="yyyy-MM-dd HH:mm" />
 
 				<p:commandButton value="Process Subscriptions" icon="ui-icon-wrench"

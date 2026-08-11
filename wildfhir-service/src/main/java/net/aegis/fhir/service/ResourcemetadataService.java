@@ -36,15 +36,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import jakarta.ejb.Stateless;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 import net.aegis.fhir.model.Resourcemetadata;
 import net.aegis.fhir.service.metadata.ResourcemetadataProxy;
@@ -91,7 +91,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -121,7 +120,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -147,7 +145,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -185,7 +182,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -219,7 +215,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -252,7 +247,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -296,7 +290,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -327,7 +320,7 @@ public class ResourcemetadataService {
 			sbQuery.append(" where rm.paramType = 'tag'");
 			sbQuery.append(" order by rm.paramName, rm.paramValue");
 
-			log.info("Native Query: " + sbQuery.toString());
+			log.fine("Native Query: " + sbQuery.toString());
 
 			resourcemetadataQuery = em.createNativeQuery(sbQuery.toString(), Resourcemetadata.class);
 
@@ -336,7 +329,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -375,7 +367,7 @@ public class ResourcemetadataService {
 			sbQuery.append(" and rm.paramType = 'tag'");
 			sbQuery.append(" order by rm.paramName, rm.paramValue");
 
-			log.info("Native Query: " + sbQuery.toString());
+			log.fine("Native Query: " + sbQuery.toString());
 
 			resourcemetadataQuery = em.createNativeQuery(sbQuery.toString(), Resourcemetadata.class);
 
@@ -384,7 +376,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -418,7 +409,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -452,7 +442,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -486,7 +475,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -520,7 +508,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -555,7 +542,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 
@@ -590,7 +576,6 @@ public class ResourcemetadataService {
 		} catch (Exception e) {
 			// Exception caught
 			log.severe(e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 

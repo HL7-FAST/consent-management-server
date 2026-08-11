@@ -1,0 +1,111 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<!-- This is the view file for the FAST Consent Subscription Handshake Tab -->
+
+	<p:tab title="Handshake" id="subscriptionHandshakeTab" cache="false">
+
+		<h:form id="subscriptionHandshakeForm" prependId="false" style="width:100%;border:none;">
+			<p:panelGrid id="subscriptionHandshakePanel1" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+				<p:messages id="subscriptionHandshakeMessages" />
+				<h:outputText value="Subscription Handshake"
+					style="padding:0px;font-style:italic;font-weight:bold;font-size:14px;" />
+				<h:outputText value="This interface is used to send a Subscription handshake notification request to a selected Subscription's endpoint"
+					style="padding:0px;font-style:italic;font-size:12px;" />
+			</p:panelGrid>
+
+			<hr></hr>
+
+			<p:panel id="subscriptionHandshakeResultsPanel" visible="true"
+				widgetVar="subscriptionHandshakeResultsPanel" toggleable="true" closable="true"
+				toggleSpeed="500" closeSpeed="500">
+
+				<p:toolbar>
+					<f:facet name="right">
+						<p:commandButton value="Send Handshake" icon="ui-icon-document"
+							actionListener="#{controller.processSubscriptionHandshake}"
+							oncomplete="PF('subscriptionHandshakeTabView').select(1)"
+							update=":tabView:subscriptionsTabView:subscriptionHandshakeForm">
+						</p:commandButton>
+					</f:facet>
+				</p:toolbar>
+
+				<p:tabView id="subscriptionHandshakeTabView" widgetVar="subscriptionHandshakeTabView">
+					<p:tab title="Subscription" id="subscriptionHandshakeTab0">
+						<p:panelGrid id="subscriptionHandshakeTabPanel0" columns="1" border="0" cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
+							<h:outputText value="Select the Subscription resource to send the handshake notification against."
+								style="padding:0px;font-style:italic;font-weight;font-size:12px;" />
+						</p:panelGrid>
+
+						<p:panelGrid id="subscriptionHandshakeTabPanel1" layout="tabular" columns="2" border="0" cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
+							<h:outputText value="Select Subscription *" />
+							<p:selectOneMenu required="true" label="Select Subscription" value="#{context.selectedSubscriptionId}" maxlength="255" style="width:360px;text-align:left;padding-right:30px;">
+								<f:selectItem itemValue="#{null}" itemLabel="-- Select Subscription --         " noSelectionOption="true" />
+								<f:selectItems value="#{context.serverSubscriptions}" var="con" itemLabel="#{con.label.trim()}         " itemValue="#{con.key}" />
+								<p:ajax update="subscriptionHandshakeTopic,subscriptionHandshakeReason,subscriptionHandshakeCriteria,subscriptionHandshakeEndpoint" listener="#{controller.handleSubscriptionHandshakeChange}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="SubscriptionTopic *" />
+							<h:inputText id="subscriptionHandshakeTopic" value="#{context.selectedSubscriptionTopic}" size="50" disabled="true" />
+
+							<h:outputText value="Reason (description) * " />
+							<h:inputTextarea id="subscriptionHandshakeReason" value="#{context.subscriptionReason}" cols="50" rows="2" disabled="true" />
+
+							<h:outputText value="Criteria (search params) * " />
+							<h:inputTextarea id="subscriptionHandshakeCriteria" value="#{context.subscriptionCriteria}" cols="50" rows="2" disabled="true" />
+
+							<h:outputText value="Endpoint * " />
+							<h:inputTextarea id="subscriptionHandshakeEndpoint" value="#{context.subscriptionEndpoint}" cols="50" rows="2" disabled="true" />
+						</p:panelGrid>
+					</p:tab>
+
+					<p:tab title="Request" id="subscriptionHandshakeTab1">
+						<p:panel id="subscriptionHandshakeResultsPanel" visible="true"
+							widgetVar="subscriptionHandshakeResultsPanel" toggleable="true"
+							closable="true" toggleSpeed="500" closeSpeed="500">
+			
+							<p:dataTable rowIndexVar="index" var="res"
+								value="#{context.listLabelKeyValue}"
+								rendered="#{context.listLabelKeyValue.size() > 0}">
+								<p:column headerText="Subscription" width="15%">
+									<h:outputText value="#{res.label}" />
+								</p:column>
+								<p:column headerText="Channel" width="25%">
+									<h:outputText value="#{res.key}" />
+								</p:column>
+								<p:column headerText="Criteria" width="25%"
+									styleClass="preformatted">
+									<h:outputText value="#{res.value}" />
+								</p:column>
+								<p:column headerText="Results" width="15%"
+									styleClass="preformatted">
+									<h:outputText value="#{res.type}" />
+								</p:column>
+								<p:column headerText="Status" width="10%">
+									<h:outputText value="#{res.path}" />
+								</p:column>
+								<p:column headerText="Payload" width="10%">
+									<p:commandButton value="View"
+										onclick="PF('searchResInfoDialg#{res.label}').show()"
+										type="button" />
+									<p:dialog id="searchResInfoDialg#{res.label}"
+										header="Payload"
+										widgetVar="searchResInfoDialg#{res.label}" modal="true"
+										width="450" height="400">
+										<h:outputText value="#{res.refType}"
+											styleClass="whiteSpaceClass" />
+									</p:dialog>
+								</p:column>
+							</p:dataTable>
+						</p:panel>
+					</p:tab>
+				</p:tabView>
+			</p:panel>
+		</h:form>
+	</p:tab>
+
+</ui:composition>

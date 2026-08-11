@@ -32,14 +32,19 @@
  */
 package net.aegis.fhir.service.validation;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
-import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r5.elementmodel.Manager.FhirFormat;
+import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r5.formats.IParser.OutputStyle;
 import org.hl7.fhir.r5.formats.JsonParser;
 import org.hl7.fhir.r5.formats.XmlParser;
@@ -50,13 +55,14 @@ import org.hl7.fhir.r5.renderers.RendererFactory;
 import org.hl7.fhir.r5.renderers.utils.RenderingContext;
 import org.hl7.fhir.r5.renderers.utils.ResourceWrapper;
 import org.hl7.fhir.r5.utils.validation.IValidationPolicyAdvisor;
+import org.hl7.fhir.r5.utils.validation.constants.BestPracticeWarningLevel;
 import org.hl7.fhir.r5.utils.validation.constants.ReferenceValidationPolicy;
 import org.hl7.fhir.utilities.FhirPublication;
 import org.hl7.fhir.utilities.npm.FilesystemPackageCacheManager;
-import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.hl7.fhir.validation.ValidationEngine;
 import org.hl7.fhir.validation.ValidationEngine.ValidationEngineBuilder;
 import org.hl7.fhir.validation.instance.advisor.BasePolicyAdvisorForFullValidation;
+import org.hl7.fhir.validation.service.model.InstanceValidatorParameters;
 
 import net.aegis.fhir.service.util.ServicesUtil;
 
@@ -73,6 +79,7 @@ public class FHIRValidatorClient {
     private static FHIRValidatorClient me;
 
     private static String FHIR_PACKAGES_ENV_VAR = "FHIR_PACKAGES";
+    private static String FHIR_TX_SERVER_ENV_VAR = "FHIR_TX_SERVER";
 
 	private ValidationEngine engine = null;
 
@@ -93,28 +100,57 @@ public class FHIRValidatorClient {
 
 			long start = System.currentTimeMillis();
 
-			ValidationEngineBuilder builder = new ValidationEngine.ValidationEngineBuilder();
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection em = DriverManager.getConnection("jdbc:mysql://localhost:3306/fastconsentr4?useUnicode=yes&useSSL=false&verifyServerCertificate=false&allowPublicKeyRetrieval=true&user=wildfhiruser&password=wildfhiruser");
+
+			String codeValueUrlQuery = "SELECT value FROM fastconsentr4.code WHERE codeName = ?";
+			String fhirPackages = null;
+			String fhirTxServer = null;
+
+			PreparedStatement cStatement = em.prepareStatement(codeValueUrlQuery);
+			cStatement.setString(1, "fhirPackages");
+			ResultSet cResultSet = cStatement.executeQuery();
+			if (cResultSet.next()) {
+				fhirPackages = cResultSet.getString(1);
+			}
+			cStatement.setString(1, "fhirTxServer");
+			cResultSet = cStatement.executeQuery();
+			if (cResultSet.next()) {
+				fhirTxServer = cResultSet.getString(1);
+			}
+
+			InstanceValidatorParameters defaultInstanceValidatorParameters = new InstanceValidatorParameters();
+			// Set validation check for valid restful resource references
+			defaultInstanceValidatorParameters.setAssumeValidRestReferences(true);
+			// Allow example paths
+			defaultInstanceValidatorParameters.setAllowExampleUrls(true);
+			// Suppress best practice warnings
+			defaultInstanceValidatorParameters.setBestPracticeLevel(BestPracticeWarningLevel.Hint);
+
+			ValidationEngineBuilder builder = new ValidationEngine.ValidationEngineBuilder().withDefaultInstanceValidatorParameters(defaultInstanceValidatorParameters);
 			engine = builder.fromSource("hl7.fhir.r4.core");
 
-			IValidationPolicyAdvisor policyAdvisor = new BasePolicyAdvisorForFullValidation(ReferenceValidationPolicy.IGNORE);
+			IValidationPolicyAdvisor policyAdvisor = new BasePolicyAdvisorForFullValidation(ReferenceValidationPolicy.IGNORE, null);
 			engine.setPolicyAdvisor(policyAdvisor);
 
-			// Check for additional packages via environment variable
-			String fhirPackages = System.getenv(FHIR_PACKAGES_ENV_VAR);
+			// Check for additional packages via database code setting or environment variable
+			if (fhirPackages == null || fhirPackages.isEmpty()) {
+				fhirPackages = System.getenv(FHIR_PACKAGES_ENV_VAR);
+			}
 			if (fhirPackages != null && !fhirPackages.isEmpty()) {
 				loadPackages(fhirPackages);
 			}
 
-			// Set anyExtensionsAllowed equal to true to relax error rule on unknown extensions
-			engine.setAnyExtensionsAllowed(true);
+			// Check for FHIR terminology server URL via database code setting or environment variable
+			if (fhirTxServer == null || fhirTxServer.isEmpty()) {
+				fhirTxServer = System.getenv(FHIR_TX_SERVER_ENV_VAR);
+			}
+			if (fhirTxServer == null || fhirTxServer.isEmpty()) {
+				fhirTxServer = "http://tx.fhir.org/r4";
+			}
+			log.info("FHIR TX SERVER " + fhirTxServer);
 
-			// Set assume valid REST references
-			engine.setAssumeValidRestReferences(true);
-
-			// Set allow example paths
-			engine.setAllowExampleUrls(true);
-
-			engine.connectToTSServer("http://tx.fhir.org/r4", null, FhirPublication.R4, false);
+			engine.connectToTSServer(fhirTxServer, null, FhirPublication.R4, false);
 
 			log.info("FHIR R4 v4.0.1 Validation Engine initialization completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 		}
@@ -176,9 +212,7 @@ public class FHIRValidatorClient {
 
 			FhirFormat cntType = getFhirFormat(resourceContents);
 
-			List<ValidationMessage> messages = new ArrayList<ValidationMessage>();
-
-			rOutcome = engine.validate(resourceContents, cntType, profiles, messages);
+			rOutcome = engine.validate(cntType, new ByteArrayInputStream(resourceContents), profiles);
 
 			try {
 				// Now parse the Resource contents; this is the last validation to insure the contents is a valid FHIR resource instance
@@ -213,7 +247,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.validateResource() - END");
 
-		log.info("FHIR Validator - validation of resource completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - validation of resource completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		org.hl7.fhir.r4.model.OperationOutcome r4Outcome = convertR5OOR4(rOutcome);
 
@@ -265,7 +299,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluate() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -317,7 +351,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluateToBoolean() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -369,7 +403,7 @@ public class FHIRValidatorClient {
 
 		log.fine("FHIRValidatorClient.evaluateToString() - END");
 
-		log.info("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
+		log.fine("FHIR Validator - evaluation of fhirpath expression completed in " + ServicesUtil.INSTANCE.getElapsedTime(start));
 
 		return result;
 	}
@@ -506,8 +540,14 @@ public class FHIRValidatorClient {
 
 		try {
 			for (org.hl7.fhir.r5.model.Base baseR5 : listBaseR5) {
-				org.hl7.fhir.r4.model.Resource resourceR4 = VersionConvertorFactory_40_50.convertResource((org.hl7.fhir.r5.model.Resource)baseR5);
-				listBaseR4.add(resourceR4);
+				if (baseR5 instanceof org.hl7.fhir.r5.model.DataType) {
+					org.hl7.fhir.r4.model.Type typeR4 = VersionConvertorFactory_40_50.convertType((org.hl7.fhir.r5.model.DataType)baseR5);
+					listBaseR4.add(typeR4);
+				}
+				else if (baseR5 instanceof org.hl7.fhir.r5.model.Resource) {
+					org.hl7.fhir.r4.model.Resource resourceR4 = VersionConvertorFactory_40_50.convertResource((org.hl7.fhir.r5.model.Resource)baseR5);
+					listBaseR4.add(resourceR4);
+				}
 			}
 		}
 		catch (Exception e) {

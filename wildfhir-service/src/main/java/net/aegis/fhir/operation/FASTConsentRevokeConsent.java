@@ -2,7 +2,7 @@
  * #%L
  * WildFHIR - wildfhir-service
  * %%
- * Copyright (C) 2024 AEGIS.net, Inc.
+ * Copyright (C) 2025 AEGIS.net, Inc.
  * All rights reserved.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,12 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
@@ -90,11 +90,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 	private ResourceService resourceService;
 	private XmlParser xmlP;
 
-	/* (non-Javadoc)
-	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
-	 */
 	@Override
-	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
+	public Parameters executeOperation(HttpServletRequest request, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
 
 		log.fine("[START] FASTConsentRevokeConsent.executeOperation()");
 
@@ -170,23 +167,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				throw new Exception(msg.toString());
 			}
 			else {
-				// Attempt to get(read/search) existing Consent; if not found, throw exception
-				if (paramConsent.hasReference()) {
-					String consentId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramConsent.getReference());
-					if (!consentId.isEmpty()) {
-						ResourceContainer readExisting = resourceService.read("Consent", consentId, null);
-						if (readExisting.getResponseStatus().equals(Response.Status.OK)) {
-							log.info("(read) " + paramConsent.getReference() + " found.");
-							byte[] resourceContents = readExisting.getResource().getResourceContents();
-							consent = (Consent) xmlP.parse(resourceContents);
-							existingConsent = true;
-						}
-					}
-				}
-
-				if (existingConsent == false && paramConsent.hasIdentifier()) {
-					// Read didn't work; try searching based on reference identifier, patient reference or identifier
-
+				// Attempt to get(search by identifier; if not, then read by reference) existing Consent; if not found, throw exception
+				if (paramConsent.hasIdentifier()) {
 					// Define query parameters and populate with search parameter values if defined
 					StringBuffer param = new StringBuffer();
 					Identifier identifier = paramConsent.getIdentifier();
@@ -227,7 +209,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 						List<String[]> validParams = new ArrayList<String[]>();
 						List<String[]> invalidParams = new ArrayList<String[]>();
 
-						List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, null, "Consent", false, null, null, null, validParams, invalidParams);
+						List<net.aegis.fhir.model.Resource> resources = resourceService.searchQuery(queryParams, null, "Consent", false, null, null, null, validParams, invalidParams);
 
 						// Log any invalidParams
 						if (!invalidParams.isEmpty()) {
@@ -246,6 +228,18 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 							byte[] resourceContents = resources.get(0).getResourceContents();
 							consent = (Consent) xmlP.parse(resourceContents);
 							log.info("(search) Consent/" + consent.getId() + " found.");
+							existingConsent = true;
+						}
+					}
+				}
+				else if (paramConsent.hasReference()) {
+					String consentId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramConsent.getReference());
+					if (!consentId.isEmpty()) {
+						ResourceContainer readExisting = resourceService.read("Consent", consentId, null);
+						if (readExisting.getResponseStatus().equals(Response.Status.OK)) {
+							log.info("(read) " + paramConsent.getReference() + " found.");
+							byte[] resourceContents = readExisting.getResource().getResourceContents();
+							consent = (Consent) xmlP.parse(resourceContents);
 							existingConsent = true;
 						}
 					}
@@ -296,7 +290,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				}
 			}
 
-			OperationOutcome rOutcome = performRevokeConsent(context, headers, consent, paramDocumentReference, paramQuestionnaireResponse);
+			OperationOutcome rOutcome = performRevokeConsent(request, headers, consent, paramDocumentReference, paramQuestionnaireResponse);
 
 			if (rOutcome == null) {
 				/*
@@ -325,7 +319,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 	/**
 	 * Revoke the Consent and optionally create the supporting source document in the local repository.
 	 * 
-	 * @param context
+	 * @param request
 	 * @param headers
 	 * @param consent
 	 * @param documentReference
@@ -333,7 +327,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 	 * @return OperationOutcome
 	 * @throws Exception
 	 */
-	private OperationOutcome performRevokeConsent(UriInfo context, HttpHeaders headers, Consent consent, DocumentReference documentReference, QuestionnaireResponse questionnaireResponse) throws Exception {
+	private OperationOutcome performRevokeConsent(HttpServletRequest request, HttpHeaders headers, Consent consent, DocumentReference documentReference, QuestionnaireResponse questionnaireResponse) throws Exception {
 
 		log.info("[START] FASTConsentRevokeConsent.performRevokeConsent()");
 
@@ -482,13 +476,13 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 
 				if (resCon.getResponseStatus().equals(Status.OK)) {
 					// Create AuditEvent
-					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.UPDATE.getCode());
+					auditEventService.createAuditEvent(request, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.UPDATE.getCode());
 					// Create Provenance
-					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.UPDATE.getCode());
+					provenanceService.createProvenance(request, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.UPDATE.getCode());
 
 					// Capture successful DocumentReference create to OperationOutcome.issue
 					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,
-							"Consent/" + resCon.getResource().getResourceId() + " successfully revoked, status is now 'rejected'.", null, "Parameters.parameter.where(name = 'consent')");
+							"Consent/" + resCon.getResource().getResourceId() + " successfully revoked, status is now 'inactive'.", null, "Parameters.parameter.where(name = 'consent')");
 					issues.add(issue);
 				}
 				else {

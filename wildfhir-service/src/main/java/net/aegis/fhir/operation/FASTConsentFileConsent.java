@@ -2,7 +2,7 @@
  * #%L
  * WildFHIR - wildfhir-service
  * %%
- * Copyright (C) 2024 AEGIS.net, Inc.
+ * Copyright (C) 2025 AEGIS.net, Inc.
  * All rights reserved.
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
@@ -86,11 +86,8 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 	private ResourceService resourceService;
 	private XmlParser xmlP;
 
-	/* (non-Javadoc)
-	 * @see net.aegis.fhir.operation.ResourceOperationProxy#executeOperation(javax.ws.rs.core.UriInfo, javax.ws.rs.core.HttpHeaders, net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.BatchService, net.aegis.fhir.service.TransactionService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, net.aegis.fhir.service.ConformanceService, java.lang.String, java.lang.String, java.lang.String, org.hl7.fhir.r4.model.Parameters, org.hl7.fhir.r4.model.Resource, java.lang.String, java.lang.String, boolean, java.lang.StringBuffer)
-	 */
 	@Override
-	public Parameters executeOperation(UriInfo context, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
+	public Parameters executeOperation(HttpServletRequest request, HttpHeaders headers, ResourceService resourceService, ResourcemetadataService resourcemetadataService, BatchService batchService, TransactionService transactionService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, ConformanceService conformanceService, String softwareVersion, String resourceType, String resourceId, Parameters inputParameters, org.hl7.fhir.r4.model.Resource inputResource, String inputString, String contentType, boolean isPost, StringBuffer returnedDirective) throws Exception {
 
 		log.info("[START] FASTConsentFileConsent.executeOperation()");
 
@@ -150,7 +147,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 				throw new Exception("The 'consent' input parameter was not defined or its resource contents were empty or null.");
 			}
 
-			OperationOutcome rOutcome = performFileConsent(context, headers, paramConsent, paramDocumentReference, paramQuestionnaireResponse);
+			OperationOutcome rOutcome = performFileConsent(request, headers, paramConsent, paramDocumentReference, paramQuestionnaireResponse);
 
 			if (rOutcome == null) {
 				/*
@@ -181,7 +178,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 	/**
 	 * Create the Consent and optional supporting source document in the local repository.
 	 * 
-	 * @param context
+	 * @param request
 	 * @param headers
 	 * @param consent
 	 * @param documentReference
@@ -189,7 +186,7 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 	 * @return OperationOutcome
 	 * @throws Exception
 	 */
-	private OperationOutcome performFileConsent(UriInfo context, HttpHeaders headers, Consent consent, DocumentReference documentReference, QuestionnaireResponse questionnaireResponse) throws Exception {
+	private OperationOutcome performFileConsent(HttpServletRequest request, HttpHeaders headers, Consent consent, DocumentReference documentReference, QuestionnaireResponse questionnaireResponse) throws Exception {
 
 		log.info("[START] FASTConsentFileConsent.performFileConsent()");
 
@@ -338,9 +335,9 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 
 				if (resCon.getResponseStatus().equals(Status.CREATED)) {
 					// Create AuditEvent
-					auditEventService.createAuditEvent(context, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.CREATE.getCode());
+					auditEventService.createAuditEvent(request, headers, null, "Consent", true, resCon.getResource().getResourceId(), consentIdentifier, AuditEventActionEnum.CREATE.getCode());
 					// Create Provenance
-					provenanceService.createProvenance(context, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.CREATE.getCode());
+					provenanceService.createProvenance(request, headers, null, "Consent", "Consent/" + resCon.getResource().getResourceId(), resCon.getResource().getResourceId(), consentIdentifier, ProvenanceActivityTypeEnum.CREATE.getCode());
 
 					// Capture successful Consent create to OperationOutcome.issue
 					issue = ServicesUtil.INSTANCE.getOperationOutcomeIssueComponent(IssueSeverity.INFORMATION, IssueType.PROCESSING,

@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CapabilityStatement
-	xmlns="http://hl7.org/fhir">
+
+<CapabilityStatement xmlns="http://hl7.org/fhir">
 	<id value="ConsentAdministrativeServerCapabilities"/>
+	<language value="en"/>
+	<text>
+		<status value="extensions"/><div xmlns="http://www.w3.org/1999/xhtml"><p class="res-header-id"><b>Generated Narrative: CapabilityStatement ConsentAdministrativeServerCapabilities</b></p><a name="ConsentAdministrativeServerCapabilities"> </a><a name="hcConsentAdministrativeServerCapabilities"> </a><h2 id="title">Consent Server Capabilities</h2><ul><li>Implementation Guide Version: 1.0.0-preview </li><li>FHIR Version: 4.0.1 </li><li>Supported Formats: <code>json</code>, <code>xml</code></li><li>Published on: 2025-01-01 </li><li>Published by: HL7 International / Community Based Collaborative Care </li></ul><blockquote class="impl-note"><p><strong>Note to Implementers: FHIR Capabilities</strong></p><p>Any FHIR capability may be 'allowed' by the system unless explicitly marked as 'SHALL NOT'. A few items are marked as MAY in the Implementation Guide to highlight their potential relevance to the use case.</p></blockquote><h2 id="rest">FHIR RESTful Capabilities</h2><div class="panel panel-default"><div class="panel-heading"><h3 id="mode1" class="panel-title">Mode: <code>server</code></h3></div><div class="panel-body"/></div><h3 id="resourcesCap1">Capabilities by Resource/Profile</h3><h4 id="resourcesSummary1">Summary</h4><p>The summary table lists the resources that are part of this configuration, and for each resource it lists:</p><ul><li>The relevant profiles (if any)</li><li>The interactions supported by each resource (<b><span class="bg-info">R</span></b>ead, <b><span class="bg-info">S</span></b>earch, <b><span class="bg-info">U</span></b>pdate, and <b><span class="bg-info">C</span></b>reate, are always shown, while <b><span class="bg-info">VR</span></b>ead, <b><span class="bg-info">P</span></b>atch, <b><span class="bg-info">D</span></b>elete, <b><span class="bg-info">H</span></b>istory on <b><span class="bg-info">I</span></b>nstance, or <b><span class="bg-info">H</span></b>istory on <b><span class="bg-info">T</span></b>ype are only present if at least one of the resources has support for them.</li><li><span>The required, recommended, and some optional search parameters (if any). </span></li><li>The linked resources enabled for <code>_include</code></li><li>The other resources enabled for <code>_revinclude</code></li><li>The operations on the resource (if any)</li></ul><div class="table-responsive"><table class="table table-condensed table-hover"><thead><tr><th><b>Resource Type</b></th><th><b>Profile</b></th><th class="text-center"><b title="GET a resource (read interaction)">R</b></th><th class="text-center"><b title="GET all set of resources of the type (search interaction)">S</b></th><th class="text-center"><b title="PUT a new resource version (update interaction)">U</b></th><th class="text-center"><b title="POST a new resource (create interaction)">C</b></th><th class="text-center"><b title="DELETE a resource (delete interaction)">D</b></th><th><b title="Required and recommended search parameters">Searches</b></th><th><code><b>_include</b></code></th><th><code><b>_revinclude</b></code></th><th><b>Operations</b></th></tr></thead><tbody><tr><td><a href="#AuditEvent1-1">AuditEvent</a></td><td>Supported Profiles<br/>  <a href="StructureDefinition-FASTConsentAuditEvent.html">FASTConsentAuditEvent</a></td><td class="text-center">y</td><td class="text-center">y</td><td class="text-center"/><td class="text-center">y</td><td class="text-center"/><td>patient</td><td/><td/><td/></tr><tr><td><a href="#Consent1-2">Consent</a></td><td>Supported Profiles<br/>  <a href="StructureDefinition-FASTConsent.html">FASTConsent</a></td><td class="text-center">y</td><td class="text-center">y</td><td class="text-center"/><td class="text-center"/><td class="text-center"/><td>controller, date, manager, patient, scope, status</td><td/><td/><td><code>$fileConsent</code>, <code>$revokeConsent</code></td></tr><tr><td><a href="#Subscription1-3">Subscription</a></td><td>Supported Profiles<br/>  <a href="StructureDefinition-FASTSubscription.html">FASTSubscription</a></td><td class="text-center"/><td class="text-center"/><td class="text-center">y</td><td class="text-center">y</td><td class="text-center">y</td><td/><td/><td/><td/></tr></tbody></table></div><hr/><div class="panel panel-default"><div class="panel-heading"><h4 id="AuditEvent1-1" class="panel-title"><span style="float: right;">Resource Conformance: unspecified </span>AuditEvent</h4></div><div class="panel-body"><div class="container"><div class="row"><div class="col-lg-4"><span class="lead">Core FHIR Resource</span><br/><a href="http://hl7.org/fhir/R4/auditevent.html">AuditEvent</a></div><div class="col-lg-4"><span class="lead">Reference Policy</span><br/></div><div class="col-lg-4"><span class="lead">Interaction summary</span><br/><ul><li>Supports <code>create</code>, <code>search-type</code>, <code>read</code>.</li></ul></div></div><p/><div class="row"><div class="col-6"><span class="lead">Supported Profiles</span><p><a href="StructureDefinition-FASTConsentAuditEvent.html">FASTConsentAuditEvent</a></p></div></div><p/><div class="row"><div class="col-lg-7"><span class="lead">Search Parameters</span><table class="table table-condensed table-hover"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td>patient</td><td><code>reference</code></td><td><div/></td></tr></tbody></table></div><div class="col-lg-5"> </div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h4 id="Consent1-2" class="panel-title"><span style="float: right;">Resource Conformance: unspecified </span>Consent</h4></div><div class="panel-body"><div class="container"><div class="row"><div class="col-lg-4"><span class="lead">Core FHIR Resource</span><br/><a href="http://hl7.org/fhir/R4/consent.html">Consent</a></div><div class="col-lg-4"><span class="lead">Reference Policy</span><br/></div><div class="col-lg-4"><span class="lead">Interaction summary</span><br/><ul><li>Supports <code>search-type</code>, <code>read</code>.</li></ul></div></div><p/><div class="row"><div class="col-6"><span class="lead">Supported Profiles</span><p><a href="StructureDefinition-FASTConsent.html">FASTConsent</a></p></div></div><p/><div class="row"><div class="col-lg-7"><span class="lead">Search Parameters</span><table class="table table-condensed table-hover"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href="SearchParameter-fast-consent-controller.html">controller</a></td><td><code>reference</code></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td>date</td><td><code>date</code></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td><a href="SearchParameter-fast-consent-manager.html">manager</a></td><td><code>reference</code></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td>patient</td><td><code>reference</code></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td>scope</td><td><code>token</code></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td>status</td><td><code>token</code></td><td><div/></td></tr></tbody></table></div><div class="col-lg-5"> </div></div><div class="row"><div class="col-12"><span class="lead">Extended Operations</span><table class="table table-condensed table-hover"><thead><tr><th>Conformance</th><th>Operation</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href="OperationDefinition-file-consent.html">$fileConsent</a></td><td><div/></td></tr><tr><td><b>SHALL</b></td><td><a href="OperationDefinition-revoke-consent.html">$revokeConsent</a></td><td><div/></td></tr></tbody></table></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h4 id="Subscription1-3" class="panel-title"><span style="float: right;">Resource Conformance: unspecified </span>Subscription</h4></div><div class="panel-body"><div class="container"><div class="row"><div class="col-lg-4"><span class="lead">Core FHIR Resource</span><br/><a href="http://hl7.org/fhir/R4/subscription.html">Subscription</a></div><div class="col-lg-4"><span class="lead">Reference Policy</span><br/></div><div class="col-lg-4"><span class="lead">Interaction summary</span><br/><ul><li>Supports <code>create</code>, <code>update</code>, <code>delete</code>.</li></ul></div></div><p/><div class="row"><div class="col-6"><span class="lead">Supported Profiles</span><p><a href="StructureDefinition-FASTSubscription.html">FASTSubscription</a></p></div></div><p/></div></div></div></div>
+	</text>
 	<extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-wg">
 		<valueCode value="cbcc"/>
 	</extension>
@@ -20,9 +24,9 @@
 		</valueCode>
 	</extension>
 	<url value="http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities"/>
-	<version value="1.0.0-ballot"/>
-	<name value="ConsentAdministrativeServer"/>
-	<title value="Consent Administrative Server Capabilities"/>
+	<version value="1.0.0-preview"/>
+	<name value="ConsentServer"/>
+	<title value="Consent Server Capabilities"/>
 	<status value="active"/>
 	<experimental value="false"/>
 	<date value="2025-01-01"/>
@@ -52,24 +56,18 @@
 			<type value="AuditEvent"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent"/>
 			<interaction>
+				<code value="create"/>
+			</interaction>
+			<interaction>
 				<code value="search-type"/>
 			</interaction>
 			<interaction>
 				<code value="read"/>
 			</interaction>
 			<searchParam>
-				<name value="consent"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-auditevent-consent"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
 				<name value="patient"/>
 				<type value="reference"/>
 			</searchParam>
-			<operation>
-				<name value="recordDisclosure"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/OperationDefinition/record-disclosure"/>
-			</operation>
 		</resource>
 		<resource>
 			<type value="Consent"/>
@@ -90,28 +88,13 @@
 				<type value="date"/>
 			</searchParam>
 			<searchParam>
-				<name value="grantee"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-grantee"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
 				<name value="manager"/>
 				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager"/>
 				<type value="reference"/>
 			</searchParam>
 			<searchParam>
-				<name value="organizationId"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-organizationId"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
 				<name value="patient"/>
 				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="patientId"/>
-				<definition value="http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-patientId"/>
-				<type value="token"/>
 			</searchParam>
 			<searchParam>
 				<name value="scope"/>
@@ -131,115 +114,11 @@
 			</operation>
 		</resource>
 		<resource>
-			<type value="DocumentReference"/>
-			<profile value="http://hl7.org/fhir/StructureDefinition/DocumentReference"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference"/>
-			<interaction>
-				<code value="read"/>
-			</interaction>
-			<interaction>
-				<code value="search-type"/>
-			</interaction>
-			<searchParam>
-				<name value="author"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="category"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="custodian"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="date"/>
-				<type value="date"/>
-			</searchParam>
-			<searchParam>
-				<name value="identifier"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="patient"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="period"/>
-				<type value="date"/>
-			</searchParam>
-			<searchParam>
-				<name value="status"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="subject"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="type"/>
-				<type value="token"/>
-			</searchParam>
-		</resource>
-		<resource>
-			<type value="Parameters"/>
-			<profile value="http://hl7.org/fhir/StructureDefinition/Parameters"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/fileConsentParameters"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/RecordDisclosuretParameters"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/revokeConsentParameters"/>
-		</resource>
-		<resource>
-			<type value="QuestionnaireResponse"/>
-			<profile value="http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse"/>
-			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTQuestionnaireResponse"/>
-			<interaction>
-				<code value="read"/>
-			</interaction>
-			<interaction>
-				<code value="search-type"/>
-			</interaction>
-			<searchParam>
-				<name value="author"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="authored"/>
-				<type value="date"/>
-			</searchParam>
-			<searchParam>
-				<name value="identifier"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="patient"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="questionnaire"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="source"/>
-				<type value="reference"/>
-			</searchParam>
-			<searchParam>
-				<name value="status"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="subject"/>
-				<type value="reference"/>
-			</searchParam>
-		</resource>
-		<resource>
 			<extension url="http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/capabilitystatement-subscriptiontopic-canonical">
 				<valueCanonical value="http://hl7.org/fhir/us/consent-management/SubscriptionTopic/FASTConsentSubscriptionTopic"/>
 			</extension>
 			<type value="Subscription"/>
 			<supportedProfile value="http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription"/>
-			<interaction>
-				<code value="read"/>
-			</interaction>
 			<interaction>
 				<code value="create"/>
 			</interaction>
@@ -249,29 +128,6 @@
 			<interaction>
 				<code value="delete"/>
 			</interaction>
-			<interaction>
-				<code value="search-type"/>
-			</interaction>
-			<searchParam>
-				<name value="criteria"/>
-				<type value="string"/>
-			</searchParam>
-			<searchParam>
-				<name value="payload"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="status"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="type"/>
-				<type value="token"/>
-			</searchParam>
-			<searchParam>
-				<name value="url"/>
-				<type value="uri"/>
-			</searchParam>
 		</resource>
 	</rest>
 </CapabilityStatement>

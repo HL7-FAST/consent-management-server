@@ -38,20 +38,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.transaction.UserTransaction;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.transaction.UserTransaction;
 
 import org.hl7.fhir.r4.formats.JsonParser;
 import org.hl7.fhir.r4.model.Coding;
@@ -60,11 +60,9 @@ import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.DocumentReference;
 import org.hl7.fhir.r4.model.Endpoint;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedPerson;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.Subscription;
@@ -611,21 +609,12 @@ public class ClientresourceService {
 				description.append((consent.hasPatient() ? (consent.getPatient().hasReference() ? ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getPatient().getReference()) : (consent.getPatient().hasIdentifier() ? consent.getPatient().getIdentifier().getValue() : "?")) : "?"));
 				description.append("; prov: ");
 				description.append(consent.getProvision().getType().getDisplay());
-				description.append("; grantee: ");
-				Extension grantee = null;
-				if (consent.hasExtension("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee")) {
-					grantee = consent.getExtensionByUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.grantee");
-					if (grantee.hasValue() && grantee.getValue() instanceof Reference) {
-						Reference gRef = (Reference)grantee.getValue();
-						description.append((gRef.hasReference() ? gRef.getReference() : (gRef.hasIdentifier() ? gRef.getIdentifier().getValue() : "?")));
-					}
-					else {
-						description.append("?");
-					}
-				}
-				else {
-					description.append("?");
-				}
+				description.append("; recipient: ");
+				description.append(consent.getProvision().hasActor() && consent.getProvision().hasActor() ?
+						(consent.getProvision().getActorFirstRep().hasReference() && consent.getProvision().getActorFirstRep().getReference().hasReference() ?
+						ServicesUtil.INSTANCE.extractResourceIdFromURL(consent.getProvision().getActorFirstRep().getReference().getReference()) :
+						(consent.getProvision().getActorFirstRep().hasReference() && consent.getProvision().getActorFirstRep().getReference().hasIdentifier() ?
+						consent.getProvision().getActorFirstRep().getReference().getIdentifier().getValue() : "?") ) : "?");
 				description.append(" (");
 				description.append((consent.hasIdentifier() ? consent.getIdentifierFirstRep().getValue() : (consent.hasId() ? consent.getId() : "?")));
 				description.append(")");

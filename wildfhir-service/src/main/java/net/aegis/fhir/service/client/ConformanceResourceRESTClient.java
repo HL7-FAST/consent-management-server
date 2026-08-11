@@ -35,14 +35,15 @@ package net.aegis.fhir.service.client;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.Response;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.service.CodeService;
+import net.aegis.fhir.service.util.DebugUtil;
 import net.aegis.fhir.service.util.WebClientHelper;
 
 /**
@@ -81,19 +82,18 @@ public class ConformanceResourceRESTClient implements Serializable {
 	 * @return {@link Response}
 	 * @throws Exception
 	 */
-	public Response metadata(String baseUrl, String contentType)
-			throws Exception {
+	public Response metadata(String baseUrl, String contentType) throws Exception {
 
 		log.fine("[START] ConformanceResourceRESTClient.metadata()");
 
+		ResteasyClient client = null;
 		Response conformanceResponse = null;
 
 		try {
 
 			// Conformance metadata read
 			String sMetadata = formatBaseUrl(baseUrl) + "/metadata";
-			ResteasyClient client = WebClientHelper.createClientWihtoutHostVerification();
-			//ResteasyClient client = new ResteasyClientBuilder().build();
+			client = WebClientHelper.createClientWihtoutHostVerification();
 			ResteasyWebTarget webTarget = client.target(sMetadata);
 
 			Builder targetBuilder = webTarget.request();
@@ -105,18 +105,23 @@ public class ConformanceResourceRESTClient implements Serializable {
 				targetBuilder = targetBuilder.accept("application/fhir+xml" + Constants.CHARSET_UTF8_EXT + fhirVersion);
 			}
 
-			log.info("Conformance metadata request uri: " + webTarget.getUri());
+			log.fine("Conformance metadata request uri: " + webTarget.getUri());
 
 			conformanceResponse = targetBuilder.get();
 
-			// Expensive - only use for debugging
-			// log.info("Conformance object returned: " +
-			// conformanceResponse.readEntity(String.class));
+			if (conformanceResponse.hasEntity()) {
+				conformanceResponse.bufferEntity();
+			}
+
+			DebugUtil.debugResponse(conformanceResponse);
 
 		} catch (Exception e) {
 			// Exception caught
-			e.printStackTrace();
 			throw e;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
 
 		return conformanceResponse;

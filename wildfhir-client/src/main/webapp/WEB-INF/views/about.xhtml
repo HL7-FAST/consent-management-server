@@ -7,15 +7,7 @@
 
 	<!-- This is the About view -->
 	<p:tab title="About" id="aboutTab" cache="false">
-		<p:panelGrid id="aboutPanel1" columns="1" border="0"
-			cellpadding="0" cellspacing="0" styleClass="borderlessGridPanel">
-			<h:outputText value="#{appRes['application.name']}"
-				style="padding:0px;font-style:italic;font-weight:bold;font-size:16px;" />
-		</p:panelGrid>
-
-		<hr></hr>
-
-		<p:panelGrid id="aboutPanel2" columns="2" border="0"
+		<p:panelGrid id="aboutPanel1" layout="tabular" columns="2" border="0"
 			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 			<h:outputText value="Version"
 				style="font-weight:bold" />
@@ -28,39 +20,68 @@
 			<h:outputText value="Build Timestamp"
 				style="font-weight:bold" />
 			<h:outputText value="#{appRes['build.timestamp']}" />
+
+			<h:outputText value="FHIR Packages"
+				style="font-weight:bold" />
+			<h:outputText value="#{context.fhirPackages}" />
 		</p:panelGrid>
 
 		<hr></hr>
 
-		<p:panelGrid id="aboutPanel3" columns="1" border="0"
+		<p:panelGrid id="aboutPanel2" columns="1" border="0"
 			cellpadding="5" cellspacing="10" styleClass="borderlessGridPanel">
 			<p><span style="padding:0px;font-size:12px;" >
 			This is the FAST Consent IG Reference Implementation Test Client web application.
-			The interfaces provide a means to:
+			(Built on the AEGIS WildFHIR Community Edition Reference Implementation Test Client web application.)
+			The interfaces provide the following functionality:
 			<ul>
-			<li><b>FAST Consent Ops</b> - Send valid FAST Consent IG operation requests using a small predefined set of test data (Patient, RelatedPerson)
+			<li><b>FAST Consent</b> - Send valid FAST Consent IG operation requests using a small predefined set of test data (Patient, RelatedPerson)
+				<ul><b>Patients:</b>
+				<li><b>Lara Miren</b>; RelatedPersons: Robert Miren spouse, Fred Miren brother-in-law</li>
+				<li><b>Gerald Larin</b>; RelatedPersons: Susan Larin spouse, Samuel Larin son</li>
+				</ul>
+				<br></br>
 				<ul>
-				<li><b>Patient: Lara Miren</b>; RelatedPersons: Robert Miren spouse, Fred Miren brother-in-law</li>
-				<li><b>Patient: Gerald Larin</b>; RelatedPersons: Susan Larin spouse, Samuel Larin son</li>
+				<li><b>$fileConsent</b> - used to file a consent with a consent administration service</li>
+				<li><b>$revokeConsent</b> - used to revoke a consent with a consent administration service</li>
+				<li><b>Create AuditEvent</b> - used to record an AuditEvent disclosure based on a given consent for a given patient with a consent administration service</li>
 				</ul>
 			</li>
-			<li><b>FHIR Interactions</b> - Send valid FHIR read, history and search interactions to retrieve data on a Consent Management Server; additional interactions:
+			<li><b>Subscriptions</b> - Manage FAST Consent Subscriptions
 				<ul>
-				<li><b>metadata</b> - return a Consent Management Server CapabilityStatement</li>
-				<li><b>$validate</b> - validate FAST Consent based resources for conformance (<i>validation is supported by the underlying HL7 FHIR Core Library and pre-loaded FAST Consent IG and dependent IG validation packages</i>)</li>
+				<li><b>Create</b> - create a new Subscription resource based on the FASTConsentSubscriptionTopic on a consent administration service</li>
+				<li><b>Update</b> - update an existing Subscription resource based on the FASTConsentSubscriptionTopic on a consent administration service</li>
+				<li><b>Process</b> - manually execute the Subscription Service for the FAST Consent RI server</li>
+				<li><b>Handshake</b> - manually send a Handshake Notification to a selected Subscription endpoint</li>
 				</ul>
 			</li>
-			<li><b>Subscriptions</b> - Create, manage and review Subscriptions against a Consent Management Server
+			<li><b>Interactions</b> - Send valid FHIR interactions to a selected FHIR server
 				<ul>
-				<li><b>Create</b> - define/create a new Subscription with criteria for Consent resources on a Consent Management Server</li>
-				<li><b>Update</b> - update an existing Subscription on a Consent Management Server</li>
-				<li><b>Activity (TBD)</b> - view Subscription activity for this RI</li>
-				<li><b>Manual</b> - manually execute the Subscription Service for this RI</li>
+				<li><b>read</b> - return a FHIR resource instance by its resource id</li>
+				<li><b>vread</b> - return a FHIR resource instance by its resource id and version id</li>
+				<li><b>history</b> - return the FHIR history by global, resource type or resource instance</li>
+				<li><b>search</b> - return FHIR search results for a resource type</li>
+				<li><b>create</b> - send a FHIR resource to be created</li>
+				<li><b>update</b> - send a FHIR resource to be updated</li>
+				<li><b>patch</b> - send a JSON or XML patch and FHIR resource to be updated</li>
+				<li><b>metadata</b> - return a selected server's CapabilityStatement</li>
 				</ul>
 			</li>
-			<li><b>Admin</b> - Administer defined Consent Management Servers and their (FHIR) base url value
+			<li><b>Operations</b> - Send FHIR extended operations to a selected FHIR server
 				<ul>
-				<li><b>Servers</b> - manage the list of known Consent Management Servers</li>
+				<li><b>$convert</b> - FHIR extended operation to convert JSON to/from XML</li>
+				<li><b>$everything</b> - FHIR everything operation</li>
+				<li><b>$validate</b> - validate FHIR resources (<i>validation is supported by the underlying HL7 FHIR Core Library and pre-loaded FHIR R4 v4.0.1 validation packages</i>)</li>
+				</ul>
+			</li>
+			<li><b>Tools</b> - WildFHIR Tools
+				<ul>
+				<li><b>FHIR Path</b> - execute FHIR Path evaluations using the AEGIS WildFHIR extended operation '$fhirpath-evaluate</li>
+				</ul>
+			</li>
+			<li><b>Admin</b> - Administration functionality
+				<ul>
+				<li><b>Servers</b> - manage the list of known FHIR Servers and their base url value</li>
 				<li><span style="color:darkred"><b>Reset Test Data</b> - purge and re-load the predefined client resources; also, purge all server resources</span></li>
 				</ul>
 			</li>

@@ -34,16 +34,15 @@ package net.aegis.fhir.service.provenance;
 
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
-import javax.inject.Inject;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
-
 import org.hl7.fhir.r4.model.Identifier;
 
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionManagement;
+import jakarta.ejb.TransactionManagementType;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response.Status;
 import net.aegis.fhir.model.Resource;
 import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.service.CodeService;
@@ -75,7 +74,7 @@ public class ProvenanceService {
 	 * @param operation
 	 * @throws Exception
 	 */
-	public void createProvenance(UriInfo context, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception {
+	public void createProvenance(HttpServletRequest request, HttpHeaders headers, String payload, String resourceType, String locationPath, String resourceId, Identifier identifier, String operation) throws Exception {
 
 		Resource resource = null;
 		ResourceContainer resCon = null;
@@ -83,7 +82,7 @@ public class ProvenanceService {
 
 		try {
 			if (codeService.isSupported("provenanceServiceEnabled")) {
-				resource = ProvenanceServiceUtil.INSTANCE.generateProvenance(context, headers, payload, resourceType, locationPath, resourceId, identifier, operation);
+				resource = ProvenanceServiceUtil.INSTANCE.generateProvenance(request, headers, payload, resourceType, locationPath, resourceId, identifier, operation);
 
 				// Get server base url from code table configuration
 				baseUrl = codeService.getCodeValue("baseUrl");
@@ -91,7 +90,7 @@ public class ProvenanceService {
 				resCon = resourceService.create(resource, null, baseUrl);
 
 				if (resCon.getResponseStatus().equals(Status.CREATED)) {
-					log.info("ProvenanceService.createProvenance() - Provenance/" + resCon.getResource().getResourceId() + " successfully created.");
+					log.fine("ProvenanceService.createProvenance() - Provenance/" + resCon.getResource().getResourceId() + " successfully created.");
 				}
 				else {
 					throw new Exception("Error attempting to create Provenance! " +

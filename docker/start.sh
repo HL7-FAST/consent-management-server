@@ -1,9 +1,24 @@
 #!/bin/bash
+set -x
 
-# Start MySQL
-su - mysql -c "mysqld" &
+echo "[start.sh] Launching MySQL via docker-entrypoint.sh..."
+docker-entrypoint.sh mysqld &
+MYSQL_PID=$!
 
-# Wait for MySQL to start
+echo "[start.sh] Waiting for MySQL to accept connections..."
+for i in $(seq 1 60); do
+    if mysqladmin ping --silent 2>/dev/null; then
+        echo "[start.sh] MySQL is ready after ${i}s."
+        break
+    fi
+    if [ "$i" -eq 60 ]; then
+        echo "[start.sh] ERROR: MySQL did not become ready within 60s. Exiting."
+        exit 1
+    fi
+    sleep 1
+done
+
+# Wait for MySQL to complete entry point start
 sleep 15
 
 # Remove Wildfly bin/env.conf
@@ -138,6 +153,30 @@ else
   echo "WILDFHIR_SUBSCRIPTIONSERVICEENABLED: $WILDFHIR_SUBSCRIPTIONSERVICEENABLED"
 fi
 
+if [ "x$WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED" = "x" ]; then
+  # Skip
+  echo "WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED not defined"
+else
+  echo "export WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED=$WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED" >> /opt/jboss/wildfly/bin/env.conf
+  echo "WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED: $WILDFHIR_SUBSCRIPTIONACTIVATEREQUESTED"
+fi
+
+if [ "x$WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED" = "x" ]; then
+  # Skip
+  echo "WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED not defined"
+else
+  echo "export WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED=$WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED" >> /opt/jboss/wildfly/bin/env.conf
+  echo "WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED: $WILDFHIR_SUBSCRIPTIONHANDSHAKEENABLED"
+fi
+
+if [ "x$WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY" = "x" ]; then
+  # Skip
+  echo "WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY not defined"
+else
+  echo "export WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY=$WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY" >> /opt/jboss/wildfly/bin/env.conf
+  echo "WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY: $WILDFHIR_SUBSCRIPTIONHANDSHAKEDELAY"
+fi
+
 if [ "x$WILDFHIR_TXCONCURRENTLIMIT" = "x" ]; then
   # Skip
   echo "WILDFHIR_TXCONCURRENTLIMIT not defined"
@@ -154,5 +193,16 @@ else
   echo "FHIR_PACKAGES:                       $FHIR_PACKAGES"
 fi
 
+if [ "x$FHIR_T_SERVER" = "x" ]; then
+  # Skip
+  echo "FHIR_T_SERVER not defined"
+else
+  echo "export FHIR_T_SERVER=$FHIR_T_SERVER" >> /opt/jboss/wildfly/bin/env.conf
+  echo "FHIR_T_SERVER:                       $FHIR_T_SERVER"
+fi
+
 # Start WildFly
+echo "[start.sh] Starting WildFly..."
 su - jboss -c "/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0"
+echo "[start.sh] WildFly process exited with code $?"
+

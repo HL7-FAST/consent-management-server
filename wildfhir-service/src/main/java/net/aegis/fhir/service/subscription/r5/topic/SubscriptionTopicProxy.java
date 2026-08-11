@@ -65,4 +65,19 @@ public abstract class SubscriptionTopicProxy {
 	 */
 	public abstract Bundle processTopic(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, Subscription subscription, Date since, StringBuffer returnedDetails) throws Exception;
 
+	/**
+	 * Process a received Subscription Event Notification
+	 *
+	 * @param resourceService
+	 * @param resourcemetadataService
+	 * @param codeService
+	 * @param auditEventService
+	 * @param provenanceService
+	 * @param notification
+	 * @param returnedDetails
+	 * @return boolean true: success; false: failure
+	 * @throws Exception
+	 */
+	public abstract boolean processEventNotification(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification, org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType, StringBuffer returnedDetails) throws Exception;
+
 }

@@ -12,12 +12,14 @@
 	<p:tabView id="tabView" widgetVar="tabView" cache="false">
 
 		<p:ajax event="tabChange" listener="#{controller.onTabChange}"
-			update=":tabView:adminTabView:initializeClientForm,:tabView:adminTabView:serversForm,:tabView:operationsTabView:fileConsentForm,:tabView:operationsTabView:revokeConsentForm,:tabView:operationsTabView:recordDisclosureForm,:tabView:subscriptionsTabView:subscriptionClientForm" />
+			update=":tabView:adminTabView:initializeClientForm,:tabView:adminTabView:serversForm,:tabView:fastconsentTabView:fileConsentForm,:tabView:fastconsentTabView:revokeConsentForm,:tabView:fastconsentTabView:recordDisclosureForm,:tabView:toolsTabView:fhirpathEvaluateForm,:tabView:toolsTabView:fhirpathEvaluateForm2,:tabView:interactionsTabView:fhirReadForm,:tabView:interactionsTabView:fhirVReadForm,:tabView:interactionsTabView:historyForm,:tabView:interactionsTabView:fhirSearchForm,:tabView:interactionsTabView:fhirMetadataForm,:tabView:interactionsTabView:fhirCreateForm,:tabView:interactionsTabView:fhirCreateForm2,:tabView:interactionsTabView:fhirUpdateForm,:tabView:interactionsTabView:fhirUpdateForm2,:tabView:interactionsTabView:fhirPatchForm,:tabView:operationsTabView:convertFormatForm,:tabView:operationsTabView:everythingForm,:tabView:operationsTabView:validateForm,:tabView:operationsTabView:validateForm2,:tabView:subscriptionsTabView:createSubscriptionForm,:tabView:subscriptionsTabView:updateSubscriptionForm,:tabView:subscriptionsTabView:subscriptionClientForm,:tabView:subscriptionsTabView:subscriptionHandshakeForm" />
 
 		<ui:include src="/WEB-INF/views/about.xhtml" />
-		<ui:include src="/WEB-INF/views/operations_view.xhtml" />
-		<ui:include src="/WEB-INF/views/interactions_view.xhtml" />
+		<ui:include src="/WEB-INF/views/fastconsent_view.xhtml" />
 		<ui:include src="/WEB-INF/views/subscriptions_view.xhtml" />
+		<ui:include src="/WEB-INF/views/interactions_view.xhtml" />
+		<ui:include src="/WEB-INF/views/operations_view.xhtml" />
+		<ui:include src="/WEB-INF/views/fhir_tools.xhtml" />
 		<ui:include src="/WEB-INF/views/admin_view.xhtml" />
 	</p:tabView>
 </ui:composition>

@@ -34,28 +34,36 @@ package net.aegis.fhir.rest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import org.hl7.fhir.r4.formats.IParser.OutputStyle;
+import org.hl7.fhir.r4.formats.JsonParser;
+import org.hl7.fhir.r4.formats.XmlParser;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Resource;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import net.aegis.fhir.model.Constants;
 import net.aegis.fhir.model.ResourceType;
 import net.aegis.fhir.operation.ResourceOperationProxy;
@@ -68,19 +76,9 @@ import net.aegis.fhir.service.ResourcemetadataService;
 import net.aegis.fhir.service.TransactionService;
 import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.provenance.ProvenanceService;
+import net.aegis.fhir.service.util.DebugUtil;
 import net.aegis.fhir.service.util.ServicesUtil;
 import net.aegis.fhir.service.util.UTCDateUtil;
-
-import org.apache.commons.io.IOUtils;
-import org.hl7.fhir.r4.formats.IParser.OutputStyle;
-import org.hl7.fhir.r4.formats.JsonParser;
-import org.hl7.fhir.r4.formats.XmlParser;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Resource;
 
 /**
  * JAX-RS Resource Operations Service
@@ -122,9 +120,6 @@ public class ResourceOperationsRESTService {
 	@Inject
 	UTCDateUtil utcDateUtil;
 
-	@Context
-	private UriInfo context;
-
 	@Inject
 	ConformanceService conformanceService;
 
@@ -150,7 +145,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "GET", null, null, operationName, null, false);
 			}
@@ -185,7 +180,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "GET", resourceType, null, operationName, null, false);
 			}
@@ -221,7 +216,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "GET", resourceType, resourceId, operationName, null, false);
 			}
@@ -258,7 +253,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "POST", null, null, operationName, resourceInputStream, true);
 			}
@@ -296,7 +291,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "POST", resourceType, null, operationName, resourceInputStream, true);
 			}
@@ -335,7 +330,7 @@ public class ResourceOperationsRESTService {
 		try {
 			// Validate request fhir version with supported fhir version
 			if (!ServicesUtil.INSTANCE.fhirVersionMatched(request, headers, codeService.findCodeValueByName("supportedVersions"))) {
-				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, codeService.findCodeValueByName("supportedVersions"), context);
+				response = ServicesUtil.INSTANCE.fhirVersioMismatchedResponse(headers, request, codeService.findCodeValueByName("supportedVersions"));
 			} else {
 				response = resourceOperation(request, headers, "POST", resourceType, resourceId, operationName, resourceInputStream, true);
 			}
@@ -363,12 +358,10 @@ public class ResourceOperationsRESTService {
 
 		log.fine("[START] private ResourceOperationsRESTService.resourceOperation(" + httpOperation + ", " + resourceType + ", " + operationName + ")");
 
-		log.fine("context.path = " + context.getPath());
-		log.fine("context.baseuri.path = " + context.getBaseUri().getPath());
-		log.fine("context.absolutePath = " + context.getAbsolutePath());
+		log.fine("resourceOperation(): request.path = " + request.getRequestURL().toString());
 
 		// convert input stream to String
-		String payload = debugRequest(request, headers, resourceInputStream);
+		String payload = DebugUtil.debugRequest(request, headers, resourceInputStream);
 
 		Response.ResponseBuilder builder = null;
         String contentType = null;
@@ -386,7 +379,7 @@ public class ResourceOperationsRESTService {
 
 		try {
 			// Get the produces type based on the request Accept
-			producesType = ServicesUtil.INSTANCE.getProducesType(headers, context);
+			producesType = ServicesUtil.INSTANCE.getProducesType(headers, request);
 
 			log.fine("producesType = " + producesType);
 
@@ -449,6 +442,7 @@ public class ResourceOperationsRESTService {
 
 					if (inputResource != null && inputResource.getResourceType().equals(org.hl7.fhir.r4.model.ResourceType.Parameters)) {
 						inputParameters = (Parameters) inputResource;
+						payload = null;
 					}
 				}
 
@@ -467,9 +461,15 @@ public class ResourceOperationsRESTService {
 
 					String softwareVersion = ServicesUtil.INSTANCE.getSoftwareVersion();
 					log.fine("softwareVersion: " + softwareVersion);
-					Parameters outputParameters = operationProxy.executeOperation(context, headers, resourceService, resourcemetadataService, batchService, transactionService, codeService, auditEventService, provenanceService, conformanceService, softwareVersion, resourceType, resourceId, inputParameters, inputResource, payload, contentType, isPost, returnedDirective);
+					Parameters outputParameters = operationProxy.executeOperation(request, headers, resourceService, resourcemetadataService, batchService, transactionService, codeService, auditEventService, provenanceService, conformanceService, softwareVersion, resourceType, resourceId, inputParameters, inputResource, payload, contentType, isPost, returnedDirective);
 
-					String locationPath = context.getPath();
+	        		// Construct full request URL with any query parameters
+					StringBuffer requestURL = request.getRequestURL();
+					String queryString = request.getQueryString();
+					if (queryString != null) {
+						requestURL.append("?").append(URLEncoder.encode(queryString, StandardCharsets.UTF_8));
+					}
+					String locationPath = requestURL.toString();
 
 					// Test output parameters
 					if (outputParameters != null) {
@@ -487,12 +487,12 @@ public class ResourceOperationsRESTService {
 								outputParameters.getParameter().get(0).hasName() && outputParameters.getParameter().get(0).getName().equals("return") &&
 								!operationName.startsWith("meta")) {
 
-							log.info("outputParameters contains only 1 parameter and operation is not meta* - building response with Resource only");
+							log.fine("outputParameters contains only 1 parameter and operation is not meta* - building response with Resource only");
 
 							builder = buildResource(operationName, locationPath, producesType, outputParameters.getParameter().get(0).getResource(), returnedDirective, responseFhirVersion);
 						}
 						else {
-							log.info("outputParameters contains multiple parameters - building response with Parameters");
+							log.fine("outputParameters contains multiple parameters - building response with Parameters");
 
 							builder = buildResource(operationName, locationPath, producesType, outputParameters, returnedDirective, responseFhirVersion);
 						}
@@ -553,6 +553,8 @@ public class ResourceOperationsRESTService {
 		Response.ResponseBuilder builder;
 		String outcome = "";
 
+		URI locationHeader = new URI(locationPath);
+
 		if (output != null) {
 			log.fine("Output resource type is " + output.getResourceType().name());
 
@@ -567,7 +569,7 @@ public class ResourceOperationsRESTService {
 						log.fine("Build Response - returnedDirective is '" + returnedDirective + "'");
 						// Extract base url from locationPath for Location HTTP header
 						String baseUrl = ServicesUtil.INSTANCE.extractBaseURL(locationPath, "Composition");
-						URI locationHeader = new URI(baseUrl + output.fhirType() + "/" + output.getId());
+						locationHeader = new URI(baseUrl + output.fhirType() + "/" + output.getId());
 
 						builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 					}
@@ -583,7 +585,7 @@ public class ResourceOperationsRESTService {
 					builder = Response.status(Response.Status.CONFLICT).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 				}
 				else {
-					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 				}
 			}
 			else if (operationName.equalsIgnoreCase("immds-forecast")) {
@@ -602,7 +604,7 @@ public class ResourceOperationsRESTService {
 					}
 				}
 				else {
-					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 				}
 			}
 			else if (operationName.equalsIgnoreCase("process-message")) {
@@ -620,18 +622,18 @@ public class ResourceOperationsRESTService {
 						}
 					}
 					if (isOk == true) {
-						builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+						builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 					}
 					else {
 						builder = Response.status(Response.Status.BAD_REQUEST).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 					}
 				}
 				else {
-					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+					builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 				}
 			}
 			else {
-				builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+				builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader);
 			}
 
 			// Define URI location
@@ -643,10 +645,16 @@ public class ResourceOperationsRESTService {
 
 		}
 		else {
-			// Something went wrong
-			outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.TRANSIENT, "operation failure, no response", null, null, producesType);
+			if (operationName.equalsIgnoreCase("process-message")) {
+				// Special processing for $process-message operation
+				builder = Response.status(Response.Status.OK).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion).location(locationHeader).contentLocation(locationHeader);
+			}
+			else {
+				// Something went wrong
+				outcome = ServicesUtil.INSTANCE.getOperationOutcome(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.TRANSIENT, "operation failure, no response", null, null, producesType);
 
-			builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+				builder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
+			}
 		}
 
 		return builder;
@@ -723,81 +731,6 @@ public class ResourceOperationsRESTService {
 		Response.ResponseBuilder builder = Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(outcome).type(producesType + Constants.CHARSET_UTF8_EXT + responseFhirVersion);
 
 		return builder;
-	}
-
-	/**
-	 * <p>
-	 * Prints the contents of the received request.<br/>
-	 * Useful for debugging purposes.
-	 * </p>
-	 *
-	 * @param request
-	 * @param headers
-	 * @param response
-	 */
-	private String debugRequest(HttpServletRequest request, HttpHeaders headers, InputStream resourceInputStream) {
-
-		String payload = null;
-
-		if (request != null) {
-			log.info("----- HTTP REQUEST -----");
-
-			log.info("Remote host is '" + (request.getRemoteHost() == null ? "NOT FOUND" : request.getRemoteHost()) + "'");
-		}
-
-		if (headers != null) {
-			log.info("----- HTTP HEADERS (REQUEST) -----");
-
-			MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-
-			if (requestHeaders != null) {
-
-				for (String key : requestHeaders.keySet()) {
-
-					for (String keyValue : requestHeaders.get(key)) {
-						log.info("header(" + key + ") is " + keyValue);
-					}
-				}
-			}
-		}
-
-		log.info("----- REQUEST URL -----");
-		StringBuilder sbRequestUrl = new StringBuilder(context.getAbsolutePath().getPath());
-		MultivaluedMap<String, String> queryParams = context.getQueryParameters();
-		if (queryParams != null && !queryParams.isEmpty()) {
-			sbRequestUrl.append("?");
-			boolean first = true;
-			for (String key : queryParams.keySet()) {
-				if (!first) {
-					sbRequestUrl.append("&");
-				}
-				log.info("header(" + key + ") is " + queryParams.get(key).toString());
-				sbRequestUrl.append(key).append("=").append(queryParams.get(key).toString());
-			}
-		}
-		log.info(sbRequestUrl.toString());
-
-		log.info("----- PAYLOAD ----- [snipped; use fine logging]");
-        if (resourceInputStream != null) {
-			try {
-				StringWriter writer = new StringWriter();
-				String encoding = "UTF-8";
-				IOUtils.copy(resourceInputStream, writer, encoding);
-				payload = writer.toString();
-
-				log.fine(payload);
-
-			}
-			catch (Exception e) {
-				log.severe("Exception parsing payload! " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		else {
-			log.info(">> NO PAYLOAD <<");
-		}
-
-		return payload;
 	}
 
 }

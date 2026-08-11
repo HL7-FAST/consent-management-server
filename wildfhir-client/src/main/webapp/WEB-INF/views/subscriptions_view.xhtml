@@ -20,11 +20,12 @@
 		<p:tabView id="subscriptionsTabView" widgetVar="subscriptionsTabView" cache="false">
 
 			<p:ajax event="tabChange" listener="#{controller.onTabChange}"
-				update=":tabView:subscriptionsTabView:createSubscriptionForm,:tabView:subscriptionsTabView:updateSubscriptionForm,:tabView:subscriptionsTabView:subscriptionClientForm" />
+				update=":tabView:subscriptionsTabView:createSubscriptionForm,:tabView:subscriptionsTabView:updateSubscriptionForm,:tabView:subscriptionsTabView:subscriptionClientForm,:tabView:subscriptionsTabView:subscriptionHandshakeForm" />
 
 			<ui:include src="/WEB-INF/views/subscriptions/createSubscription.xhtml" />
 			<ui:include src="/WEB-INF/views/subscriptions/updateSubscription.xhtml" />
 			<ui:include src="/WEB-INF/views/subscriptions/subscriptionsClient.xhtml" />
+			<ui:include src="/WEB-INF/views/subscriptions/subscriptionHandshake.xhtml" />
 
 		</p:tabView>
 	</p:tab>

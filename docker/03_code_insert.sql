@@ -1,8 +1,8 @@
 /*
 -- Insert default codes and their settings
 */
-INSERT INTO wildfhirr4.code (codeName,value,intValue,description,resourceContents) VALUES
-('baseUrl','http://localhost:8080/r4',0,'WildFHIR base url (used by capabilitystatement-reload)',NULL),
+INSERT INTO fastconsentr4.code (codeName,value,intValue,description,resourceContents) VALUES
+('baseUrl','http://localhost:8080/fastconsent/r4',0,'WildFHIR base url (used by capabilitystatement-reload)',NULL),
 ('conditionalDelete','multiple',0,'Conditional delete support setting (single, multiple, not-supported)',NULL),
 ('conditionalRead','full-support',0,'Conditional read support setting (full-support, modified-since, not-match, not-supported)',NULL),
 ('conditionalCreate','true',1,'Conditional create support setting (true, false)',NULL),
@@ -19,6 +19,11 @@ INSERT INTO wildfhirr4.code (codeName,value,intValue,description,resourceContent
 ('provenanceServiceEnabled','true',1,'Provenance service enabled setting (true, false)',NULL),
 ('subscriptionServiceEnabled','true',1,'Subscription Framework support setting (true, false)',NULL),
 ('subscriptionServiceInterval','true',600,'Subscription Framework interval in seconds setting (0 disabled, >0 enabled)',NULL),
+('subscriptionActivateRequested','false',0,'Subscription automatically set status to active processing create or update where status is requested setting (true, false)',NULL),
+('subscriptionHandshakeEnabled','false',0,'Ignore auto activate requested; send Handshake on Subscription create or update where status is requested setting (true, false)',NULL),
+('subscriptionHandshakeDelay','true',20,'Send Handshake on Subscription create delay in seconds setting',NULL),
 ('txConcurrentLimit','true',2,'Batch/transaction concurrent requests allowed processing limit (intValue); enabled setting (true, false)',NULL),
 ('initializeClientPath','/home/jboss/initializeClient',0,'Initialize Client directory path containing the default resource instance files',NULL),
-('initializeServerPath','/home/jboss/initializeServer',0,'Initialize Server directory path containing the default resource instance files',NULL);
+('initializeServerPath','/home/jboss/initializeServer',0,'Initialize Server directory path containing the default resource instance files',NULL),
+('fhirPackages','hl7.fhir.r4.core#4.0.1,hl7.fhir.us.consent-management#1.0.0-preview',0,'Comma separated list of FHIR validation packages (if empty, try env var FHIR_PACKAGES)',NULL),
+('fhirTxServer','http://tx.fhir.org/r4',0,'FHIR Terminology Server address (if empty, try env var FHIR_TX_SERVER)',NULL);
