@@ -1,36 +1,54 @@
 # syntax=docker/dockerfile:1
+ 
+#####################################################################
+# STAGE 1: Official WildFly 39 + JDK 21 image, used only as a source
+# for COPY --from below. This image already bundles eclipse-temurin
+# JDK 21 and a full WildFly 39.0.1.Final install, so there's no need
+# to jlink a custom JDK or download/extract the WildFly tarball
+# ourselves - both come pre-built from this stage.
+#####################################################################
+FROM quay.io/wildfly/wildfly:39.0.1.Final-2-jdk21 AS wildfly-source
 
-#####################################
-# STAGE 1: Create Java 11 JDK to be copied to final image
-#####################################
-FROM eclipse-temurin:11 AS jdk-builder
+#####################################################################
+# STAGE 2: Build a slim, runtime-only JDK 21 via jlink, based on the
+# JDK bundled in the wildfly-source image above. This stage's full-JDK
+# layers (compiler, jshell, jconsole, debug symbols, source archives)
+# are never copied into the final image - only the jlink --output
+# directory is, via COPY --from=jdk-slim below. Because this runs as
+# its own stage rather than a COPY-then-rm inside the final stage, the
+# full JDK never touches a layer that ends up in the final image.
+#####################################################################
+FROM wildfly-source AS jdk-slim
+# This stage inherits USER jboss from wildfly-source, which lacks permission
+# to create a new directory at filesystem root - switch to root for jlink.
+USER root
+RUN rm -rf /optimized-jdk-21 && \
+    /opt/java/openjdk/bin/jlink \
+        --module-path /opt/java/openjdk/jmods \
+        --add-modules ALL-MODULE-PATH \
+        --strip-debug \
+        --no-man-pages \
+        --no-header-files \
+        --compress=zip-6 \
+        --output /optimized-jdk-21
 
-# Build small JDK image
-RUN $JAVA_HOME/bin/jlink \
-         --verbose \
-         --add-modules ALL-MODULE-PATH \
-         --strip-debug \
-         --no-man-pages \
-         --no-header-files \
-         --compress=2 \
-         --output /optimized-jdk-11
-
-#####################################
-# STAGE 2: Build WAR with Maven
-#####################################
-FROM maven:3.9.9-eclipse-temurin-24 AS build
+#####################################################################
+# STAGE 3: Build WAR application files with Maven
+#####################################################################
+FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
 COPY . .
 
 # Build with Maven (assigning version and build values, skipping tests)
-RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=1.0.0-SNAPSHOT -DskipTests
+RUN mvn clean process-resources install -DbuildNumber=docker-ci -DbuildVersion=1.0.0-preview -DskipTests
 
-#####################################
-# STAGE 3: Final Image with MySQL + Wildfly
-#####################################
-FROM mysql:8.0
+#####################################################################
+# STAGE 4: Final Image with MySQL + Wildfly
+# Use the official MySQL 9.7 LTS image as the WildFHIR CE database and server
+#####################################################################
+FROM mysql:9.7.2
 
 # --- MySQL Setup ---
 COPY ./docker/wait_then_shutdown.sh /tmp/wait_then_shutdown.sh
@@ -49,60 +67,74 @@ COPY ./docker/my.cnf /etc/my.cnf
 
 ENV MYSQL_ALLOW_EMPTY_PASSWORD=1
 
-RUN /entrypoint.sh mysqld & /tmp/wait_then_shutdown.sh
+# Note: MySQL 8.4+ removed the /entrypoint.sh backwards-compat symlink that
+# existed through 8.0 - only docker-entrypoint.sh (on PATH) exists now.
+#
+# Deliberately NOT running docker-entrypoint.sh at build time here. Doing so
+# would bake the initialized /var/lib/mysql data directory - InnoDB system
+# tablespace, redo logs, and all seeded DDL/insert data - permanently into an
+# image layer (this cost ~225MB in a prior build). The official entrypoint
+# already runs everything in /docker-entrypoint-initdb.d/ automatically on
+# first container start whenever the data directory is empty, so the DDL and
+# seed scripts above still execute correctly - just on first boot instead of
+# at build time. Tradeoff: first container start takes longer; the image
+# itself stays smaller and isn't carrying baked-in state.
+# RUN docker-entrypoint.sh mysqld & /tmp/wait_then_shutdown.sh
 
 # --- Wildfly + Java ---
 USER root
 
-# copy JDK from the build image
-ENV JAVA_HOME=/opt/jdk/jdk-11
-COPY --from=jdk-builder /optimized-jdk-11 $JAVA_HOME
-
+# Create the jboss user on the mysql base image (matching uid/gid 1000 used
+# by the official WildFly image, though chown below would fix this regardless).
+# microdnf can install directly from configured repos - no need to pull in
+# the full dnf package manager (and its Python3 dependency chain) just for
+# the shadow-utils package.
 RUN microdnf -y update && \
-    microdnf -y install dnf && \
-    dnf -y install shadow-utils && \
-    dnf clean all && \
+    microdnf -y install shadow-utils util-linux && \
     microdnf clean all && \
-    useradd -ms /bin/bash jboss
-
-ENV WILDFLY_VERSION=20.0.1.Final
-ENV WILDFLY_SHA1=95366b4a0c8f2e6e74e3e4000a98371046c83eeb
+    rm -rf /var/cache/yum /var/cache/dnf && \
+    useradd -u 1000 -ms /bin/bash jboss
+ 
+ENV JAVA_HOME=/opt/jdk/jdk-21
 ENV JBOSS_HOME=/opt/jboss/wildfly
-ENV LAUNCH_JBOSS_IN_BACKGROUND=true
 
-RUN cd /opt && mkdir jboss && \
-    cd $HOME && \
-    curl -O https://download.jboss.org/wildfly/${WILDFLY_VERSION}/wildfly-${WILDFLY_VERSION}.tar.gz && \
-    sha1sum wildfly-${WILDFLY_VERSION}.tar.gz | grep $WILDFLY_SHA1 && \
-    tar xf wildfly-${WILDFLY_VERSION}.tar.gz && \
-    mv wildfly-${WILDFLY_VERSION} ${JBOSS_HOME} && \
-    rm wildfly-${WILDFLY_VERSION}.tar.gz && \
-    chown -R jboss:0 ${JBOSS_HOME} && \
+# Copy the WildFly 39.0.1.Final install straight from the official quay.io
+# image (see stage above) rather than downloading/extracting it here.
+COPY --from=wildfly-source $JBOSS_HOME $JBOSS_HOME
+ 
+# Copy the pre-built slim JDK from the jdk-slim stage (see above) - the full
+# JDK used to build it never becomes part of this image's layer history.
+COPY --from=jdk-slim /optimized-jdk-21 $JAVA_HOME
+ 
+RUN chown -R jboss:0 ${JBOSS_HOME} && \
     chmod -R g+rw ${JBOSS_HOME}
+ 
+# Ensure signals are forwarded to the JVM process correctly for graceful shutdown
+ENV LAUNCH_JBOSS_IN_BACKGROUND=true
 
 USER jboss
 
-ADD ./docker/mysql ${JBOSS_HOME}/modules/system/layers/base/com/mysql
-# COPY ./docker/add-user.sh $JBOSS_HOME/bin
-# RUN chmod +x ${JBOSS_HOME}/bin/add-user.sh
+# Add MySQL connector library (ensure this is Connector/J 9.x - see notes)
+ADD ./docker/mysql $JBOSS_HOME/modules/system/layers/base/com/mysql
+
+# Copy standalone conf for start up with JAVA_OPTS settings
 COPY ./docker/standalone.conf ${JBOSS_HOME}/bin
 COPY ./docker/standalone.sh ${JBOSS_HOME}/bin
-# RUN chmod +x ${JBOSS_HOME}/bin/standalone.sh
+
+# Copy standalone configuration with datasource connection to fastconsentr4 and https access using a self-signed certificate
 COPY ./docker/standalone.xml ${JBOSS_HOME}/standalone/configuration
 
-# RUN ${JBOSS_HOME}/bin/add-user.sh admin admin --silent
-
 # ✅ COPY WAR FROM MAVEN BUILD STAGE
-COPY --from=build /app/wildfhir-rest-server/target/wildfhir-rest-server.war ${JBOSS_HOME}/standalone/deployments/
-COPY --from=build /app/wildfhir-client/target/wildfhir-client.war ${JBOSS_HOME}/standalone/deployments/
+COPY --from=build /app/wildfhir-rest-server/target/fastconsentri-rest-server.war ${JBOSS_HOME}/standalone/deployments/
+COPY --from=build /app/wildfhir-client/target/fastconsentri-client.war ${JBOSS_HOME}/standalone/deployments/
 
 # FAST Consent Package, Client resources, Server resources
-RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot && \
+RUN mkdir -p /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-preview && \
     mkdir -p /home/jboss/.fhir/packages/hl7.fhir.uv.subscriptions-backport.r4#1.1.0 && \
     mkdir -p /home/jboss/initializeClient && \
     mkdir -p /home/jboss/initializeServer
 
-ADD ./docker/hl7.fhir.us.consent-management#1.0.0-ballot /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-ballot
+ADD ./docker/hl7.fhir.us.consent-management#1.0.0-preview /home/jboss/.fhir/packages/hl7.fhir.us.consent-management#1.0.0-preview
 ADD ./docker/hl7.fhir.uv.subscriptions-backport.r4#1.1.0 /home/jboss/.fhir/packages/hl7.fhir.uv.subscriptions-backport.r4#1.1.0
 ADD ./docker/initializeClient /home/jboss/initializeClient
 ADD ./docker/initializeServer /home/jboss/initializeServer
