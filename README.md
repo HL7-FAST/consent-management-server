@@ -52,7 +52,7 @@ docker run -p 8080:8080 --env-file env.list hlseven/fast-consent-management-serv
 
 You can also expose the following additional ports if desired:
 
-- 3306:3306 - MySQL 8x database access; the MySQL root user does not define a password
+- 3306:3306 - MySQL database access; the MySQL root user does not define a password
 - 8443:8443 - Secured access; the WildFHIR CE Red Hat Wildfly container generates a self-signed SSL certificate to support https
 - 9990:9990 - Access to the WildFHIR CE Red Hat Wildfly admin console; default user 'admin' password 'admin'
 
