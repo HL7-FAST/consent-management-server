@@ -259,10 +259,19 @@ public class SubscriptionServiceR5 {
 
 								if (okToPost == true) {
 									// Process HTTP headers if present
+									boolean hasAcceptHeader = false;
 									List<String> headers = new ArrayList<String>();
 									for (StringType header : subscription.getChannel().getHeader()) {
 										headers.add(header.asStringValue());
+										if (header.asStringValue().toLowerCase().contains("accept")) {
+											hasAcceptHeader = true;
+										}
 									}
+									// Set HTTP Accept Header if not already defined in Subscription to defined Subscription.channel.payload
+									if (!hasAcceptHeader && subscription.getChannel().getPayload() != null && !subscription.getChannel().getPayload().isEmpty()) {
+										headers.add("Accept:" + subscription.getChannel().getPayload());
+									}
+
 									response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload, subscription.getChannel().getPayload(), headers);
 
 									responseEntity = response.readEntity(String.class);
@@ -405,10 +414,19 @@ public class SubscriptionServiceR5 {
 
 							if (okToPost == true) {
 								// Process HTTP headers if present
+								boolean hasAcceptHeader = false;
 								List<String> headers = new ArrayList<String>();
 								for (StringType header : subscription.getChannel().getHeader()) {
 									headers.add(header.asStringValue());
+									if (header.asStringValue().toLowerCase().contains("accept")) {
+										hasAcceptHeader = true;
+									}
 								}
+								// Set HTTP Accept Header if not already defined in Subscription to defined Subscription.channel.payload
+								if (!hasAcceptHeader && subscription.getChannel().getPayload() != null && !subscription.getChannel().getPayload().isEmpty()) {
+									headers.add("Accept:" + subscription.getChannel().getPayload());
+								}
+
 								response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload,
 										subscription.getChannel().getPayload(), headers);
 
