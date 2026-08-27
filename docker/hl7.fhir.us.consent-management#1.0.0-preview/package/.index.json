@@ -1,266 +1,264 @@
 {
   "index-version" : 2,
-  "files" : [
-    {
-      "filename" : "ImplementationGuide-hl7.fhir.us.consent-management.json",
-      "resourceType" : "ImplementationGuide",
-      "id" : "hl7.fhir.us.consent-management",
-      "url" : "http://hl7.org/fhir/us/consent-management/ImplementationGuide/hl7.fhir.us.consent-management",
-      "version" : "1.0.0-preview"
-    },
-    {
-      "filename" : "CapabilityStatement-ConsentAdministrativeServerCapabilities.json",
-      "resourceType" : "CapabilityStatement",
-      "id" : "ConsentAdministrativeServerCapabilities",
-      "url" : "http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities",
-      "version" : "1.0.0-preview",
-      "kind" : "requirements"
-    },
-    {
-      "filename" : "CapabilityStatement-ConsentClientCapabilities.json",
-      "resourceType" : "CapabilityStatement",
-      "id" : "ConsentClientCapabilities",
-      "url" : "http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentClientCapabilities",
-      "version" : "1.0.0-preview",
-      "kind" : "requirements"
-    },
-    {
-      "filename" : "OperationDefinition-file-consent.json",
-      "resourceType" : "OperationDefinition",
-      "id" : "file-consent",
-      "url" : "http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent",
-      "version" : "1.0.0-preview",
-      "kind" : "operation",
-      "type" : "true"
-    },
-    {
-      "filename" : "OperationDefinition-revoke-consent.json",
-      "resourceType" : "OperationDefinition",
-      "id" : "revoke-consent",
-      "url" : "http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent",
-      "version" : "1.0.0-preview",
-      "kind" : "operation",
-      "type" : "true"
-    },
-    {
-      "filename" : "SearchParameter-fast-consent-controller.json",
-      "resourceType" : "SearchParameter",
-      "id" : "fast-consent-controller",
-      "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-controller",
-      "version" : "1.0.0-preview",
-      "type" : "reference"
-    },
-    {
-      "filename" : "SearchParameter-fast-consent-manager.json",
-      "resourceType" : "SearchParameter",
-      "id" : "fast-consent-manager",
-      "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager",
-      "version" : "1.0.0-preview",
-      "type" : "reference"
-    },
-    {
-      "filename" : "StructureDefinition-ext-R5-Consent.controller.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "ext-R5-Consent.controller",
-      "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.controller",
-      "version" : "0.0.1-ballot",
-      "kind" : "complex-type",
-      "type" : "Extension",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-ext-R5-Consent.manager.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "ext-R5-Consent.controller",
-      "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager",
-      "version" : "0.0.1-ballot",
-      "kind" : "complex-type",
-      "type" : "Extension",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FASTConsent.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTConsent",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsent",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "Consent",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FASTConsentAuditEvent.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTConsentAuditEvent",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "AuditEvent",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FASTDocumentReference.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTDocumentReference",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "DocumentReference",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FASTReference.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTReference",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTReference",
-      "version" : "1.0.0-preview",
-      "kind" : "complex-type",
-      "type" : "Reference",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FASTSubscription.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FASTSubscription",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "Subscription",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-FileConsentParameters.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "FileConsentParameters",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FileConsentParameters",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "Parameters",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "StructureDefinition-RevokeConsentParameters.json",
-      "resourceType" : "StructureDefinition",
-      "id" : "RevokeConsentParameters",
-      "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/RevokeConsentParameters",
-      "version" : "1.0.0-preview",
-      "kind" : "resource",
-      "type" : "Parameters",
-      "derivation" : "constraint"
-    },
-    {
-      "filename" : "ValueSet-FASTConsentStatuses.json",
-      "resourceType" : "ValueSet",
-      "id" : "FASTConsentStatuses",
-      "url" : "http://hl7.org/fhir/us/consent-management/ValueSet/FASTConsentStatuses",
-      "version" : "1.0.0-preview"
-    },
-    {
-      "filename" : "ValueSet-LOINCConsentDocumentTypes.json",
-      "resourceType" : "ValueSet",
-      "id" : "LOINCConsentDocumentTypes",
-      "url" : "http://hl7.org/fhir/us/consent-management/ValueSet/LOINCConsentDocumentTypes",
-      "version" : "1.0.0-preview"
-    },
-    {
-      "filename" : "Basic-client.json",
-      "resourceType" : "Basic",
-      "id" : "client"
-    },
-    {
-      "filename" : "Basic-capstmt-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "capstmt-consent-service"
-    },
-    {
-      "filename" : "Basic-capstmt-client.json",
-      "resourceType" : "Basic",
-      "id" : "capstmt-client"
-    },
-    {
-      "filename" : "Basic-components-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "components-consent-service"
-    },
-    {
-      "filename" : "Basic-components-client.json",
-      "resourceType" : "Basic",
-      "id" : "components-client"
-    },
-    {
-      "filename" : "Basic-conformance-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "conformance-consent-service"
-    },
-    {
-      "filename" : "Basic-conformance-client-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "conformance-client-consent-service"
-    },
-    {
-      "filename" : "Basic-conformance-client.json",
-      "resourceType" : "Basic",
-      "id" : "conformance-client"
-    },
-    {
-      "filename" : "Basic-consent-server.json",
-      "resourceType" : "Basic",
-      "id" : "consent-server"
-    },
-    {
-      "filename" : "Basic-extended-operations-client-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "extended-operations-client-consent-service"
-    },
-    {
-      "filename" : "Basic-search-parameters-client-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "search-parameters-client-consent-service"
-    },
-    {
-      "filename" : "Basic-structure-definitions-client-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "structure-definitions-client-consent-service"
-    },
-    {
-      "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "subscriptiontopic-fastconsentsubscriptiontopic-consent-service"
-    },
-    {
-      "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser.json",
-      "resourceType" : "Basic",
-      "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser"
-    },
-    {
-      "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client.json",
-      "resourceType" : "Basic",
-      "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client"
-    },
-    {
-      "filename" : "Basic-technical-specification-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "technical-specification-consent-service"
-    },
-    {
-      "filename" : "Basic-technical-specification-client.json",
-      "resourceType" : "Basic",
-      "id" : "technical-specification-client"
-    },
-    {
-      "filename" : "Basic-workflow-client-consent-service.json",
-      "resourceType" : "Basic",
-      "id" : "workflow-client-consent-service"
-    },
-    {
-      "filename" : "Basic-FASTConsentSubscriptionTopic.json",
-      "resourceType" : "Basic",
-      "id" : "FASTConsentSubscriptionTopic"
-    },
-    {
-      "filename" : "Basic-fromNarrative.json",
-      "resourceType" : "Basic",
-      "id" : "fromNarrative"
-    }
-  ]
+  "files" : [{
+    "filename" : "Basic-FASTConsentSubscriptionTopic.json",
+    "resourceType" : "Basic",
+    "id" : "FASTConsentSubscriptionTopic"
+  },
+  {
+    "filename" : "Basic-capstmt-client.json",
+    "resourceType" : "Basic",
+    "id" : "capstmt-client"
+  },
+  {
+    "filename" : "Basic-capstmt-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "capstmt-consent-server"
+  },
+  {
+    "filename" : "Basic-client.json",
+    "resourceType" : "Basic",
+    "id" : "client"
+  },
+  {
+    "filename" : "Basic-components-client.json",
+    "resourceType" : "Basic",
+    "id" : "components-client"
+  },
+  {
+    "filename" : "Basic-components-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "components-consent-server"
+  },
+  {
+    "filename" : "Basic-conformance-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-client-consent-server"
+  },
+  {
+    "filename" : "Basic-conformance-client.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-client"
+  },
+  {
+    "filename" : "Basic-conformance-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-consent-server"
+  },
+  {
+    "filename" : "Basic-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "consent-server"
+  },
+  {
+    "filename" : "Basic-extended-operations-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "extended-operations-client-consent-server"
+  },
+  {
+    "filename" : "Basic-fromNarrative.json",
+    "resourceType" : "Basic",
+    "id" : "fromNarrative"
+  },
+  {
+    "filename" : "Basic-search-parameters-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "search-parameters-client-consent-server"
+  },
+  {
+    "filename" : "Basic-structure-definitions-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "structure-definitions-client-consent-server"
+  },
+  {
+    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser.json",
+    "resourceType" : "Basic",
+    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser"
+  },
+  {
+    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client.json",
+    "resourceType" : "Basic",
+    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client"
+  },
+  {
+    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-consent-server"
+  },
+  {
+    "filename" : "Basic-technical-specification-client.json",
+    "resourceType" : "Basic",
+    "id" : "technical-specification-client"
+  },
+  {
+    "filename" : "Basic-technical-specification-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "technical-specification-consent-server"
+  },
+  {
+    "filename" : "Basic-workflow-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "workflow-client-consent-server"
+  },
+  {
+    "filename" : "CapabilityStatement-ConsentAdministrativeServerCapabilities.json",
+    "resourceType" : "CapabilityStatement",
+    "id" : "ConsentAdministrativeServerCapabilities",
+    "url" : "http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentAdministrativeServerCapabilities",
+    "version" : "1.0.0-preview",
+    "kind" : "requirements"
+  },
+  {
+    "filename" : "CapabilityStatement-ConsentClientCapabilities.json",
+    "resourceType" : "CapabilityStatement",
+    "id" : "ConsentClientCapabilities",
+    "url" : "http://hl7.org/fhir/us/consent-management/CapabilityStatement/ConsentClientCapabilities",
+    "version" : "1.0.0-preview",
+    "kind" : "requirements"
+  },
+  {
+    "filename" : "ImplementationGuide-hl7.fhir.us.consent-management.json",
+    "resourceType" : "ImplementationGuide",
+    "id" : "hl7.fhir.us.consent-management",
+    "url" : "http://hl7.org/fhir/us/consent-management/ImplementationGuide/hl7.fhir.us.consent-management",
+    "version" : "1.0.0-preview"
+  },
+  {
+    "filename" : "OperationDefinition-file-consent.json",
+    "resourceType" : "OperationDefinition",
+    "id" : "file-consent",
+    "url" : "http://hl7.org/fhir/us/consent-management/OperationDefinition/file-consent",
+    "version" : "1.0.0-preview",
+    "kind" : "operation",
+    "type" : "true"
+  },
+  {
+    "filename" : "OperationDefinition-revoke-consent.json",
+    "resourceType" : "OperationDefinition",
+    "id" : "revoke-consent",
+    "url" : "http://hl7.org/fhir/us/consent-management/OperationDefinition/revoke-consent",
+    "version" : "1.0.0-preview",
+    "kind" : "operation",
+    "type" : "true"
+  },
+  {
+    "filename" : "SearchParameter-fast-consent-controller.json",
+    "resourceType" : "SearchParameter",
+    "id" : "fast-consent-controller",
+    "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-controller",
+    "version" : "1.0.0-preview",
+    "type" : "reference"
+  },
+  {
+    "filename" : "StructureDefinition-ext-R5-Consent.controller.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "ext-R5-Consent.controller",
+    "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.controller",
+    "version" : "0.0.1-preview",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-ext-R5-Consent.manager.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "ext-R5-Consent.controller",
+    "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager",
+    "version" : "0.0.1-preview",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "SearchParameter-fast-consent-manager.json",
+    "resourceType" : "SearchParameter",
+    "id" : "fast-consent-manager",
+    "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager",
+    "version" : "1.0.0-preview",
+    "type" : "reference"
+  },
+  {
+    "filename" : "StructureDefinition-FASTConsent.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FASTConsent",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsent",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "Consent",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-FASTConsentAuditEvent.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FASTConsentAuditEvent",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsentAuditEvent",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "AuditEvent",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-FASTDocumentReference.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FASTDocumentReference",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTDocumentReference",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "DocumentReference",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-FASTReference.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FASTReference",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTReference",
+    "version" : "1.0.0-preview",
+    "kind" : "complex-type",
+    "type" : "Reference",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-FASTSubscription.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FASTSubscription",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTSubscription",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "Subscription",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-FileConsentParameters.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "FileConsentParameters",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/FileConsentParameters",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "Parameters",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-RevokeConsentParameters.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "RevokeConsentParameters",
+    "url" : "http://hl7.org/fhir/us/consent-management/StructureDefinition/RevokeConsentParameters",
+    "version" : "1.0.0-preview",
+    "kind" : "resource",
+    "type" : "Parameters",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "ValueSet-FASTConsentStatuses.json",
+    "resourceType" : "ValueSet",
+    "id" : "FASTConsentStatuses",
+    "url" : "http://hl7.org/fhir/us/consent-management/ValueSet/FASTConsentStatuses",
+    "version" : "1.0.0-preview"
+  },
+  {
+    "filename" : "ValueSet-LOINCConsentDocumentTypes.json",
+    "resourceType" : "ValueSet",
+    "id" : "LOINCConsentDocumentTypes",
+    "url" : "http://hl7.org/fhir/us/consent-management/ValueSet/LOINCConsentDocumentTypes",
+    "version" : "1.0.0-preview"
+  }]
 }
