@@ -3709,7 +3709,10 @@ public class ApplicationController implements Serializable {
 
 			if (subscription != null) {
 				// Populate updateSubscription values that can be changed
-				// We know these values exist because we populated them when performing fileConsent
+
+				String selectedSubscriptionTopicURL = subscription.getCriteria();
+				context.setSelectedSubscriptionTopic(context.getSubscriptionTopicByURL(selectedSubscriptionTopicURL));
+
 				String selectedSubscriptionStatus = subscription.getStatus().toCode();
 				context.setSelectedSubscriptionStatus(selectedSubscriptionStatus);
 
