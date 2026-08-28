@@ -85,6 +85,7 @@ import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.Consent.ConsentPolicyComponent;
 import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
 import org.hl7.fhir.r4.model.Consent.ConsentState;
 import org.hl7.fhir.r4.model.Consent.ProvisionComponent;
@@ -2205,12 +2206,9 @@ public class ApplicationController implements Serializable {
 
 			// Set sourceReference to DocumentReference below
 
-			codeableConcept = new CodeableConcept();
-			coding = new Coding();
-			coding.setSystem("http://terminology.hl7.org/CodeSystem/consentpolicycodes");
-			coding.setCode("hipaa-auth");
-			codeableConcept.addCoding(coding);
-			consent.setPolicyRule(codeableConcept);
+			ConsentPolicyComponent policy = new ConsentPolicyComponent();
+			policy.setUri("hipaa-auth");
+			consent.addPolicy(policy);
 
 			ProvisionComponent provision = new ProvisionComponent();
 			provision.setType(ConsentProvisionType.fromCode(provisionType));
