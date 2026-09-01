@@ -1945,6 +1945,9 @@ public class ResourceType {
 		resourceCriteria.add(new LabelKeyValueBean("Security Labels that define affected resources", "security-label", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-security-label"));
 		resourceCriteria.add(new LabelKeyValueBean("Search by reference to a Consent, DocumentReference, Contract  or QuestionnaireResponse", "source-reference", "", "REFERENCE", "http://hl7.org/fhir/SearchParameter/Consent-source-reference"));
 		resourceCriteria.add(new LabelKeyValueBean("draft | proposed | active | rejected | inactive | entered-in-error", "status", "", "TOKEN", "http://hl7.org/fhir/SearchParameter/Consent-status"));
+		// FAST Consent Defined Search Parameters
+		resourceCriteria.add(new LabelKeyValueBean("The Consent controller reference which is defined by the Consent extension controller", "controller", "", "REFERENCE", "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-controller"));
+		resourceCriteria.add(new LabelKeyValueBean("The Consent manager reference which is defined by the Consent extension manager", "manager", "", "REFERENCE", "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager"));
 		resourceTypeCriteria.put("Consent", resourceCriteria);
 
 		resourceCriteria = new ArrayList<LabelKeyValueBean>();
