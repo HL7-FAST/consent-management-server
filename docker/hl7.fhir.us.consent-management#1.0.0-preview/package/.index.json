@@ -6,6 +6,16 @@
     "id" : "FASTConsentSubscriptionTopic"
   },
   {
+    "filename" : "Basic-artifacts-summary-client.json",
+    "resourceType" : "Basic",
+    "id" : "artifacts-summary-client"
+  },
+  {
+    "filename" : "Basic-artifacts-summary-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "artifacts-summary-consent-server"
+  },
+  {
     "filename" : "Basic-capstmt-client.json",
     "resourceType" : "Basic",
     "id" : "capstmt-client"
@@ -46,6 +56,21 @@
     "id" : "conformance-consent-server"
   },
   {
+    "filename" : "Basic-conformance-expectations-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-expectations-client-consent-server"
+  },
+  {
+    "filename" : "Basic-conformance-expectations-client.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-expectations-client"
+  },
+  {
+    "filename" : "Basic-conformance-expectations-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "conformance-expectations-consent-server"
+  },
+  {
     "filename" : "Basic-consent-server.json",
     "resourceType" : "Basic",
     "id" : "consent-server"
@@ -56,9 +81,9 @@
     "id" : "extended-operations-client-consent-server"
   },
   {
-    "filename" : "Basic-fromNarrative.json",
+    "filename" : "Basic-implementation-notes-client-consent-server.json",
     "resourceType" : "Basic",
-    "id" : "fromNarrative"
+    "id" : "implementation-notes-client-consent-server"
   },
   {
     "filename" : "Basic-search-parameters-client-consent-server.json",
@@ -71,19 +96,34 @@
     "id" : "structure-definitions-client-consent-server"
   },
   {
-    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser.json",
+    "filename" : "Basic-structure-definitions-client.json",
     "resourceType" : "Basic",
-    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client-consent-ser"
+    "id" : "structure-definitions-client"
   },
   {
-    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-client.json",
+    "filename" : "Basic-structure-definitions-consent-server.json",
     "resourceType" : "Basic",
-    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-client"
+    "id" : "structure-definitions-consent-server"
   },
   {
-    "filename" : "Basic-subscriptiontopic-fastconsentsubscriptiontopic-consent-server.json",
+    "filename" : "Basic-subscription-topics-client-consent-server.json",
     "resourceType" : "Basic",
-    "id" : "subscriptiontopic-fastconsentsubscriptiontopic-consent-server"
+    "id" : "subscription-topics-client-consent-server"
+  },
+  {
+    "filename" : "Basic-subscription-topics-client.json",
+    "resourceType" : "Basic",
+    "id" : "subscription-topics-client"
+  },
+  {
+    "filename" : "Basic-subscription-topics-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "subscription-topics-consent-server"
+  },
+  {
+    "filename" : "Basic-technical-specification-client-consent-server.json",
+    "resourceType" : "Basic",
+    "id" : "technical-specification-client-consent-server"
   },
   {
     "filename" : "Basic-technical-specification-client.json",
@@ -150,11 +190,19 @@
     "type" : "reference"
   },
   {
+    "filename" : "SearchParameter-fast-consent-manager.json",
+    "resourceType" : "SearchParameter",
+    "id" : "fast-consent-manager",
+    "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager",
+    "version" : "1.0.0-preview",
+    "type" : "reference"
+  },
+  {
     "filename" : "StructureDefinition-ext-R5-Consent.controller.json",
     "resourceType" : "StructureDefinition",
     "id" : "ext-R5-Consent.controller",
     "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.controller",
-    "version" : "0.0.1-preview",
+    "version" : "1.0.0-preview",
     "kind" : "complex-type",
     "type" : "Extension",
     "derivation" : "constraint"
@@ -164,18 +212,10 @@
     "resourceType" : "StructureDefinition",
     "id" : "ext-R5-Consent.controller",
     "url" : "http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager",
-    "version" : "0.0.1-preview",
+    "version" : "1.0.0-preview",
     "kind" : "complex-type",
     "type" : "Extension",
     "derivation" : "constraint"
-  },
-  {
-    "filename" : "SearchParameter-fast-consent-manager.json",
-    "resourceType" : "SearchParameter",
-    "id" : "fast-consent-manager",
-    "url" : "http://hl7.org/fhir/us/consent-management/SearchParameter/fast-consent-manager",
-    "version" : "1.0.0-preview",
-    "type" : "reference"
   },
   {
     "filename" : "StructureDefinition-FASTConsent.json",
