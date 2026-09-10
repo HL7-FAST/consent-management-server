@@ -1,0 +1,30 @@
+{
+  "resourceType": "Organization",
+  "id": "organization-fastconsentri",
+  "identifier": [
+    {
+      "system": "http://example.org/identifiers",
+      "value": "organization-fastconsentri"
+    }
+  ],
+  "active": "true",
+  "type": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+          "value": "other",
+          "display": "Other"
+        }
+      ],
+      "text": "FAST Consent Administrative Server RI"
+    }
+  ],
+  "name": "FAST Consent Administrative Server - Reference Implementation",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "https://wildfhir.wildfhir.org/fastconsent/r4"
+    }
+  ]
+}
