@@ -85,6 +85,7 @@ import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Consent;
+import org.hl7.fhir.r4.model.Consent.ConsentPolicyComponent;
 import org.hl7.fhir.r4.model.Consent.ConsentProvisionType;
 import org.hl7.fhir.r4.model.Consent.ConsentState;
 import org.hl7.fhir.r4.model.Consent.ProvisionComponent;
@@ -96,6 +97,7 @@ import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Patient;
@@ -2137,7 +2139,7 @@ public class ApplicationController implements Serializable {
 			// Get selected client resources
 			Patient grantor = (Patient) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientPatientId));
 			RelatedPerson recipient = (RelatedPerson) context.getClientresourceService().readFHIRResource(Integer.valueOf(clientRelatedPersonId));
-			Serverdirectory server = context.getServerDirectoryService().findServerdirectoryByBasePath(context.getSelectedServerURL());
+//			Serverdirectory server = context.getServerDirectoryService().findServerdirectoryByBasePath(context.getSelectedServerURL());
 
 			// Build $fileConsent Parameters with Consent and DocumentReference
 			Parameters p = new Parameters();
@@ -2157,20 +2159,21 @@ public class ApplicationController implements Serializable {
 			meta.addProfile("http://hl7.org/fhir/us/consent-management/StructureDefinition/FASTConsent");
 			consent.setMeta(meta);
 
-			Extension extension = new Extension();
-			extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager");
-			Reference reference = new Reference();
-			// Build manager Organization reference from selected Serverdirectory
-			String serverId = server.getName().toLowerCase().replaceAll(" ", "-");
-			reference.setReference("Organization/" + serverId);
-			Identifier identifer = new Identifier();
-			identifer.setSystem("http://example.org/identifiers");
-			identifer.setValue(serverId);
-			reference.setIdentifier(identifer);
-			extension.setValue(reference);
-			consent.addExtension(extension);
+			// Comment manager extension - this logic belongs on the server's processing of $fileConsent
+//			Extension extension = new Extension();
+//			extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager");
+//			Reference reference = new Reference();
+//			// Build manager Organization reference from selected Serverdirectory
+//			String serverId = server.getName().toLowerCase().replaceAll(" ", "-");
+//			reference.setReference("Organization/" + serverId);
+//			Identifier identifer = new Identifier();
+//			identifer.setSystem("http://example.org/identifiers");
+//			identifer.setValue(serverId);
+//			reference.setIdentifier(identifer);
+//			extension.setValue(reference);
+//			consent.addExtension(extension);
 
-			identifer = new Identifier();
+			Identifier identifer = new Identifier();
 			identifer.setSystem("http://example.org/identifiers");
 			identifer.setValue(consentId);
 			consent.addIdentifier(identifer);
@@ -2205,12 +2208,9 @@ public class ApplicationController implements Serializable {
 
 			// Set sourceReference to DocumentReference below
 
-			codeableConcept = new CodeableConcept();
-			coding = new Coding();
-			coding.setSystem("http://terminology.hl7.org/CodeSystem/consentpolicycodes");
-			coding.setCode("hipaa-auth");
-			codeableConcept.addCoding(coding);
-			consent.setPolicyRule(codeableConcept);
+			ConsentPolicyComponent policy = new ConsentPolicyComponent();
+			policy.setUri("hipaa-auth");
+			consent.addPolicy(policy);
 
 			ProvisionComponent provision = new ProvisionComponent();
 			provision.setType(ConsentProvisionType.fromCode(provisionType));
@@ -2268,7 +2268,7 @@ public class ApplicationController implements Serializable {
 			docRef.addIdentifier(docRefIidentifer);
 
 			// Set Consent.sourceReference to DocumentReference
-			reference = new Reference();
+			Reference reference = new Reference();
 			reference.setReference("DocumentReference/" + docRefId);
 			reference.setIdentifier(docRefIidentifer);
 			consent.setSource(reference);
@@ -3230,6 +3230,12 @@ public class ApplicationController implements Serializable {
 			iResource = new ByteArrayInputStream(serverContents.getBytes());
 			resource = jsonParser.parse(iResource);
 
+			// Check for Organization/organization-fastconsentri
+			if (resource.getResourceType().name().equals("Organization") && resource.getId().equals("organization-fastconsentri")) {
+				Organization orgResource = (Organization) resource;
+				orgResource.getTelecomFirstRep().setValue(localServer.getBasePath());
+			}
+
 			response = context.getResourceRESTClient().update(resource.getId(), resource, localServer.getBasePath(), resource.getResourceType().name(), Constants.FHIR_JSON_CONTENT, null, null, null, null, null);
 
 			wrapper = new ResourceResponseWrapper(response);
@@ -3709,7 +3715,10 @@ public class ApplicationController implements Serializable {
 
 			if (subscription != null) {
 				// Populate updateSubscription values that can be changed
-				// We know these values exist because we populated them when performing fileConsent
+
+				String selectedSubscriptionTopicURL = subscription.getCriteria();
+				context.setSelectedSubscriptionTopic(context.getSubscriptionTopicByURL(selectedSubscriptionTopicURL));
+
 				String selectedSubscriptionStatus = subscription.getStatus().toCode();
 				context.setSelectedSubscriptionStatus(selectedSubscriptionStatus);
 

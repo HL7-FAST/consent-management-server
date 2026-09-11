@@ -45,11 +45,13 @@ import org.hl7.fhir.r4.formats.XmlParser;
 import org.hl7.fhir.r4.formats.IParser.OutputStyle;
 import org.hl7.fhir.r4.model.Consent;
 import org.hl7.fhir.r4.model.DocumentReference;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.Reference;
@@ -319,6 +321,45 @@ public class FASTConsentFileConsent extends ResourceOperationProxy {
 				if (consent.hasIdentifier()) {
 					consentIdentifier = consent.getIdentifierFirstRep();
 				}
+
+				// Remove any manager extensions in the Consent
+				List<Extension> keepExtensions = null;
+				if (consent.hasExtension()) {
+					for (Extension ext : consent.getExtension()) {
+						if (!ext.getUrl().equals("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager")) {
+							if (keepExtensions == null) {
+								keepExtensions = new ArrayList<Extension>();
+							}
+							keepExtensions.add(ext);
+						}
+					}
+				}
+
+				// Assign this server's Organization as the manager of the Consent
+				Resource riRes = resourceService.readFHIRResourceForTypeId("Organization", "organization-fastconsentri");
+
+				Organization riOrg = (Organization)riRes;
+				Extension extension = new Extension();
+				extension.setUrl("http://hl7.org/fhir/5.0/StructureDefinition/extension-Consent.manager");
+				Reference reference = new Reference();
+
+				if (riRes != null) {
+					// Build manager Organization reference from this server's Organization
+					String serverId = riOrg.getId();
+					String serverBaseUrl = riOrg.getTelecomFirstRep().getValue();
+					String serverReference = serverBaseUrl + (serverBaseUrl.endsWith("/") ? "" : "/") + serverId;
+					reference.setReference(serverReference);
+					reference.setIdentifier(riOrg.getIdentifierFirstRep());
+				}
+				else {
+					// Server's Organization now found; populate with default identifier
+					Identifier identifier = new Identifier();
+					identifier.setSystem("http://example.org/identifiers");
+					identifier.setValue("organization-fastconsentri");
+					reference.setIdentifier(identifier);
+				}
+				extension.setValue(reference);
+				consent.addExtension(extension);
 
 				// Use RI NarrativeGenerator
 				FHIRNarrativeGeneratorClient.instance().generate(consent);

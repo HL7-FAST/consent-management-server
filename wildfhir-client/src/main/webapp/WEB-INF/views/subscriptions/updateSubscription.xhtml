@@ -61,7 +61,7 @@
 							<p:selectOneMenu required="true" label="Select Subscription" value="#{context.selectedSubscriptionId}" maxlength="255" style="width:300px;text-align:left;padding-right:30px;">
 								<f:selectItem itemValue="#{null}" itemLabel="-- Select Subscription --         " noSelectionOption="true" />
 								<f:selectItems value="#{context.clientSubscriptions}" var="con" itemLabel="#{con.description.trim()}         " itemValue="#{con.id}" />
-								<p:ajax update="updateSubscriptionStatusDropdown,updateSubscriptionEndDate,updateSubscriptionReason,updateSubscriptionCriteria,updateSubscriptionEndpoint,updateSubscriptionPayloadTypeDropdown,updateSubscriptionContentTypeDropdown" listener="#{controller.handleUpdateSubscriptionChange}" />
+								<p:ajax update="updateSubscriptionTopic,updateSubscriptionStatusDropdown,updateSubscriptionEndDate,updateSubscriptionReason,updateSubscriptionCriteria,updateSubscriptionEndpoint,updateSubscriptionPayloadTypeDropdown,updateSubscriptionContentTypeDropdown" listener="#{controller.handleUpdateSubscriptionChange}" />
 							</p:selectOneMenu>
 
 							<h:outputText value="SubscriptionTopic *" />
