@@ -40,6 +40,7 @@ import org.hl7.fhir.r4.model.Subscription;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
+import net.aegis.fhir.service.ServerdirectoryService;
 import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 
@@ -55,6 +56,7 @@ public abstract class SubscriptionTopicProxy {
 	 * @param resourceService
 	 * @param resourcemetadataService
 	 * @param codeService
+	 * @param serverDirectoryService
 	 * @param auditEventService
 	 * @param provenanceService
 	 * @param subscription
@@ -63,7 +65,7 @@ public abstract class SubscriptionTopicProxy {
 	 * @return <code>Bundle</code>
 	 * @throws Exception
 	 */
-	public abstract Bundle processTopic(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, Subscription subscription, Date since, StringBuffer returnedDetails) throws Exception;
+	public abstract Bundle processTopic(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, ServerdirectoryService serverDirectoryService, AuditEventService auditEventService, ProvenanceService provenanceService, Subscription subscription, Date since, StringBuffer returnedDetails) throws Exception;
 
 	/**
 	 * Process a received Subscription Event Notification
@@ -71,6 +73,7 @@ public abstract class SubscriptionTopicProxy {
 	 * @param resourceService
 	 * @param resourcemetadataService
 	 * @param codeService
+	 * @param serverDirectoryService
 	 * @param auditEventService
 	 * @param provenanceService
 	 * @param notification
@@ -78,6 +81,6 @@ public abstract class SubscriptionTopicProxy {
 	 * @return boolean true: success; false: failure
 	 * @throws Exception
 	 */
-	public abstract boolean processEventNotification(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification, org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType, StringBuffer returnedDetails) throws Exception;
+	public abstract boolean processEventNotification(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, ServerdirectoryService serverDirectoryService, AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification, org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType, StringBuffer returnedDetails) throws Exception;
 
 }

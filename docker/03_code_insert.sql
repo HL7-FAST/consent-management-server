@@ -26,4 +26,6 @@ INSERT INTO fastconsentr4.code (codeName,value,intValue,description,resourceCont
 ('initializeClientPath','/home/jboss/initializeClient',0,'Initialize Client directory path containing the default resource instance files',NULL),
 ('initializeServerPath','/home/jboss/initializeServer',0,'Initialize Server directory path containing the default resource instance files',NULL),
 ('fhirPackages','hl7.fhir.r4.core#4.0.1,hl7.fhir.us.consent-management#1.0.0-preview',0,'Comma separated list of FHIR validation packages (if empty, try env var FHIR_PACKAGES)',NULL),
-('fhirTxServer','http://tx.fhir.org/r4',0,'FHIR Terminology Server address (if empty, try env var FHIR_TX_SERVER)',NULL);
+('fhirTxServer','http://tx.fhir.org/r4',0,'FHIR Terminology Server address (if empty, try env var FHIR_TX_SERVER)',NULL),
+('oauthClientEnabled','false',0,'WildFHIR Client OAuth enabled setting (true, false)',NULL),
+('oauthServerEnabled','false',0,'WildFHIR Server OAuth enabled setting (true, false)',NULL);

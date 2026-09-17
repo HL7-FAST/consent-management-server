@@ -65,6 +65,7 @@ import net.aegis.fhir.model.ResourceContainer;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
+import net.aegis.fhir.service.ServerdirectoryService;
 import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.provenance.ProvenanceService;
 import net.aegis.fhir.service.util.ServicesUtil;
@@ -84,14 +85,9 @@ public class WildfhirCESubscriptionTopic extends SubscriptionTopicProxy {
 
 	private UTCDateUtil utcDateUtil = new UTCDateUtil();
 
-	/* (non-Javadoc)
-	 * @see net.aegis.fhir.service.subscription.r5.topic.SubscriptionTopicProxy#processTopic(net.aegis.fhir.service.ResourceService, net.aegis.fhir.service.ResourcemetadataService, net.aegis.fhir.service.CodeService, net.aegis.fhir.service.audit.AuditEventService, net.aegis.fhir.service.provenance.ProvenanceService, org.hl7.fhir.r4.model.Subscription, java.util.Date, java.lang.StringBuffer)
-	 */
 	@Override
-	public Bundle processTopic(ResourceService resourceService,
-			ResourcemetadataService resourcemetadataService, CodeService codeService,
-			AuditEventService auditEventService, ProvenanceService provenanceService,
-			Subscription subscription, Date since, StringBuffer returnedDetails)
+	public Bundle processTopic(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, ServerdirectoryService serverDirectoryService,
+			AuditEventService auditEventService, ProvenanceService provenanceService, Subscription subscription, Date since, StringBuffer returnedDetails)
 			throws Exception {
 
 		log.fine("[START] WildfhirCESubscriptionTopic.processTopic()");
@@ -317,10 +313,8 @@ public class WildfhirCESubscriptionTopic extends SubscriptionTopicProxy {
 	}
 
 	@Override
-	public boolean processEventNotification(ResourceService resourceService,
-			ResourcemetadataService resourcemetadataService, CodeService codeService,
-			AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification,
-			org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType,
+	public boolean processEventNotification(ResourceService resourceService, ResourcemetadataService resourcemetadataService, CodeService codeService, ServerdirectoryService serverDirectoryService,
+			AuditEventService auditEventService, ProvenanceService provenanceService, Bundle notification, org.hl7.fhir.r5.model.SubscriptionStatus subscriptionstatus, String producesType,
 			StringBuffer returnedDetails) throws Exception {
 
 		return true; // default, no processing

@@ -76,6 +76,7 @@ import net.aegis.fhir.service.ClientresourceService;
 import net.aegis.fhir.service.CodeService;
 import net.aegis.fhir.service.ResourceService;
 import net.aegis.fhir.service.ResourcemetadataService;
+import net.aegis.fhir.service.ServerdirectoryService;
 import net.aegis.fhir.service.audit.AuditEventService;
 import net.aegis.fhir.service.client.ResourceRESTClient;
 import net.aegis.fhir.service.provenance.ProvenanceService;
@@ -102,22 +103,25 @@ public class SubscriptionServiceR5 {
 	private Logger log = Logger.getLogger("SubscriptionServiceR5");
 
 	@Inject
-	AuditEventService auditEventService;
+	private AuditEventService auditEventService;
 
 	@Inject
-	ClientresourceService clientresourceService;
+	private ClientresourceService clientresourceService;
 
     @Inject
-    CodeService codeService;
+    private CodeService codeService;
 
 	@Inject
-    ProvenanceService provenanceService;
+	private ProvenanceService provenanceService;
 
     @Inject
 	private ResourceService resourceService;
 
 	@Inject
-	ResourcemetadataService resourcemetadataService;
+	private ResourcemetadataService resourcemetadataService;
+
+    @Inject
+	private ServerdirectoryService serverDirectoryService;
 
 	@Inject
 	private UTCDateUtil utcDateUtil;
@@ -129,7 +133,7 @@ public class SubscriptionServiceR5 {
 	 */
 
 	public SubscriptionServiceR5() throws Exception {
-		this.resourceClient = new ResourceRESTClient(codeService);
+		super();
 	}
 
 	/**
@@ -210,7 +214,7 @@ public class SubscriptionServiceR5 {
 					if (topicProxy != null) {
 						StringBuffer returnedDetails = new StringBuffer();
 
-						Bundle subscriptionBundle = topicProxy.processTopic(resourceService, resourcemetadataService, codeService, auditEventService, provenanceService, subscription, since, returnedDetails);
+						Bundle subscriptionBundle = topicProxy.processTopic(resourceService, resourcemetadataService, codeService, serverDirectoryService, auditEventService, provenanceService, subscription, since, returnedDetails);
 
 						// Select processing based on channel.type
 						switch (subscription.getChannel().getType()) {
@@ -272,6 +276,7 @@ public class SubscriptionServiceR5 {
 										headers.add("Accept:" + subscription.getChannel().getPayload());
 									}
 
+									this.resourceClient = new ResourceRESTClient(codeService, serverDirectoryService);
 									response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload, subscription.getChannel().getPayload(), headers);
 
 									responseEntity = response.readEntity(String.class);
@@ -427,6 +432,7 @@ public class SubscriptionServiceR5 {
 									headers.add("Accept:" + subscription.getChannel().getPayload());
 								}
 
+								this.resourceClient = new ResourceRESTClient(codeService, serverDirectoryService);
 								response = resourceClient.post(subscription.getChannel().getEndpoint(), null, payload,
 										subscription.getChannel().getPayload(), headers);
 
@@ -568,7 +574,7 @@ public class SubscriptionServiceR5 {
 						if (topicProxy != null) {
 							StringBuffer returnedDetails = new StringBuffer();
 
-							result = topicProxy.processEventNotification(resourceService, resourcemetadataService, codeService, auditEventService, provenanceService, notifyBundle, existingSubscriptionStatus, producesType, returnedDetails);
+							result = topicProxy.processEventNotification(resourceService, resourcemetadataService, codeService, serverDirectoryService, auditEventService, provenanceService, notifyBundle, existingSubscriptionStatus, producesType, returnedDetails);
 
 							if (result == true) {
 								// Successful processing, return information outcome with returnedDetails

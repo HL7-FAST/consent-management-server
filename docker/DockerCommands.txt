@@ -26,7 +26,7 @@ docker compose -p fastconsent-ri create
 # -------------------------------------------------------------------------------
 docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 --env-file ./env.list --name=fastconsent-ri hlseven/consent-management-server:1.0.0
 
-docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 -e WILDFHIR_HOST=d29wn3k3.aegis.net -e WILDFHIR_DATABASE_HOST=localhost -e WILDFHIR_BASEURL=http://d29wn3k3.aegis.net:8080/r4 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-preview --name=fastconsent-ri hlseven/consent-management-server:1.0.0
+docker run -itd -p 3306:3306 -p 8080:8080 -p 8443:8443 -p 9990:9990 -e WILDFHIR_HOST=d29wn3k3.aegis.net -e WILDFHIR_DATABASE_HOST=localhost -e WILDFHIR_BASEURL=http://d29wn3k3.aegis.net:8080/fastconsent/r4 -e FHIR_PACKAGES=hl7.fhir.us.consent-management#1.0.0-preview --name=fastconsent-ri hlseven/consent-management-server:1.0.0
 
 # -------------------------------------------------------------------------------
 # Run consent-management-server container

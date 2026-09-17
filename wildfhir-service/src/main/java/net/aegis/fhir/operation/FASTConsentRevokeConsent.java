@@ -153,11 +153,11 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				}
 			}
 
+			StringBuffer msg = new StringBuffer("$revokeConsent failed.");
 			/*
 			 * If the 'consent' or 'patient' input parameters are null, throw exception
 			 */
 			if (paramConsent == null || paramPatient == null) {
-				StringBuffer msg = new StringBuffer("$revokeConsent failed.");
 				if (paramConsent == null) {
 					msg.append(" The 'consent' input parameter was not defined or its value contents were empty or null.");
 				}
@@ -168,7 +168,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 			}
 			else {
 				// Attempt to get(search by identifier; if not, then read by reference) existing Consent; if not found, throw exception
-				if (paramConsent.hasIdentifier()) {
+				if (existingConsent == false && paramConsent.hasIdentifier()) {
 					// Define query parameters and populate with search parameter values if defined
 					StringBuffer param = new StringBuffer();
 					Identifier identifier = paramConsent.getIdentifier();
@@ -183,14 +183,7 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 						queryParams.add("identifier", param.toString());
 					}
 
-					if (paramPatient.hasReference()) {
-						// Get Patient reference search parameter
-						String patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramPatient.getReference());
-						if (!patientId.isEmpty()) {
-							queryParams.add("patient", "Patient/" + patientId);
-						}
-					}
-					else if (paramPatient.hasIdentifier()) {
+					if (paramPatient.hasIdentifier()) {
 						// Get Patient identifier chained search parameter
 						identifier = paramPatient.getIdentifier();
 						param = new StringBuffer();
@@ -202,6 +195,13 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 						}
 						if (param.length() > 1) {
 							queryParams.add("patient:identifier", param.toString());
+						}
+					}
+					else if (paramPatient.hasReference()) {
+						// Get Patient reference search parameter
+						String patientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramPatient.getReference());
+						if (!patientId.isEmpty()) {
+							queryParams.add("patient", "Patient/" + patientId);
 						}
 					}
 
@@ -232,7 +232,13 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 						}
 					}
 				}
-				else if (paramConsent.hasReference()) {
+
+				if (existingConsent == false && paramConsent.hasReference()) {
+					// Check that Consent reference is not a history reference
+					if (paramConsent.getReference().contains("_history")) {
+						msg.append(" Cannot find the existing Consent resource based on a history reference '" + paramConsent.getReference() + "'.");
+					}
+
 					String consentId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramConsent.getReference());
 					if (!consentId.isEmpty()) {
 						ResourceContainer readExisting = resourceService.read("Consent", consentId, null);
@@ -246,46 +252,27 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				}
 
 				if (existingConsent == false) {
-					throw new Exception("Cannot find the existing Consent resource based on the 'consent' and 'patient' input parameters.");
+					msg.append(" Cannot find the existing Consent resource based on the 'consent' and 'patient' input parameters.");
+					throw new Exception(msg.toString());
 				}
 				else {
-					// Final check of found Consent.patient equal to patient reference
-					Reference patientReference = consent.getPatient();
-					if (paramPatient.hasReference() && !patientReference.hasReference()) {
-						throw new Exception("'patient' parameter has reference but existing Consent resource patient does not.");
-					}
-					if (!paramPatient.hasReference() && patientReference.hasReference()) {
-						throw new Exception("Existing Consent resource patient has reference but 'patient' parameter does not.");
-					}
-					if (paramPatient.hasReference() && patientReference.hasReference()) {
-						String paramPatientId = ServicesUtil.INSTANCE.extractResourceIdFromURL(paramPatient.getReference());
-						String patientReferenceId = ServicesUtil.INSTANCE.extractResourceIdFromURL(patientReference.getReference());
-						if (!paramPatientId.equals(patientReferenceId)) {
-							throw new Exception("Existing Consent resource patient reference (" + patientReference.getReference() +
-								") does not match 'patient' parameter reference (" + paramPatient.getReference() + ").");
+					// Check Consent status
+					if (consent.hasStatus()) {
+						if (consent.getStatus().equals(ConsentState.ACTIVE)) {
+							// Ok to revoke
+						}
+						else if (consent.getStatus().equals(ConsentState.INACTIVE)) {
+							msg.append(" Cannot revoke existing Consent! Consent is already revoked; status equals 'inactive'.");
+							throw new Exception(msg.toString());
+						}
+						else {
+							msg.append(" Cannot revoke existing Consent! Consent status equals '" + consent.getStatus().toCode() + "'.");
+							throw new Exception(msg.toString());
 						}
 					}
-					if (paramPatient.hasIdentifier() && patientReference.hasIdentifier()) {
-						StringBuffer paramPatientIdentifier = new StringBuffer();
-						if (paramPatient.getIdentifier().hasSystem()) {
-							paramPatientIdentifier.append(paramPatient.getIdentifier().getSystem()).append("|");
-						}
-						if (paramPatient.getIdentifier().hasValue()) {
-							paramPatientIdentifier.append(paramPatient.getIdentifier().getValue());
-						}
-
-						StringBuffer patientReferenceIdentifier = new StringBuffer();
-						if (patientReference.getIdentifier().hasSystem()) {
-							patientReferenceIdentifier.append(patientReference.getIdentifier().getSystem()).append("|");
-						}
-						if (patientReference.getIdentifier().hasValue()) {
-							patientReferenceIdentifier.append(patientReference.getIdentifier().getValue());
-						}
-
-						if (!paramPatientIdentifier.toString().equals(patientReferenceIdentifier.toString())) {
-							throw new Exception("Existing Consent resource patient reference.identifier (" + patientReferenceIdentifier.toString() +
-								"] does not match 'patient' parameter reference.identifier (" + paramPatientIdentifier.toString()+ ").");
-						}
+					else {
+						msg.append(" Cannot revoke existing Consent! Consent.status not defined.");
+						throw new Exception(msg.toString());
 					}
 				}
 			}
@@ -296,7 +283,8 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 				/*
 				 * Returned OperationOutcome is null, throw exception (should not happen)
 				 */
-				throw new Exception("The attempt to revoke the Consent produced a null outcome. Please verify the contents of the input payload.");
+				msg.append("The attempt to revoke the Consent produced a null outcome. Please verify the contents of the input payload.");
+				throw new Exception(msg.toString());
 			}
 
 			out = new Parameters();
@@ -461,6 +449,10 @@ public class FASTConsentRevokeConsent extends ResourceOperationProxy {
 					consentIdentifier = consent.getIdentifierFirstRep();
 				}
 
+				if (consent.hasText()) {
+					// Remove current narrative text
+					consent.setText(null);
+				}
 				// Use RI NarrativeGenerator
 				FHIRNarrativeGeneratorClient.instance().generate(consent);
 

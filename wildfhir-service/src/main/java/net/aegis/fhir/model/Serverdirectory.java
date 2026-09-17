@@ -70,6 +70,20 @@ public class Serverdirectory implements Serializable {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date lastUpdate;
 
+    private String oauthGrantType;
+
+    private String oauthClientId;
+
+    private String oauthClientSecret;
+
+    private String oauthScope;
+
+    private String oauthAuthUrl;
+
+    private String oauthTokenUrl;
+
+    private String oauthIntrospectUrl;
+
 	public Serverdirectory() {
 	}
 
@@ -121,6 +135,83 @@ public class Serverdirectory implements Serializable {
 		this.lastUpdate = lastUpdate;
 	}
 
+	public String getOauthGrantType() {
+		return oauthGrantType;
+	}
+
+	public void setOauthGrantType(String oauthGrantType) {
+		if (oauthGrantType != null && oauthGrantType.isEmpty()) {
+			oauthGrantType = null;
+		}
+		this.oauthGrantType = oauthGrantType;
+	}
+
+	public String getOauthClientId() {
+		return oauthClientId;
+	}
+
+	public void setOauthClientId(String oauthClientId) {
+		if (oauthClientId != null && oauthClientId.isEmpty()) {
+			oauthClientId = null;
+		}
+		this.oauthClientId = oauthClientId;
+	}
+
+	public String getOauthClientSecret() {
+		return oauthClientSecret;
+	}
+
+	public void setOauthClientSecret(String oauthClientSecret) {
+		if (oauthClientId != null && oauthClientId.isEmpty()) {
+			oauthClientId = null;
+		}
+		this.oauthClientSecret = oauthClientSecret;
+	}
+
+	public String getOauthScope() {
+		return oauthScope;
+	}
+
+	public void setOauthScope(String oauthScope) {
+		if (oauthScope != null && oauthScope.isEmpty()) {
+			oauthScope = null;
+		}
+		this.oauthScope = oauthScope;
+	}
+
+	public String getOauthAuthUrl() {
+		return oauthAuthUrl;
+	}
+
+	public void setOauthAuthUrl(String oauthAuthUrl) {
+		if (oauthAuthUrl != null && oauthAuthUrl.isEmpty()) {
+			oauthAuthUrl = null;
+		}
+		this.oauthAuthUrl = oauthAuthUrl;
+	}
+
+	public String getOauthTokenUrl() {
+		return oauthTokenUrl;
+	}
+
+	public void setOauthTokenUrl(String oauthTokenUrl) {
+		if (oauthTokenUrl != null && oauthTokenUrl.isEmpty()) {
+			oauthTokenUrl = null;
+		}
+		this.oauthTokenUrl = oauthTokenUrl;
+	}
+
+	public String getOauthIntrospectUrl() {
+		return oauthIntrospectUrl;
+	}
+
+	public void setOauthIntrospectUrl(String oauthIntrospectUrl) {
+		if (oauthIntrospectUrl != null && oauthIntrospectUrl.isEmpty()) {
+			oauthIntrospectUrl = null;
+		}
+		this.oauthIntrospectUrl = oauthIntrospectUrl;
+	}
+
 	/**
 	 * Return copy of this object
 	 *
@@ -143,6 +234,13 @@ public class Serverdirectory implements Serializable {
 		clone.setDescription(this.getDescription());
 		clone.setLastUser(this.getLastUser());
 		clone.setLastUpdate(this.getLastUpdate());
+		clone.setOauthGrantType(this.getOauthGrantType());
+		clone.setOauthClientId(this.getOauthClientId());
+		clone.setOauthClientSecret(this.getOauthClientSecret());
+		clone.setOauthScope(this.getOauthScope());
+		clone.setOauthAuthUrl(this.getOauthAuthUrl());
+		clone.setOauthTokenUrl(this.getOauthTokenUrl());
+		clone.setOauthIntrospectUrl(this.getOauthIntrospectUrl());
 
 		return clone;
 	}
@@ -175,7 +273,9 @@ public class Serverdirectory implements Serializable {
 	@Override
 	public String toString() {
 		return "Serverdirectory [id=" + id + ", name=" + name + ", description=" + description + ", basePath="
-				+ basePath + ", lastUser=" + lastUser + ", lastUpdate=" + lastUpdate;
+				+ basePath + ", lastUser=" + lastUser + ", lastUpdate=" + lastUpdate + ", oauthGrantType" + oauthGrantType
+				+ ", oauthClientId" + oauthClientId + ", oauthClientSecret" + oauthClientSecret + ", oauthScope" + oauthScope
+				+ ", oauthAuthUrl" + oauthAuthUrl + ", oauthTokenUrl" + oauthTokenUrl + ", oauthIntrospectUrl" + oauthIntrospectUrl;
 	}
 
 }
